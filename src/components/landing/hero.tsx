@@ -14,18 +14,15 @@ export function Hero() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-2 gap-8 items-center">
           <div className="relative z-10">
-            <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary mb-6">
-              Synapse3PL v1.1 is here!
-            </span>
-            <h1 className="font-headline text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-foreground mb-6">
-              Logistics management, <span className="text-primary">Warehousing</span>, and your own AI <span className="text-primary">Assistant</span> for E-commerce.
+            <h1 className="font-headline text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-gray-400 mb-6">
+              Logistics management, <span className="text-foreground">Warehousing</span>, Distribution, Inventory & your own <span className="text-foreground">Assistant</span> made for <span className="text-foreground">E-commerce</span>.
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
-              Start your free trial today. No credit card required, cancel anytime.
+              Start free trial, no credit card required.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg">Start Free Trial</Button>
-              <Button size="lg" variant="outline">Talk to Founders</Button>
+              <Button size="lg">Start free trial</Button>
+              <Button size="lg" variant="outline">Talk to founders</Button>
             </div>
           </div>
           <div className="relative hidden md:block h-[500px]">
@@ -59,7 +56,6 @@ function FloatingCards() {
             <div className="flex justify-between"><span>Products stored</span><span className="font-semibold">47,892</span></div>
             <div className="flex justify-between"><span>Orders today</span><span className="font-semibold">1,247</span></div>
             <div className="flex justify-between"><span>Avg. delivery time</span><span className="font-semibold">2.4 days</span></div>
-            <MiniChart />
           </CardContent>
         </Card>
         <Card className="absolute top-[200px] right-[300px] w-[300px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-2s' }}>
@@ -81,6 +77,15 @@ function FloatingCards() {
             <div className="flex justify-between"><span>Delays</span><span className="font-semibold text-destructive">3</span></div>
           </CardContent>
         </Card>
+        <Card className="absolute top-[320px] right-[150px] w-[300px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-6s' }}>
+          <CardHeader>
+            <p className="font-semibold">Performance</p>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+             <div className="flex justify-between"><span>Efficiency</span><span className="font-semibold">98%</span></div>
+            <MiniChart />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
@@ -90,7 +95,7 @@ function MiniChart() {
     return (
         <div className="w-full h-10 bg-muted rounded-md mt-2 relative overflow-hidden">
             <div className="absolute bottom-0 left-0 w-full h-[60%]" style={{
-                background: 'linear-gradient(135deg, hsl(var(--accent)), hsl(var(--primary)))',
+                background: 'linear-gradient(135deg, hsl(224 64% 32%), hsl(190 100% 58%))',
                 clipPath: 'polygon(0 100%, 20% 80%, 40% 85%, 60% 65%, 80% 70%, 100% 55%, 100% 100%)'
             }}></div>
         </div>

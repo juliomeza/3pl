@@ -4,12 +4,14 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, Star } from 'lucide-react';
+import { Menu, Sun } from 'lucide-react';
 
 const navLinks = [
   { href: '#features', label: 'Features' },
   { href: '#pricing', label: 'Pricing' },
-  { href: '#testimonials', label: 'Testimonials' },
+  { href: '#', label: 'Updates' },
+  { href: '#', label: 'Story' },
+  { href: '#', label: 'Download' },
   { href: '#', label: 'Developers' },
 ];
 
@@ -29,13 +31,13 @@ export function Header() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <Link href="/" className="flex items-center gap-2 font-headline text-xl font-semibold text-foreground">
-            <Star className="w-6 h-6 text-primary" />
-            Synapse3PL
+            <Sun className="w-6 h-6 text-accent" />
+            LogiFlow
           </Link>
           <div className="flex items-center gap-4">
-            <nav className="hidden md:flex items-center gap-1 bg-card/60 border rounded-full p-1 shadow-sm">
+            <nav className="hidden md:flex items-center gap-1">
               {navLinks.map((link) => (
-                <Button key={link.href} variant="ghost" asChild className="rounded-full">
+                <Button key={link.href} variant="ghost" asChild>
                   <Link href={link.href}>{link.label}</Link>
                 </Button>
               ))}
@@ -55,8 +57,8 @@ export function Header() {
               <SheetContent side="right">
                 <div className="flex flex-col gap-4 p-4">
                   <Link href="/" className="flex items-center gap-2 font-headline text-xl font-semibold text-foreground mb-4">
-                    <Star className="w-6 h-6 text-primary" />
-                    Synapse3PL
+                    <Sun className="w-6 h-6 text-accent" />
+                    LogiFlow
                   </Link>
                   <nav className="flex flex-col gap-2">
                     {navLinks.map((link) => (

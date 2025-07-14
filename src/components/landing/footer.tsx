@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Star } from 'lucide-react';
+import { Sun } from 'lucide-react';
 
 const footerLinks = {
     Product: [
@@ -35,8 +35,8 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
             <div className="col-span-2 md:col-span-1">
                 <Link href="/" className="flex items-center gap-2 font-headline text-xl font-semibold text-foreground">
-                    <Star className="w-6 h-6 text-primary" />
-                    Synapse3PL
+                    <Sun className="w-6 h-6 text-accent" />
+                    LogiFlow
                 </Link>
                 <p className="text-muted-foreground mt-2 text-sm">Stress free logistics.</p>
             </div>
@@ -56,7 +56,7 @@ export function Footer() {
             ))}
         </div>
         <div className="mt-8 pt-8 border-t text-center text-muted-foreground text-sm">
-            <p>&copy; {new Date().getFullYear()} Synapse3PL. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} LogiFlow. All rights reserved.</p>
         </div>
       </div>
     </footer>
