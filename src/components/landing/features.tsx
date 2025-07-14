@@ -1,31 +1,30 @@
-import Image from 'next/image';
 import { CheckCircle2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { AiAssistant } from './ai-assistant';
+import { LogisticsOverviewChart } from './charts/logistics-overview-chart';
+import { OrderTrackingChart } from './charts/order-tracking-chart';
+import { ShipmentManagementChart } from './charts/shipment-management-chart';
 
 const featureData = [
   {
     title: 'Logistics Overview',
     description: 'Bring your own warehouse. We connect to over 20,000+ suppliers in 33 countries. Keep tabs on your inventory and shipments, and gain a clearer picture of your business\'s logistics.',
     points: ['Inventory', 'Turnover rate', 'Shipments', 'Unified overview'],
-    image: 'https://placehold.co/500x400.png',
-    aiHint: 'logistics dashboard',
+    component: <LogisticsOverviewChart />,
     align: 'right'
   },
   {
     title: 'Track your orders',
     description: 'Track your orders, monitor project durations, set rates and create shipments from your recorded transactions.',
-    points: [],
-    image: 'https://placehold.co/500x400.png',
-    aiHint: 'order tracking',
+    points: ['Order status tracking', 'Real-time updates', 'Delivery history'],
+    component: <OrderTrackingChart />,
     align: 'left'
   },
   {
     title: 'Shipment Management',
     description: 'Create and send shipments to your customers, monitor your delivery status, track delayed shipments and send notifications.',
     points: ['Create orders', 'Add tracking & delivery notes', 'Add discounts', 'Send automated notifications', 'Export as PDF'],
-    image: 'https://placehold.co/500x400.png',
-    aiHint: 'shipping management',
+    component: <ShipmentManagementChart />,
     align: 'right'
   },
    {
@@ -66,18 +65,9 @@ export function Features() {
                 )}
               </div>
               <div className={`order-1 ${feature.align === 'left' ? 'md:order-1' : 'md:order-2'}`}>
-                {feature.component ? feature.component : (
-                   <Card className="overflow-hidden shadow-lg">
-                      <Image
-                        src={feature.image}
-                        alt={feature.title}
-                        width={500}
-                        height={400}
-                        className="w-full h-auto"
-                        data-ai-hint={feature.aiHint}
-                      />
-                   </Card>
-                )}
+                <Card className="overflow-hidden shadow-lg p-4">
+                  {feature.component}
+                </Card>
               </div>
             </div>
           ))}
