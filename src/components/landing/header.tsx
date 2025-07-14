@@ -23,10 +23,6 @@ import { cn } from '@/lib/utils';
 const navLinks = [
   { href: '#features', label: 'Features' },
   { href: '/pricing', label: 'Pricing' },
-  { href: '#', label: 'Updates' },
-  { href: '#', label: 'Story' },
-  { href: '#', label: 'Download' },
-  { href: '#', label: 'Developers' },
 ];
 
 export function Header() {
