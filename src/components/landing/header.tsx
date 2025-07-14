@@ -20,7 +20,7 @@ import {
 
 const navLinks = [
   { href: '#features', label: 'Features' },
-  { href: '#pricing', label: 'Pricing' },
+  { href: '/pricing', label: 'Pricing' },
   { href: '#', label: 'Updates' },
   { href: '#', label: 'Story' },
   { href: '#', label: 'Download' },
