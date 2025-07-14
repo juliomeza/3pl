@@ -8,26 +8,22 @@ import {
 } from "@/components/ui/chart"
 
 const chartData = [
-  { month: "January", shipments: 186, inventory: 80, turnover: 1.2 },
-  { month: "February", shipments: 305, inventory: 90, turnover: 1.5 },
-  { month: "March", shipments: 237, inventory: 70, turnover: 1.3 },
-  { month: "April", shipments: 273, inventory: 85, turnover: 1.6 },
-  { month: "May", shipments: 209, inventory: 65, turnover: 1.4 },
-  { month: "June", shipments: 214, inventory: 75, turnover: 1.5 },
+  { month: "January", shipments: 186, turnover: 1.2 },
+  { month: "February", shipments: 305, turnover: 1.5 },
+  { month: "March", shipments: 237, turnover: 1.3 },
+  { month: "April", shipments: 273, turnover: 1.6 },
+  { month: "May", shipments: 209, turnover: 1.4 },
+  { month: "June", shipments: 214, turnover: 1.5 },
 ]
 
 const chartConfig = {
   shipments: {
     label: "Shipments",
-    color: "hsl(var(--primary))",
-  },
-  inventory: {
-    label: "Inventory",
-    color: "hsl(var(--secondary))",
+    color: "hsl(var(--chart-1))",
   },
   turnover: {
     label: "Turnover Rate",
-    color: "hsl(var(--accent))",
+    color: "hsl(var(--chart-2))",
   },
 }
 
@@ -44,11 +40,11 @@ export function LogisticsOverviewChart() {
           tickFormatter={(value) => value.slice(0, 3)}
         />
         <YAxis yAxisId="left" orientation="left" stroke="hsl(var(--foreground))" />
-        <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--accent))" />
+        <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--chart-2))" />
         <Tooltip content={<ChartTooltipContent />} />
         <Legend />
-        <Bar dataKey="shipments" yAxisId="left" fill="var(--color-shipments)" radius={4} />
-        <Line type="monotone" dataKey="turnover" yAxisId="right" stroke="var(--color-turnover)" strokeWidth={2} dot={false} />
+        <Bar dataKey="shipments" yAxisId="left" fill="var(--color-shipments)" radius={4} fillOpacity={0.7} />
+        <Line type="monotone" dataKey="turnover" yAxisId="right" stroke="var(--color-turnover)" strokeWidth={2} dot={false} strokeOpacity={0.7} />
       </ComposedChart>
     </ChartContainer>
   )

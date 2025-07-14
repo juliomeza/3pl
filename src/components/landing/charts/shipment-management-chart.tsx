@@ -21,7 +21,7 @@ const chartData = [
 const chartConfig = {
   onTime: {
     label: "On-Time",
-    color: "hsl(var(--chart-2))",
+    color: "hsl(var(--chart-4))",
   },
   delayed: {
     label: "Delayed",
@@ -54,7 +54,7 @@ export function ShipmentManagementChart() {
           dataKey="onTime"
           type="natural"
           fill="var(--color-onTime)"
-          fillOpacity={0.4}
+          fillOpacity={0.6}
           stroke="var(--color-onTime)"
           stackId="a"
         />
@@ -62,7 +62,7 @@ export function ShipmentManagementChart() {
           dataKey="delayed"
           type="natural"
           fill="var(--color-delayed)"
-          fillOpacity={0.4}
+          fillOpacity={0.6}
           stroke="var(--color-delayed)"
           stackId="a"
         />

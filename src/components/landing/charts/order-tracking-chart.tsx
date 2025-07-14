@@ -55,9 +55,10 @@ export function OrderTrackingChart() {
           nameKey="status"
           innerRadius={60}
           strokeWidth={5}
+          fillOpacity={0.7}
         >
             {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.fill} />
+                <Cell key={`cell-${index}`} fill={entry.fill} fillOpacity={0.7} />
             ))}
         </Pie>
         <ChartLegend
