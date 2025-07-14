@@ -4,7 +4,7 @@ import { Sun } from 'lucide-react';
 const footerLinks = {
     Product: [
         { href: '#features', label: 'Features' },
-        { href: '#pricing', label: 'Pricing' },
+        { href: '/pricing', label: 'Pricing' },
         { href: '#', label: 'API' },
         { href: '#', label: 'Integrations' },
     ],

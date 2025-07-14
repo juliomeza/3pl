@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu, Sun } from 'lucide-react';
@@ -16,6 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { cn } from '@/lib/utils';
 
 
 const navLinks = [
@@ -30,6 +32,7 @@ const navLinks = [
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { user, loading, logout } = useAuth();
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -50,7 +53,7 @@ export function Header() {
           <div className="flex items-center gap-4">
             <nav className="hidden md:flex items-center gap-1">
               {navLinks.map((link) => (
-                <Button key={`${link.href}-${link.label}`} variant="ghost" asChild>
+                <Button key={`${link.href}-${link.label}`} variant="ghost" asChild className={cn(pathname === link.href && 'bg-accent')}>
                   <Link href={link.href}>{link.label}</Link>
                 </Button>
               ))}
@@ -98,7 +101,7 @@ export function Header() {
                   </Link>
                   <nav className="flex flex-col gap-2">
                     {navLinks.map((link) => (
-                      <Button key={`${link.href}-${link.label}-mobile`} variant="ghost" asChild className="justify-start">
+                      <Button key={`${link.href}-${link.label}-mobile`} variant="ghost" asChild className={cn("justify-start", pathname === link.href && 'bg-accent')}>
                         <Link href={link.href}>{link.label}</Link>
                       </Button>
                     ))}
