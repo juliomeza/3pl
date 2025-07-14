@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useState, useOptimistic, useEffect, useRef } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,22 +9,26 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getAiInsight } from '@/app/actions';
 import { Bot, User, Loader } from 'lucide-react';
 
-const initialState = {
+type Message = {
+  role: 'user' | 'assistant';
+  content: string;
+};
+
+const initialState: { insight: string; query?: string } = {
   insight: '',
 };
 
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending}>
+    <Button type="submit" disabled={pending} className="w-full">
       {pending ? <><Loader className="mr-2 h-4 w-4 animate-spin" /> Getting Insight...</> : 'Get Insight'}
     </Button>
   );
 }
 
 export function AiAssistant() {
-  const [query, setQuery] = useState('');
-  const [history, setHistory] = useState([
+  const [history, setHistory] = useState<Message[]>([
     {
       role: 'user',
       content: 'What are my biggest shipping costs this month?',
@@ -35,53 +40,25 @@ export function AiAssistant() {
     },
   ]);
   const [state, formAction] = useActionState(getAiInsight, initialState);
+  const formRef = useRef<HTMLFormElement>(null);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const userQuery = formData.get('query') as string;
-
-    if (!userQuery) return;
-    
-    setHistory((prev) => [
+  useEffect(() => {
+    if (state.query && state.insight) {
+      setHistory(prev => [
         ...prev,
-        { role: 'user', content: userQuery }
-    ]);
-    
-    formAction(formData);
-    
-    // This is a little trick to await the result from the server action
-    // and then update the history with the assistant's response.
-    const form = event.currentTarget;
-    const insightPromise = new Promise<{ insight: string }>((resolve) => {
-        const checkInterval = setInterval(() => {
-            if (form.getAttribute('data-state-insight')) {
-                clearInterval(checkInterval);
-                resolve({ insight: form.getAttribute('data-state-insight')! });
-                form.removeAttribute('data-state-insight');
-            }
-        }, 100);
-    });
-
-    const { insight } = await getAiInsight(initialState, formData);
-
-    if (insight) {
-        setHistory((prev) => [
-            ...prev,
-            { role: 'assistant', content: insight }
-        ]);
+        { role: 'user', content: state.query! },
+        { role: 'assistant', content: state.insight }
+      ]);
     }
+  }, [state]);
 
-    event.currentTarget.reset();
-  };
-  
   return (
     <Card className="shadow-lg">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 font-headline"><Bot /> AI Assistant</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="bg-muted p-4 rounded-lg mb-4 space-y-4 min-h-[120px]">
+        <div className="bg-muted p-4 rounded-lg mb-4 space-y-4 min-h-[200px] max-h-[300px] overflow-y-auto">
           {history.map((message, index) => (
             <div key={index} className="flex items-start gap-2 text-sm">
               {message.role === 'user' ? (
@@ -91,23 +68,24 @@ export function AiAssistant() {
                 </>
               ) : (
                 <>
-                   <Bot className="w-5 h-5 text-accent flex-shrink-0 mt-1" />
+                   <Bot className="w-5 h-5 text-accent-foreground flex-shrink-0 mt-1" />
                    <p className="bg-primary text-primary-foreground p-3 rounded-lg max-w-[85%]">{message.content}</p>
                 </>
               )}
             </div>
           ))}
-          {state.insight && history.length === 0 && (
-             <div className="flex items-start gap-2 text-sm">
-                <Bot className="w-5 h-5 text-accent flex-shrink-0 mt-1" />
-                <p className="bg-primary text-primary-foreground p-3 rounded-lg max-w-[85%]">{state.insight}</p>
-            </div>
-          )}
         </div>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form 
+          ref={formRef}
+          action={(formData) => {
+            formAction(formData);
+            formRef.current?.reset();
+          }} 
+          className="flex flex-col gap-4"
+        >
           <Textarea
             name="query"
-            placeholder="What are my biggest shipping costs this month?"
+            placeholder="Ask about your logistics..."
             className="w-full"
             required
           />
