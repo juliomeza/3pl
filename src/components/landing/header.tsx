@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -5,6 +6,17 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu, Sun } from 'lucide-react';
+import { useAuth } from '@/context/auth-context';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
 
 const navLinks = [
   { href: '#features', label: 'Features' },
@@ -17,6 +29,7 @@ const navLinks = [
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const { user, loading, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -42,8 +55,31 @@ export function Header() {
                 </Button>
               ))}
             </nav>
-            <div className="hidden md:block">
-                <Button>Sign In</Button>
+             <div className="hidden md:block">
+              {loading ? (
+                <div className="w-20 h-10 bg-muted rounded-md animate-pulse" />
+              ) : user ? (
+                 <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                     <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                       <Avatar>
+                         <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
+                         <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
+                       </Avatar>
+                     </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuLabel>{user.displayName}</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild><Link href="/dashboard">Dashboard</Link></DropdownMenuItem>
+                    <DropdownMenuItem onClick={logout}>Sign out</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button asChild>
+                  <Link href="/login">Sign In</Link>
+                </Button>
+              )}
             </div>
           </div>
           <div className="md:hidden">
@@ -67,7 +103,15 @@ export function Header() {
                       </Button>
                     ))}
                   </nav>
-                  <Button className="mt-4">Sign In</Button>
+                   {loading ? (
+                     <div className="w-full h-10 bg-muted rounded-md animate-pulse mt-4" />
+                    ) : user ? (
+                      <Button onClick={logout} className="mt-4">Sign Out</Button>
+                    ) : (
+                      <Button asChild className="mt-4">
+                        <Link href="/login">Sign In</Link>
+                      </Button>
+                    )}
                 </div>
               </SheetContent>
             </Sheet>
