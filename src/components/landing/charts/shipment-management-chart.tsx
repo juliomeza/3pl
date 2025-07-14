@@ -25,7 +25,7 @@ const chartConfig = {
   },
   delayed: {
     label: "Delayed",
-    color: "hsl(var(--destructive))",
+    color: "hsl(var(--chart-1))",
   },
 }
 

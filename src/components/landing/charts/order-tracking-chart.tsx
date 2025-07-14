@@ -10,10 +10,10 @@ import {
 } from "@/components/ui/chart"
 
 const chartData = [
-  { status: "Delivered", count: 275, fill: "hsl(var(--chart-1))" },
-  { status: "In Transit", count: 120, fill: "hsl(var(--chart-2))" },
-  { status: "Processing", count: 80, fill: "hsl(var(--chart-3))" },
-  { status: "Delayed", count: 30, fill: "hsl(var(--destructive))" },
+  { status: "Delivered", count: 275, fill: "hsl(var(--chart-4))" },
+  { status: "In Transit", count: 120, fill: "hsl(var(--chart-5))" },
+  { status: "Processing", count: 80, fill: "hsl(var(--chart-2))" },
+  { status: "Delayed", count: 30, fill: "hsl(var(--chart-1))" },
 ]
 
 const chartConfig = {
@@ -22,19 +22,19 @@ const chartConfig = {
   },
   Delivered: {
     label: "Delivered",
-    color: "hsl(var(--chart-1))",
+    color: "hsl(var(--chart-4))",
   },
   "In Transit": {
     label: "In Transit",
-    color: "hsl(var(--chart-2))",
+    color: "hsl(var(--chart-5))",
   },
   Processing: {
     label: "Processing",
-    color: "hsl(var(--chart-3))",
+    color: "hsl(var(--chart-2))",
   },
   Delayed: {
     label: "Delayed",
-    color: "hsl(var(--destructive))",
+    color: "hsl(var(--chart-1))",
   },
 }
 
@@ -55,7 +55,6 @@ export function OrderTrackingChart() {
           nameKey="status"
           innerRadius={60}
           strokeWidth={5}
-          fillOpacity={0.7}
         >
             {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.fill} fillOpacity={0.7} />
