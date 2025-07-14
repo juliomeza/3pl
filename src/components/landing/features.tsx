@@ -2,7 +2,7 @@ import { CheckCircle2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { AiAssistant } from './ai-assistant';
 import { LogisticsOverviewChart } from './charts/logistics-overview-chart';
-import { OrderTrackingChart } from './charts/order-tracking-chart';
+import { OrderTrackingTable } from './charts/order-tracking-table';
 import { ShipmentManagementChart } from './charts/shipment-management-chart';
 
 const featureData = [
@@ -17,7 +17,7 @@ const featureData = [
     title: 'Track your orders',
     description: 'Track your orders, monitor project durations, set rates and create shipments from your recorded transactions.',
     points: ['Order status tracking', 'Real-time updates', 'Delivery history'],
-    component: <OrderTrackingChart />,
+    component: <OrderTrackingTable />,
     align: 'left'
   },
   {
@@ -65,7 +65,7 @@ export function Features() {
                 )}
               </div>
               <div className={`order-1 ${feature.align === 'left' ? 'md:order-1' : 'md:order-2'}`}>
-                <Card className="overflow-hidden shadow-lg p-4">
+                <Card className="overflow-hidden shadow-lg p-6">
                   {feature.component}
                 </Card>
               </div>
