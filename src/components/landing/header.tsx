@@ -37,7 +37,7 @@ export function Header() {
           <div className="flex items-center gap-4">
             <nav className="hidden md:flex items-center gap-1">
               {navLinks.map((link) => (
-                <Button key={link.href} variant="ghost" asChild>
+                <Button key={`${link.href}-${link.label}`} variant="ghost" asChild>
                   <Link href={link.href}>{link.label}</Link>
                 </Button>
               ))}
@@ -62,7 +62,7 @@ export function Header() {
                   </Link>
                   <nav className="flex flex-col gap-2">
                     {navLinks.map((link) => (
-                      <Button key={link.href} variant="ghost" asChild className="justify-start">
+                      <Button key={`${link.href}-${link.label}-mobile`} variant="ghost" asChild className="justify-start">
                         <Link href={link.href}>{link.label}</Link>
                       </Button>
                     ))}
