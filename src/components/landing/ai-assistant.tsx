@@ -23,15 +23,58 @@ function SubmitButton() {
 
 export function AiAssistant() {
   const [query, setQuery] = useState('');
+  const [history, setHistory] = useState([
+    {
+      role: 'user',
+      content: 'What are my biggest shipping costs this month?',
+    },
+    {
+      role: 'assistant',
+      content:
+        'Your biggest shipping costs are international deliveries ($12,450), followed by express shipping ($8,230). I recommend optimizing routes for 15% savings.',
+    },
+  ]);
   const [state, formAction] = useActionState(getAiInsight, initialState);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    setQuery(formData.get('query') as string);
-    formAction(formData);
-  };
+    const userQuery = formData.get('query') as string;
 
+    if (!userQuery) return;
+    
+    setHistory((prev) => [
+        ...prev,
+        { role: 'user', content: userQuery }
+    ]);
+    
+    formAction(formData);
+    
+    // This is a little trick to await the result from the server action
+    // and then update the history with the assistant's response.
+    const form = event.currentTarget;
+    const insightPromise = new Promise<{ insight: string }>((resolve) => {
+        const checkInterval = setInterval(() => {
+            if (form.getAttribute('data-state-insight')) {
+                clearInterval(checkInterval);
+                resolve({ insight: form.getAttribute('data-state-insight')! });
+                form.removeAttribute('data-state-insight');
+            }
+        }, 100);
+    });
+
+    const { insight } = await getAiInsight(initialState, formData);
+
+    if (insight) {
+        setHistory((prev) => [
+            ...prev,
+            { role: 'assistant', content: insight }
+        ]);
+    }
+
+    event.currentTarget.reset();
+  };
+  
   return (
     <Card className="shadow-lg">
       <CardHeader>
@@ -39,14 +82,23 @@ export function AiAssistant() {
       </CardHeader>
       <CardContent>
         <div className="bg-muted p-4 rounded-lg mb-4 space-y-4 min-h-[120px]">
-          {query && (
+          {history.map((message, index) => (
+            <div key={index} className="flex items-start gap-2 text-sm">
+              {message.role === 'user' ? (
+                <>
+                  <User className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
+                  <p className="bg-background p-3 rounded-lg max-w-[85%]">{message.content}</p>
+                </>
+              ) : (
+                <>
+                   <Bot className="w-5 h-5 text-accent flex-shrink-0 mt-1" />
+                   <p className="bg-primary text-primary-foreground p-3 rounded-lg max-w-[85%]">{message.content}</p>
+                </>
+              )}
+            </div>
+          ))}
+          {state.insight && history.length === 0 && (
              <div className="flex items-start gap-2 text-sm">
-                <User className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
-                <p className="bg-background p-3 rounded-lg max-w-[85%]">{query}</p>
-             </div>
-          )}
-          {state.insight && (
-            <div className="flex items-start gap-2 text-sm">
                 <Bot className="w-5 h-5 text-accent flex-shrink-0 mt-1" />
                 <p className="bg-primary text-primary-foreground p-3 rounded-lg max-w-[85%]">{state.insight}</p>
             </div>
