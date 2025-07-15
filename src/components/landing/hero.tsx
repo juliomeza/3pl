@@ -40,7 +40,7 @@ function FloatingCards() {
   return (
     <div className="absolute top-0 right-0 w-[900px] h-[600px] -translate-y-1/4 translate-x-1/4 transform-gpu rotate-[-15deg]">
       <div className="relative w-full h-full">
-        <Card className="absolute top-[150px] right-[300px] w-[350px] h-auto float-animation shadow-2xl" style={{ animationDelay: '0s' }}>
+        <Card className="absolute top-[120px] right-[280px] w-[350px] h-auto float-animation shadow-2xl" style={{ animationDelay: '0s' }}>
           <CardHeader>
             <p className="font-semibold">Inventory Control</p>
           </CardHeader>
@@ -50,7 +50,7 @@ function FloatingCards() {
             <div className="flex justify-between"><span>Avg. delivery time</span><span className="font-semibold">2.4 days</span></div>
           </CardContent>
         </Card>
-        <Card className="absolute top-[300px] right-[500px] w-[300px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-2s' }}>
+        <Card className="absolute top-[320px] right-[500px] w-[300px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-2s' }}>
           <CardHeader>
              <p className="font-semibold">Active Routes</p>
           </CardHeader>
@@ -60,7 +60,7 @@ function FloatingCards() {
             <MiniChart />
           </CardContent>
         </Card>
-        <Card className="absolute top-[280px] right-[250px] w-[250px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-4s' }}>
+        <Card className="absolute top-[270px] right-[250px] w-[250px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-4s' }}>
           <CardHeader>
             <p className="font-semibold">Alerts</p>
           </CardHeader>
@@ -69,7 +69,7 @@ function FloatingCards() {
             <div className="flex justify-between"><span>Delays</span><span className="font-semibold text-destructive">3</span></div>
           </CardContent>
         </Card>
-        <Card className="absolute top-[420px] right-[350px] w-[300px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-6s' }}>
+        <Card className="absolute top-[400px] right-[320px] w-[300px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-6s' }}>
           <CardHeader>
             <p className="font-semibold">Performance</p>
           </CardHeader>
