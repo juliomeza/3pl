@@ -38,9 +38,9 @@ export function Hero() {
 
 function FloatingCards() {
   return (
-    <div className="absolute top-0 right-0 w-[900px] h-[600px] -translate-y-1/4 translate-x-1/4 transform-gpu rotate-[-15deg]">
+    <div className="absolute top-0 right-0 w-[900px] h-[600px] -translate-y-1/4 translate-x-1/4 transform-gpu rotate-[10deg]">
       <div className="relative w-full h-full">
-        <Card className="absolute top-[50px] right-[480px] w-[300px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-1s' }}>
+        <Card className="absolute top-[100px] right-[580px] w-[300px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-1s' }}>
           <CardHeader>
             <p className="font-semibold">Order Accuracy</p>
           </CardHeader>
@@ -59,7 +59,7 @@ function FloatingCards() {
             <div className="flex justify-between"><span>Avg. delivery time</span><span className="font-semibold">2.4 days</span></div>
           </CardContent>
         </Card>
-        <Card className="absolute top-[280px] right-[450px] w-[320px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-4s' }}>
+        <Card className="absolute top-[300px] right-[550px] w-[320px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-4s' }}>
           <CardHeader>
              <p className="font-semibold">Active Routes</p>
           </CardHeader>
@@ -68,7 +68,7 @@ function FloatingCards() {
             <div className="flex justify-between"><span>Completed today</span><span className="font-semibold">89</span></div>
           </CardContent>
         </Card>
-        <Card className="absolute top-[260px] right-[200px] w-[280px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-2s' }}>
+        <Card className="absolute top-[300px] right-[200px] w-[280px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-2s' }}>
           <CardHeader>
             <p className="font-semibold">Alerts</p>
           </CardHeader>
@@ -77,12 +77,12 @@ function FloatingCards() {
             <div className="flex justify-between"><span>Delays</span><span className="font-semibold text-destructive">3</span></div>
           </CardContent>
         </Card>
-        <Card className="absolute top-[380px] right-[280px] w-[340px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-6s' }}>
+        <Card className="absolute top-[480px] right-[280px] w-[340px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-6s' }}>
           <CardHeader>
             <p className="font-semibold">Performance</p>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-             <div className="flex justify-between"><span>Efficiency</span><span className="font-semibold">98%</span></div>
+             <div className="flex justify-between"><span>Efficiency</span><span className="font-semibold">98.3%</span></div>
             <MiniChart />
           </CardContent>
         </Card>
