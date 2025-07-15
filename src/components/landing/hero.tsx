@@ -2,7 +2,7 @@
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 
 const stats = [
-  { label: 'Businesses', value: '5,200+' },
+  { label: 'Businesses', value: '200+' },
   { label: 'Warehouses', value: '8+' },
   { label: 'Transactions', value: '3.4M' },
   { label: 'Transaction value', value: '$812M' },
@@ -46,7 +46,7 @@ function FloatingCards() {
             <p className="font-semibold">Order Accuracy</p>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-             <div className="flex justify-between items-baseline"><span>Fulfillment Rate</span><span className="font-semibold text-2xl text-green-500">99.8%</span></div>
+             <div className="flex justify-between items-baseline"><span>Fulfillment Rate</span><span className="font-semibold">99.8%</span></div>
             <MiniChart />
           </CardContent>
         </Card>
