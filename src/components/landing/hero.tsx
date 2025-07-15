@@ -18,7 +18,7 @@ export function Hero() {
               Logistics management, <span className="text-foreground">Warehousing</span>, Distribution, Inventory & your own <span className="text-foreground">Assistant</span> made for <span className="text-foreground">E-commerce</span>.
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
-              Start free trial, no credit card required.
+              Start free trial, no credit card required
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg">Start free trial</Button>
