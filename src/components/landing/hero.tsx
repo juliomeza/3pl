@@ -10,15 +10,15 @@ const stats = [
 
 export function Hero() {
   return (
-    <section id="hero" className="relative overflow-hidden py-16 md:py-24 bg-background">
+    <section id="hero" className="relative overflow-hidden py-20 md:py-32 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-5 gap-8 items-center">
           <div className="relative z-10 lg:col-span-3">
-            <h1 className="font-headline text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-gray-400 mb-6 mr-0 sm:mr-10 md:mr-20 lg:mr-32 leading-tight md:leading-snug">
+            <h1 className="font-headline text-5xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-gray-400 mb-6 mr-0 sm:mr-10 md:mr-20 lg:mr-32 leading-tight md:leading-snug">
               Logistics management, <span className="text-foreground">Warehousing</span>, Distribution, Inventory & your own <span className="text-foreground">Assistant</span> made for <span className="text-foreground">E-commerce</span>.
             </h1>
           </div>
-          <div className="relative hidden lg:block lg:col-span-2 h-[500px]">
+          <div className="relative hidden xl:block lg:col-span-2 h-[500px]">
             <FloatingCards />
           </div>
         </div>
