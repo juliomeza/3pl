@@ -3,7 +3,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 
 const stats = [
   { label: 'Businesses', value: '5,200+' },
-  { label: 'Warehouses', value: '8,800+' },
+  { label: 'Warehouses', value: '8+' },
   { label: 'Transactions', value: '3.4M' },
   { label: 'Transaction value', value: '$812M' },
 ];
@@ -41,7 +41,7 @@ function FloatingCards() {
   return (
     <div className="absolute top-0 right-0 w-[900px] h-[600px] -translate-y-1/4 translate-x-1/4 transform-gpu rotate-[5deg]">
       <div className="relative w-full h-full">
-        <Card className="absolute top-[100px] right-[580px] w-[300px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-1s' }}>
+        <Card className="absolute top-[100px] right-[680px] w-[300px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-1s' }}>
           <CardHeader>
             <p className="font-semibold">Order Accuracy</p>
           </CardHeader>
@@ -50,7 +50,7 @@ function FloatingCards() {
             <MiniChart />
           </CardContent>
         </Card>
-        <Card className="absolute top-[100px] right-[150px] w-[400px] h-auto float-animation shadow-2xl" style={{ animationDelay: '0s' }}>
+        <Card className="absolute top-[100px] right-[250px] w-[400px] h-auto float-animation shadow-2xl" style={{ animationDelay: '0s' }}>
           <CardHeader>
             <p className="font-semibold">Inventory Control</p>
           </CardHeader>
@@ -60,7 +60,7 @@ function FloatingCards() {
             <div className="flex justify-between"><span>Avg. delivery time</span><span className="font-semibold">2.4 days</span></div>
           </CardContent>
         </Card>
-        <Card className="absolute top-[300px] right-[550px] w-[320px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-4s' }}>
+        <Card className="absolute top-[300px] right-[600px] w-[320px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-4s' }}>
           <CardHeader>
              <p className="font-semibold">Active Routes</p>
           </CardHeader>
@@ -69,7 +69,7 @@ function FloatingCards() {
             <div className="flex justify-between"><span>Completed today</span><span className="font-semibold">89</span></div>
           </CardContent>
         </Card>
-        <Card className="absolute top-[300px] right-[200px] w-[280px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-2s' }}>
+        <Card className="absolute top-[300px] right-[300px] w-[280px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-2s' }}>
           <CardHeader>
             <p className="font-semibold">Alerts</p>
           </CardHeader>
@@ -78,7 +78,7 @@ function FloatingCards() {
             <div className="flex justify-between"><span>Delays</span><span className="font-semibold text-destructive">3</span></div>
           </CardContent>
         </Card>
-        <Card className="absolute top-[480px] right-[280px] w-[340px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-6s' }}>
+        <Card className="absolute top-[480px] right-[380px] w-[340px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-6s' }}>
           <CardHeader>
             <p className="font-semibold">Performance</p>
           </CardHeader>
