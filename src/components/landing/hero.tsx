@@ -1,4 +1,3 @@
-import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 
 const stats = [
@@ -17,9 +16,6 @@ export function Hero() {
             <h1 className="font-headline text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-gray-400 mb-6 mr-0 sm:mr-10 md:mr-20 lg:mr-32">
               Logistics management, <span className="text-foreground">Warehousing</span>, Distribution, Inventory & your own <span className="text-foreground">Assistant</span> made for <span className="text-foreground">E-commerce</span>.
             </h1>
-            <p className="text-lg text-muted-foreground mb-8">
-              Start free trial, no credit card required
-            </p>
           </div>
           <div className="relative hidden lg:block lg:col-span-2 h-[500px]">
             <FloatingCards />
