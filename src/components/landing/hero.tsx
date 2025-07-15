@@ -2,7 +2,7 @@
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 
 const stats = [
-  { label: 'Businesses', value: '25,200+' },
+  { label: 'Businesses', value: '5,200+' },
   { label: 'Warehouses', value: '8,800+' },
   { label: 'Transactions', value: '3.4M' },
   { label: 'Transaction value', value: '$812M' },
@@ -10,7 +10,7 @@ const stats = [
 
 export function Hero() {
   return (
-    <section id="hero" className="relative overflow-hidden py-20 md:py-32 bg-background">
+    <section id="hero" className="relative overflow-hidden py-16 md:py-24 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-5 gap-8 items-center">
           <div className="relative z-10 lg:col-span-3">
@@ -39,7 +39,7 @@ export function Hero() {
 
 function FloatingCards() {
   return (
-    <div className="absolute top-0 right-0 w-[900px] h-[600px] -translate-y-1/4 translate-x-1/4 transform-gpu rotate-[10deg]">
+    <div className="absolute top-0 right-0 w-[900px] h-[600px] -translate-y-1/4 translate-x-1/4 transform-gpu rotate-[5deg]">
       <div className="relative w-full h-full">
         <Card className="absolute top-[100px] right-[580px] w-[300px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-1s' }}>
           <CardHeader>
