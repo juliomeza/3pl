@@ -20,10 +20,6 @@ export function Hero() {
             <p className="text-lg text-muted-foreground mb-8">
               Start free trial, no credit card required
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg">Start free trial</Button>
-              <Button size="lg" variant="outline">Talk to founders</Button>
-            </div>
           </div>
           <div className="relative hidden lg:block lg:col-span-2 h-[500px]">
             <FloatingCards />
