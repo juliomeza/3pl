@@ -41,15 +41,6 @@ function FloatingCards() {
   return (
     <div className="absolute top-0 right-0 w-[900px] h-[600px] -translate-y-1/4 translate-x-1/4 transform-gpu rotate-[5deg]">
       <div className="relative w-full h-full">
-        <Card className="absolute top-[100px] right-[680px] w-[300px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-1s' }}>
-          <CardHeader>
-            <p className="font-semibold">Order Accuracy</p>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-             <div className="flex justify-between items-baseline"><span>Fulfillment Rate</span><span className="font-semibold text-green-500">99.8%</span></div>
-            <MiniChart />
-          </CardContent>
-        </Card>
         <Card className="absolute top-[100px] right-[250px] w-[400px] h-auto float-animation shadow-2xl" style={{ animationDelay: '0s' }}>
           <CardHeader>
             <p className="font-semibold">Inventory Control</p>
@@ -60,13 +51,13 @@ function FloatingCards() {
             <div className="flex justify-between"><span>Avg. delivery time</span><span className="font-semibold text-right w-20">2.4 days</span></div>
           </CardContent>
         </Card>
-        <Card className="absolute top-[300px] right-[300px] w-[280px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-2s' }}>
+        <Card className="absolute top-[300px] right-[300px] w-[300px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-1s' }}>
           <CardHeader>
-            <p className="font-semibold">Alerts</p>
+            <p className="font-semibold">Order Accuracy</p>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-            <div className="flex justify-between"><span>Low stock</span><span className="font-semibold text-destructive text-right w-20">12</span></div>
-            <div className="flex justify-between"><span>Delays</span><span className="font-semibold text-destructive text-right w-20">3</span></div>
+             <div className="flex justify-between items-baseline"><span>Fulfillment Rate</span><span className="font-semibold text-green-500">99.8%</span></div>
+            <MiniChart />
           </CardContent>
         </Card>
         <Card className="absolute top-[480px] right-[380px] w-[340px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-6s' }}>
