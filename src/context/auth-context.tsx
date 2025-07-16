@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, getAuth } from 'firebase/auth';
-import { app } from '@/lib/firebase/config';
+import { app } from '@/lib/firebase/config'; // Import the initialized app
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
@@ -25,11 +25,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const auth = getAuth(app);
   const { toast } = useToast();
+  const auth = getAuth(app); // Get auth instance on the client
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
     setLoading(true);
     try {
       const result = await signInWithPopup(auth, provider);
@@ -39,7 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error("Authentication failed", error);
       toast({
         title: "Authentication Failed",
-        description: "Could not sign in with Google. Please check if the domain is authorized or try again.",
+        description: error.message || "Could not sign in with Google. Please try again.",
         variant: "destructive",
       });
       setUser(null);
