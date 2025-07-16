@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, signOut, User, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
+import { onAuthStateChanged, signOut, User, GoogleAuthProvider, signInWithRedirect } from 'firebase/auth';
 import { auth } from '@/lib/firebase/config';
 import { useRouter } from 'next/navigation';
 
@@ -26,58 +26,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    // This function runs on mount and handles all auth logic.
-    const handleAuth = async () => {
-      // First, check if we are returning from a redirect login
-      try {
-        const result = await getRedirectResult(auth);
-        if (result) {
-          // User successfully signed in via redirect.
-          setUser(result.user);
-          router.push('/dashboard');
-          // We can stop loading now as we have a definitive user state.
-          setLoading(false);
-          return; // Exit early
-        }
-      } catch (error) {
-        console.error("Error processing redirect result:", error);
+    // onAuthStateChanged returns an unsubscribe function
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+      } else {
+        setUser(null);
       }
+      // Set loading to false only after the initial check is complete.
+      // This listener handles both existing sessions and the result of a redirect.
+      setLoading(false);
+    });
 
-      // If not a redirect, set up the normal auth state listener.
-      // This handles existing sessions and logout/login events.
-      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-        if (currentUser) {
-          setUser(currentUser);
-        } else {
-          setUser(null);
-        }
-        // Only set loading to false after the initial check is complete.
-        setLoading(false);
-      });
-
-      return () => {
-        unsubscribe();
-      };
-    };
-
-    handleAuth();
-
-  }, [router]);
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, []);
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    setLoading(true); // Set loading to true before redirect
-    try {
-      await signInWithRedirect(auth, provider);
-    } catch (error) {
-      console.error('Error signing in with Google:', error);
-      setLoading(false); // Reset loading on error
-    }
+    setLoading(true); // Set loading before redirect
+    await signInWithRedirect(auth, provider);
   };
 
   const logout = async () => {
     await signOut(auth);
-    setUser(null);
+    setUser(null); // Explicitly set user to null
     router.push('/');
   };
 
