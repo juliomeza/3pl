@@ -10,30 +10,26 @@ export default function withAuth<P extends object>(WrappedComponent: ComponentTy
     const { user, loading } = useAuth();
     const router = useRouter();
 
-    console.log(`[withAuth] Rendering. Loading: ${loading}, User: ${!!user}`);
-
     useEffect(() => {
-        // This effect only triggers after the initial loading is complete.
-        if (!loading && !user) {
-            console.log('[withAuth] Not loading and no user found. Redirecting to /login.');
-            router.push('/login');
-        }
+      // This effect runs when the component mounts or when loading/user state changes.
+      // It ensures that if auth state is resolved and there's no user, we redirect.
+      if (!loading && !user) {
+        console.log('[withAuth] Not loading and no user. Redirecting to /login.');
+        router.push('/login');
+      }
     }, [user, loading, router]);
 
-
-    // While loading, we show a loading indicator.
-    // The AuthProvider itself also shows one, but this is a fallback.
+    // While loading, show a loading indicator.
     if (loading) {
-      return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+      return <div className="flex items-center justify-center min-h-screen">Loading Auth...</div>;
     }
 
-    // If loading is finished and there IS a user, we can render the component.
+    // If there is a user, render the wrapped component.
     if (user) {
       return <WrappedComponent {...props} />;
     }
-    
-    // If loading is finished and there is NO user, we render nothing,
-    // allowing the useEffect to handle the redirect.
+
+    // If no user and not loading, we'll be redirecting, so return null to avoid rendering anything.
     return null;
   };
 

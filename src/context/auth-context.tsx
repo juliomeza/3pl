@@ -2,21 +2,14 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { 
-  onAuthStateChanged, 
-  signOut, 
-  User, 
-  GoogleAuthProvider,
-  signInWithRedirect,
-  getRedirectResult,
-  setPersistence,
-  browserLocalPersistence // Using the most robust persistence
-} from 'firebase/auth';
-import { auth } from '@/lib/firebase/config';
+import { User } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 
+// Define a type for our mock user to satisfy the User type from Firebase
+type MockUser = Pick<User, 'uid' | 'displayName' | 'email' | 'photoURL'>;
+
 type AuthContextType = {
-  user: User | null;
+  user: MockUser | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   logout: () => void;
@@ -24,70 +17,44 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  loading: true,
+  loading: false,
   signInWithGoogle: async () => {},
   logout: () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<MockUser | null>(null);
+  // Set loading to false initially as we are not waiting for Firebase
+  const [loading, setLoading] = useState(false); 
   const router = useRouter();
 
-  useEffect(() => {
-    console.log('[AuthProvider] useEffect started. Initializing auth state check.');
-    
-    const checkAuth = async () => {
-      try {
-        console.log('[AuthProvider] Calling getRedirectResult...');
-        const result = await getRedirectResult(auth);
-        if (result && result.user) {
-          console.log('[AuthProvider] getRedirectResult SUCCESS. User found:', result.user.email);
-          setUser(result.user);
-          router.push('/dashboard');
-        } else {
-            console.log('[AuthProvider] getRedirectResult returned null (no redirect session).');
-        }
-      } catch (error) {
-        console.error('[AuthProvider] Error in getRedirectResult:', error);
-      }
-
-      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-        console.log('[AuthProvider] onAuthStateChanged triggered. User:', currentUser?.email || null);
-        setUser(currentUser);
-        if (loading) {
-            console.log('[AuthProvider] First auth state determined. Setting loading to false.');
-            setLoading(false);
-        }
-      });
-      
-      return () => unsubscribe();
-    };
-
-    checkAuth();
-  }, [router]);
-
+  // FAKE SIGN-IN FUNCTION
   const signInWithGoogle = async () => {
-    console.log('[AuthProvider] signInWithGoogle called.');
-    try {
-      // Set persistence BEFORE calling signInWithRedirect
-      await setPersistence(auth, browserLocalPersistence);
-      console.log('[AuthProvider] Persistence set to browserLocalPersistence.');
-      const provider = new GoogleAuthProvider();
-      console.log('[AuthProvider] Initiating signInWithRedirect...');
-      await signInWithRedirect(auth, provider);
-    } catch (error) {
-      console.error("[AuthProvider] Error during Google sign-in:", error);
-    }
+    console.log('[AuthProvider-FAKE] Faking Google Sign-In...');
+    setLoading(true);
+    // Simulate a network delay
+    setTimeout(() => {
+      const mockUser: MockUser = {
+        uid: 'fake-user-123',
+        displayName: 'Fake User',
+        email: 'fake.user@example.com',
+        photoURL: 'https://i.pravatar.cc/40?u=fakeuser',
+      };
+      setUser(mockUser);
+      setLoading(false);
+      console.log('[AuthProvider-FAKE] Fake user set. Redirecting to /dashboard.');
+      router.push('/dashboard');
+    }, 500);
   };
 
-  const logout = async () => {
-    await signOut(auth);
+  // FAKE LOGOUT FUNCTION
+  const logout = () => {
+    console.log('[AuthProvider-FAKE] Faking Logout...');
     setUser(null);
     router.push('/login');
   };
-  
-  console.log(`[AuthProvider] Rendering with state: { loading: ${loading}, user: ${!!user} }`);
+
+  console.log(`[AuthProvider-FAKE] Rendering with state: { loading: ${loading}, user: ${!!user} }`);
 
   const value = {
     user,
@@ -96,7 +63,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     logout,
   };
 
-  return <AuthContext.Provider value={value}>{!loading ? children : <div className="flex items-center justify-center min-h-screen">Loading...</div>}</AuthContext.Provider>;
+  // No longer show a loading screen here, as we control it manually
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
