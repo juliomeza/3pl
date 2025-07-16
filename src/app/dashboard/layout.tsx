@@ -7,8 +7,9 @@ import { Home, User, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import withAuth from '@/components/with-auth';
 
-export default function DashboardLayout({
+function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -72,3 +73,6 @@ export default function DashboardLayout({
     </SidebarProvider>
   );
 }
+
+// Wrap the layout with withAuth to protect all child routes
+export default withAuth(DashboardLayout);

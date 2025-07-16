@@ -26,51 +26,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    console.log('AuthProvider: useEffect started. Initializing auth state check.');
-
-    const processRedirectResult = async () => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      // This listener handles session persistence.
+      // If currentUser is found, it means the user is already logged in.
+      if (currentUser) {
+        setUser(currentUser);
+      }
+      
+      // We check for a redirect result separately.
       try {
-        console.log('AuthProvider: Calling getRedirectResult...');
         const result = await getRedirectResult(auth);
         if (result) {
-          console.log('AuthProvider: getRedirectResult SUCCESS. User found:', result.user.email);
+          // This means the user has just signed in via redirect.
           setUser(result.user);
           router.push('/dashboard');
-        } else {
-          console.log('AuthProvider: getRedirectResult returned null (no redirect session).');
         }
       } catch (error) {
-        console.error('AuthProvider: Error in getRedirectResult:', error);
+        console.error("Error processing redirect result:", error);
       }
-    };
-
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      console.log('AuthProvider: onAuthStateChanged triggered. User:', currentUser?.email || 'null');
-      setUser(currentUser);
-      console.log('AuthProvider: Setting loading to false.');
+      
+      // Only set loading to false after all checks are done.
       setLoading(false);
     });
 
-    processRedirectResult();
-
     return () => {
-      console.log('AuthProvider: Cleanup useEffect.');
       unsubscribe();
     };
   }, [router]);
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
+    setLoading(true); // Set loading to true before redirect
     try {
-      console.log('AuthProvider: Attempting signInWithRedirect...');
       await signInWithRedirect(auth, provider);
     } catch (error) {
-      console.error('AuthProvider: Error signing in with Google:', error);
+      console.error('Error signing in with Google:', error);
+      setLoading(false); // Reset loading on error
     }
   };
 
   const logout = async () => {
     await signOut(auth);
+    setUser(null);
     router.push('/');
   };
 
