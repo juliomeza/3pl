@@ -3,7 +3,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 const stats = [
   { label: 'Businesses', value: '50+' },
   { label: 'Warehouses', value: '10+' },
-  { label: 'Transactions', value: '3.4M' },
+  { label: 'Transactions', value: '4.3M' },
   { label: 'Transaction value', value: '$812M' },
 ];
 
