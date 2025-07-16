@@ -2,35 +2,24 @@
 'use client';
 
 import { useAuth } from '@/context/auth-context';
-import { useRouter } from 'next/navigation';
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from '@/components/ui/sidebar';
 import { Home, User, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { useEffect } from 'react';
-
-function Redirect({ to }: { to: string }) {
-  const router = useRouter();
-  useEffect(() => {
-    router.push(to);
-  }, [router, to]);
-  return null;
-}
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user, loading, logout } = useAuth();
+  const { user, logout } = useAuth();
   
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
-
+  // The layout no longer handles redirection. It assumes the user is authenticated.
+  // The 'withAuth' HOC on the page component handles the protection logic.
   if (!user) {
-    return <Redirect to="/login" />;
+    // This can show a brief loading state or nothing while withAuth redirects.
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
   
   return (
