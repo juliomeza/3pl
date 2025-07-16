@@ -12,7 +12,10 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
+    // This useEffect now only handles redirecting an already logged-in user.
+    // It will not run on the initial load because `loading` will be true.
     if (!loading && user) {
+      console.log('[LoginPage] User is already logged in. Redirecting to dashboard.');
       router.push('/dashboard');
     }
   }, [user, loading, router]);
@@ -21,11 +24,12 @@ export default function LoginPage() {
     try {
       await signInWithGoogle();
     } catch (error) {
-      console.error('Login failed', error);
+      console.error('[LoginPage] Login failed', error);
     }
   };
 
-  if (loading) {
+  // Do not render the login form if we are still loading or if the user is logged in
+  if (loading || user) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 

@@ -7,10 +7,10 @@ import {
   signOut, 
   User, 
   GoogleAuthProvider,
-  signInWithRedirect, 
+  signInWithRedirect,
   getRedirectResult,
   setPersistence,
-  browserSessionPersistence
+  browserLocalPersistence // Using the most robust persistence
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase/config';
 import { useRouter } from 'next/navigation';
@@ -35,35 +35,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    const processAuth = async () => {
+    console.log('[AuthProvider] useEffect started. Initializing auth state check.');
+    
+    const checkAuth = async () => {
       try {
+        console.log('[AuthProvider] Calling getRedirectResult...');
         const result = await getRedirectResult(auth);
         if (result && result.user) {
+          console.log('[AuthProvider] getRedirectResult SUCCESS. User found:', result.user.email);
           setUser(result.user);
           router.push('/dashboard');
+        } else {
+            console.log('[AuthProvider] getRedirectResult returned null (no redirect session).');
         }
       } catch (error) {
-        console.error('Error in getRedirectResult:', error);
+        console.error('[AuthProvider] Error in getRedirectResult:', error);
       }
+
+      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        console.log('[AuthProvider] onAuthStateChanged triggered. User:', currentUser?.email || null);
+        setUser(currentUser);
+        if (loading) {
+            console.log('[AuthProvider] First auth state determined. Setting loading to false.');
+            setLoading(false);
+        }
+      });
+      
+      return () => unsubscribe();
     };
-    
-    processAuth();
 
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    checkAuth();
   }, [router]);
 
   const signInWithGoogle = async () => {
+    console.log('[AuthProvider] signInWithGoogle called.');
     try {
-      await setPersistence(auth, browserSessionPersistence);
+      // Set persistence BEFORE calling signInWithRedirect
+      await setPersistence(auth, browserLocalPersistence);
+      console.log('[AuthProvider] Persistence set to browserLocalPersistence.');
       const provider = new GoogleAuthProvider();
+      console.log('[AuthProvider] Initiating signInWithRedirect...');
       await signInWithRedirect(auth, provider);
     } catch (error) {
-      console.error("Error during Google sign-in:", error);
+      console.error("[AuthProvider] Error during Google sign-in:", error);
     }
   };
 
@@ -72,6 +86,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     router.push('/login');
   };
+  
+  console.log(`[AuthProvider] Rendering with state: { loading: ${loading}, user: ${!!user} }`);
 
   const value = {
     user,
@@ -80,7 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     logout,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{!loading ? children : <div className="flex items-center justify-center min-h-screen">Loading...</div>}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
