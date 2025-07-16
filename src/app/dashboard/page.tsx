@@ -2,7 +2,6 @@
 'use client';
 
 import { useAuth } from '@/context/auth-context';
-import withAuth from '@/components/with-auth';
 
 function DashboardPage() {
   const { user } = useAuth();
@@ -22,4 +21,4 @@ function DashboardPage() {
   );
 }
 
-export default withAuth(DashboardPage);
+export default DashboardPage;

@@ -16,11 +16,10 @@ function DashboardLayout({
 }) {
   const { user, logout } = useAuth();
   
-  // The layout no longer handles redirection. It assumes the user is authenticated.
-  // The 'withAuth' HOC on the page component handles the protection logic.
   if (!user) {
-    // This can show a brief loading state or nothing while withAuth redirects.
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    // This part should ideally not be reached if withAuth is working correctly,
+    // but it's a good fallback. withAuth will show its own loading state.
+    return null;
   }
   
   return (
