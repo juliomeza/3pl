@@ -41,17 +41,16 @@ function FloatingCards() {
   return (
     <div className="absolute top-0 right-0 w-[900px] h-[600px] -translate-y-1/4 translate-x-1/4 transform-gpu rotate-[5deg]">
       <div className="relative w-full h-full">
-        <Card className="absolute top-[100px] right-[250px] w-[400px] h-auto float-animation shadow-2xl" style={{ animationDelay: '0s' }}>
+        <Card className="absolute top-[100px] right-[250px] w-[340px] h-auto float-animation shadow-2xl" style={{ animationDelay: '0s' }}>
           <CardHeader>
-            <p className="font-semibold">Inventory Control</p>
+            <p className="font-semibold">Daily Snapshot</p>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-            <div className="flex justify-between"><span>Products stored</span><span className="font-semibold text-right w-20">47,892</span></div>
-            <div className="flex justify-between"><span>Orders today</span><span className="font-semibold text-right w-20">1,247</span></div>
-            <div className="flex justify-between"><span>Avg. delivery time</span><span className="font-semibold text-right w-20">2.4 days</span></div>
+            <div className="flex justify-between items-baseline"><span>Orders today</span><span className="font-semibold text-right">1,247</span></div>
+            <MiniChart />
           </CardContent>
         </Card>
-        <Card className="absolute top-[300px] right-[300px] w-[300px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-1s' }}>
+        <Card className="absolute top-[280px] right-[300px] w-[300px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-1s' }}>
           <CardHeader>
             <p className="font-semibold">Order Accuracy</p>
           </CardHeader>
