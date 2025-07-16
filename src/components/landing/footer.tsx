@@ -36,7 +36,7 @@ export function Footer() {
             <div className="col-span-2 md:col-span-1">
                 <Link href="/" className="flex items-center gap-2 font-headline text-xl font-semibold text-foreground">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-accent"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
-                    LogiFlow
+                    Synapse3PL
                 </Link>
                 <p className="text-muted-foreground mt-2 text-sm">Stress free logistics.</p>
             </div>
@@ -56,7 +56,7 @@ export function Footer() {
             ))}
         </div>
         <div className="mt-8 pt-8 border-t text-center text-muted-foreground text-sm">
-            <p>&copy; {new Date().getFullYear()} LogiFlow. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Synapse3PL. All rights reserved.</p>
         </div>
       </div>
     </footer>

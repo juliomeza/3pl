@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 const pricingPlans = [
     {
@@ -17,7 +18,8 @@ const pricingPlans = [
             'Standard reporting',
         ],
         isFeatured: false,
-        cta: 'Get Started'
+        cta: 'Get Started',
+        href: '/login'
     },
     {
         name: 'Professional',
@@ -35,7 +37,8 @@ const pricingPlans = [
             'Custom integrations',
         ],
         isFeatured: true,
-        cta: 'Start Free Trial'
+        cta: 'Start Free Trial',
+        href: '/login'
     },
     {
         name: 'Enterprise',
@@ -52,7 +55,8 @@ const pricingPlans = [
             'White-label options',
         ],
         isFeatured: false,
-        cta: 'Contact Sales'
+        cta: 'Contact Sales',
+        href: '#'
     },
 ];
 
@@ -86,8 +90,8 @@ export function Pricing() {
                         </ul>
                     </CardContent>
                     <CardFooter>
-                        <Button className="w-full" variant={plan.isFeatured ? 'default' : 'outline'}>
-                            {plan.cta}
+                        <Button className="w-full" variant={plan.isFeatured ? 'default' : 'outline'} asChild>
+                           <Link href={plan.href}>{plan.cta}</Link>
                         </Button>
                     </CardFooter>
                 </Card>

@@ -77,7 +77,7 @@ function MiniChart() {
     return (
         <div className="w-full h-10 bg-muted rounded-md mt-2 relative overflow-hidden">
             <div className="absolute bottom-0 left-0 w-full h-[60%]" style={{
-                background: 'linear-gradient(135deg, hsl(224 64% 32%), hsl(190 100% 58%))',
+                background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))',
                 clipPath: 'polygon(0 100%, 20% 80%, 40% 85%, 60% 65%, 80% 70%, 100% 55%, 100% 100%)'
             }}></div>
         </div>

@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/context/auth-context';
 
 export const metadata: Metadata = {
-  title: 'LogiFlow - Smart Logistics Management',
+  title: 'Synapse3PL - Smart Logistics Management',
   description: 'Logistics management, Warehousing, Distribution, Inventory & your own Assistant made for E-commerce.',
 };
 

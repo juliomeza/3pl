@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export function Cta() {
   return (
@@ -9,7 +10,9 @@ export function Cta() {
           Join thousands of businesses already transforming their operations with Synapse3PL.
         </p>
         <div className="mt-8">
-            <Button size="lg" variant="secondary">Start your free trial</Button>
+            <Button size="lg" variant="secondary" asChild>
+                <Link href="/login">Start your free trial</Link>
+            </Button>
         </div>
       </div>
     </section>
