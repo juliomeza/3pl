@@ -19,19 +19,24 @@ export default function DashboardLayout({
   const router = useRouter();
 
   useEffect(() => {
+    // Only run this check if loading is complete
     if (!loading && !user) {
       router.push('/login');
     }
   }, [user, loading, router]);
   
+  // While loading, show a loading indicator and don't render children
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
+  // If loading is complete and there's no user, the useEffect above will have already started the redirect.
+  // Returning null here prevents a flash of the dashboard content.
   if (!user) {
     return null;
   }
-
+  
+  // If loading is complete and there is a user, show the dashboard.
   return (
     <SidebarProvider>
         <div className="flex min-h-screen bg-background">
