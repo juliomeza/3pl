@@ -26,32 +26,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      // This listener handles session persistence.
-      // If currentUser is found, it means the user is already logged in.
-      if (currentUser) {
-        setUser(currentUser);
-      }
-      
-      // We check for a redirect result separately.
+    // This function runs on mount and handles all auth logic.
+    const handleAuth = async () => {
+      // First, check if we are returning from a redirect login
       try {
         const result = await getRedirectResult(auth);
         if (result) {
-          // This means the user has just signed in via redirect.
+          // User successfully signed in via redirect.
           setUser(result.user);
           router.push('/dashboard');
+          // We can stop loading now as we have a definitive user state.
+          setLoading(false);
+          return; // Exit early
         }
       } catch (error) {
         console.error("Error processing redirect result:", error);
       }
-      
-      // Only set loading to false after all checks are done.
-      setLoading(false);
-    });
 
-    return () => {
-      unsubscribe();
+      // If not a redirect, set up the normal auth state listener.
+      // This handles existing sessions and logout/login events.
+      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        if (currentUser) {
+          setUser(currentUser);
+        } else {
+          setUser(null);
+        }
+        // Only set loading to false after the initial check is complete.
+        setLoading(false);
+      });
+
+      return () => {
+        unsubscribe();
+      };
     };
+
+    handleAuth();
+
   }, [router]);
 
   const signInWithGoogle = async () => {
