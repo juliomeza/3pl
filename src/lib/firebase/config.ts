@@ -1,15 +1,13 @@
 
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { 
-  initializeAuth, 
-  getAuth, 
-  browserLocalPersistence, 
+  getAuth,
+  initializeAuth,
   indexedDBLocalPersistence,
+  browserLocalPersistence,
   browserPopupRedirectResolver,
   Auth
 } from 'firebase/auth';
-import 'cordova-plugin-browsertab';
-
 
 const firebaseConfig = {
   apiKey: "AIzaSyBfnkjE2Iuc5GsBTDjEE6oq38BJp6asvLc",
@@ -25,9 +23,6 @@ const app: FirebaseApp = !getApps().length ? initializeApp(firebaseConfig) : get
 
 // Initialize Firebase Auth
 // This approach is robust for different environments, especially those with third-party cookie restrictions or complex proxying.
-const auth: Auth = initializeAuth(app, {
-  persistence: [indexedDBLocalPersistence, browserLocalPersistence],
-  popupRedirectResolver: browserPopupRedirectResolver,
-});
+const auth: Auth = getAuth(app);
 
 export { app, auth };
