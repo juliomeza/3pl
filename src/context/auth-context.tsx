@@ -27,14 +27,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     console.log('AuthProvider Mounted. Initializing auth check.');
-    
+
+    // This promise will resolve with the redirect result if any.
+    const redirectResultPromise = getRedirectResult(auth);
+
+    // This listener will fire whenever the user's auth state changes.
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       console.log('onAuthStateChanged triggered. User:', currentUser ? currentUser.email : null);
-      setUser(currentUser);
-      // We will set loading to false only after getRedirectResult is also done.
+      if (!user) { // Only set user from here if we don't have one already
+          setUser(currentUser);
+      }
     });
 
-    getRedirectResult(auth)
+    // Process the redirect result
+    redirectResultPromise
       .then((result) => {
         console.log('getRedirectResult promise resolved.');
         if (result && result.user) {
