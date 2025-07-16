@@ -21,7 +21,7 @@ export default function withAuth<P extends object>(WrappedComponent: ComponentTy
     }
 
     if (!user) {
-      // This will be shown briefly before the useEffect redirects
+      // This is fallback content, as the useEffect will redirect.
       return <div className="flex items-center justify-center min-h-screen">Redirecting to login...</div>;
     }
     

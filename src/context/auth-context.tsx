@@ -5,6 +5,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { User, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, getAuth } from 'firebase/auth';
 import { app } from '@/lib/firebase/config';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
 
 type AuthContextType = {
   user: User | null;
@@ -25,6 +26,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const auth = getAuth(app);
+  const { toast } = useToast();
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
@@ -33,9 +35,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const result = await signInWithPopup(auth, provider);
       setUser(result.user);
       router.push('/dashboard');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Authentication failed", error);
-      // Handle error, e.g., show a toast message
+      toast({
+        title: "Authentication Failed",
+        description: error.message || "Could not sign in with Google. Please try again.",
+        variant: "destructive",
+      });
+      setUser(null);
     } finally {
       setLoading(false);
     }
