@@ -7,9 +7,8 @@ import { Home, User, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import withAuth from '@/components/with-auth';
 
-function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -17,9 +16,9 @@ function DashboardLayout({
   const { user, logout } = useAuth();
   
   if (!user) {
-    // withAuth will handle the loading and redirection. 
+    // The withAuth HOC on the page will handle redirection. 
     // This is a fallback to avoid rendering with a null user.
-    return null;
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
   
   return (
@@ -72,6 +71,3 @@ function DashboardLayout({
     </SidebarProvider>
   );
 }
-
-// Wrap the layout with withAuth to protect all child routes
-export default withAuth(DashboardLayout);
