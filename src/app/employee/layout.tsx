@@ -8,18 +8,17 @@ import Link from 'next/link';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import withAuth from '@/components/with-auth';
 
-export default function DashboardLayout({
+function EmployeeLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      // The scroll event is on the main content area, not the window
       const mainElement = document.querySelector('main');
       if (mainElement) {
         setIsScrolled(mainElement.scrollTop > 10);
@@ -48,9 +47,9 @@ export default function DashboardLayout({
                     <SidebarMenu>
                         <SidebarMenuItem>
                             <SidebarMenuButton asChild isActive={true}>
-                                <Link href="/dashboard">
+                                <Link href="/employee">
                                     <Home />
-                                    <span>Overview</span>
+                                    <span>Employee Home</span>
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
@@ -77,3 +76,5 @@ export default function DashboardLayout({
     </SidebarProvider>
   );
 }
+
+export default withAuth(EmployeeLayout);

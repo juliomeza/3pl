@@ -1,0 +1,80 @@
+
+'use client';
+
+import { useAuth } from '@/context/auth-context';
+import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
+import { Home } from 'lucide-react';
+import Link from 'next/link';
+import { DashboardHeader } from '@/components/dashboard/dashboard-header';
+import { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
+import withAuth from '@/components/with-auth';
+
+function ClientLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const mainElement = document.querySelector('main');
+      if (mainElement) {
+        setIsScrolled(mainElement.scrollTop > 10);
+      }
+    };
+    
+    const mainElement = document.querySelector('main');
+    mainElement?.addEventListener('scroll', handleScroll);
+    
+    return () => mainElement?.removeEventListener('scroll', handleScroll);
+  }, []);
+  
+  return (
+    <SidebarProvider>
+        <div className="flex min-h-screen bg-background">
+            <Sidebar>
+                <SidebarHeader>
+                    <div className="flex items-center gap-2">
+                        <Link href="/" className="flex items-center gap-2 font-headline text-xl font-semibold text-foreground">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-accent"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                            Synapse3PL
+                        </Link>
+                    </div>
+                </SidebarHeader>
+                <SidebarContent>
+                    <SidebarMenu>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton asChild isActive={true}>
+                                <Link href="/client">
+                                    <Home />
+                                    <span>Client Home</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                </SidebarContent>
+            </Sidebar>
+            <div className="flex-1 flex flex-col">
+                 <header className={cn(
+                    "sticky top-0 z-40 flex items-center justify-between p-4 md:justify-end transition-all duration-300",
+                    isScrolled && "bg-background/80 backdrop-blur-lg border-b"
+                  )}>
+                    <div className="md:hidden">
+                        <SidebarTrigger />
+                    </div>
+                    <DashboardHeader />
+                </header>
+                <main className="flex-1 flex flex-col overflow-y-auto">
+                    <div className="p-4 md:p-8">
+                        {children}
+                    </div>
+                </main>
+            </div>
+        </div>
+    </SidebarProvider>
+  );
+}
+
+export default withAuth(ClientLayout);

@@ -37,25 +37,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const auth = getAuth(app);
   const db = getFirestore(app);
 
+  const handleRedirect = (role: 'client' | 'employee' | undefined) => {
+    if (role === 'employee') {
+      router.push('/employee');
+    } else {
+      router.push('/client');
+    }
+  };
+
   const fetchUserInfo = async (firebaseUser: User) => {
     const userRef = doc(db, 'users', firebaseUser.uid);
     const userSnap = await getDoc(userRef);
+    let currentUserInfo: UserInfo;
 
     if (userSnap.exists()) {
-      setUserInfo(userSnap.data() as UserInfo);
+      currentUserInfo = userSnap.data() as UserInfo;
     } else {
-      // If user profile doesn't exist, create one with default role 'client'
-      const newUserInfo: UserInfo = {
+      currentUserInfo = {
         role: 'client',
         email: firebaseUser.email,
         displayName: firebaseUser.displayName,
         createdAt: new Date(),
       };
-      await setDoc(userRef, newUserInfo);
-      setUserInfo(newUserInfo);
+      await setDoc(userRef, currentUserInfo);
     }
+    setUserInfo(currentUserInfo);
+    return currentUserInfo;
   };
-
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
@@ -63,8 +71,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const result = await signInWithPopup(auth, provider);
       setUser(result.user);
-      await fetchUserInfo(result.user);
-      router.push('/dashboard');
+      const fetchedUserInfo = await fetchUserInfo(result.user);
+      handleRedirect(fetchedUserInfo.role);
     } catch (error: any) {
       console.error("Authentication failed", error);
       if (error.code !== 'auth/popup-closed-by-user') {
@@ -87,21 +95,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
+        setLoading(true);
         setUser(currentUser);
-        await fetchUserInfo(currentUser);
+        const fetchedUserInfo = await fetchUserInfo(currentUser);
+        const protectedRoutes = ['/client', '/employee'];
+        const currentPath = window.location.pathname;
+        if (!protectedRoutes.some(route => currentPath.startsWith(route))) {
+            handleRedirect(fetchedUserInfo.role);
+        }
       } else {
         setUser(null);
         setUserInfo(null);
       }
       setLoading(false);
-      
-      if (!currentUser && window.location.pathname.startsWith('/dashboard')) {
-        router.push('/login');
-      }
     });
     return () => unsubscribe();
   }, [auth, router, db]);
-
 
   const value = {
     user,
@@ -111,7 +120,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     logout,
   };
 
-  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

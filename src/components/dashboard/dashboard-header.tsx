@@ -16,7 +16,12 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export function DashboardHeader() {
-  const { user, loading, logout } = useAuth();
+  const { user, userInfo, loading, logout } = useAuth();
+
+  const getDashboardPath = () => {
+    if (!userInfo) return '/login';
+    return userInfo.role === 'employee' ? '/employee' : '/client';
+  }
 
   return (
     <div>
@@ -35,7 +40,7 @@ export function DashboardHeader() {
           <DropdownMenuContent>
               <DropdownMenuLabel>{user.displayName}</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild><Link href="/dashboard">Dashboard</Link></DropdownMenuItem>
+              <DropdownMenuItem asChild><Link href={getDashboardPath()}>Dashboard</Link></DropdownMenuItem>
               <DropdownMenuItem onClick={logout}>Sign out</DropdownMenuItem>
           </DropdownMenuContent>
           </DropdownMenu>
