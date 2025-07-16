@@ -8,6 +8,7 @@ import { Home, User, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { useEffect } from 'react';
 
 export default function DashboardLayout({
   children,
@@ -17,12 +18,17 @@ export default function DashboardLayout({
   const { user, loading, logout } = useAuth();
   const router = useRouter();
 
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
+  
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
   if (!user) {
-    router.push('/login');
     return null;
   }
 
