@@ -17,8 +17,8 @@ function DashboardLayout({
   const { user, logout } = useAuth();
   
   if (!user) {
-    // This part should ideally not be reached if withAuth is working correctly,
-    // but it's a good fallback. withAuth will show its own loading state.
+    // withAuth will handle the loading and redirection. 
+    // This is a fallback to avoid rendering with a null user.
     return null;
   }
   
