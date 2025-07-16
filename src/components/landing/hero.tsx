@@ -18,7 +18,7 @@ export function Hero() {
               Logistics management, <span className="text-foreground">Warehousing</span>, Distribution, Inventory & your own <span className="text-foreground">Assistant</span> made for <span className="text-foreground">E-commerce</span>.
             </h1>
           </div>
-          <div className="relative hidden xl:block lg:col-span-2 h-[500px]">
+          <div className="relative hidden xl:block xl:col-span-2 h-[500px]">
             <FloatingCards />
           </div>
         </div>
@@ -58,16 +58,6 @@ function FloatingCards() {
             <div className="flex justify-between"><span>Products stored</span><span className="font-semibold text-right w-20">47,892</span></div>
             <div className="flex justify-between"><span>Orders today</span><span className="font-semibold text-right w-20">1,247</span></div>
             <div className="flex justify-between"><span>Avg. delivery time</span><span className="font-semibold text-right w-20">2.4 days</span></div>
-          </CardContent>
-        </Card>
-        <Card className="absolute top-[300px] right-[600px] w-[320px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-4s' }}>
-
-          <CardHeader>
-             <p className="font-semibold">Active Routes</p>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div className="flex justify-between"><span>In transit</span><span className="font-semibold text-right w-20">342</span></div>
-            <div className="flex justify-between"><span>Completed today</span><span className="font-semibold text-right w-20">89</span></div>
           </CardContent>
         </Card>
         <Card className="absolute top-[300px] right-[300px] w-[280px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-2s' }}>
