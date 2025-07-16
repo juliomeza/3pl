@@ -1,21 +1,19 @@
 
 'use client';
 
-import { AuthProvider, useAuth } from '@/context/auth-context';
+import { useAuth } from '@/context/auth-context';
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from '@/components/ui/sidebar';
 import { Home, User, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 
-function InnerDashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { user, logout } = useAuth();
-  
-  if (!user) {
-    // This part is now handled by the withAuth HOC, but as a fallback,
-    // we can show a loading state or nothing, while withAuth decides.
-    return <div className="flex items-center justify-center min-h-screen">Loading user...</div>;
-  }
   
   return (
     <SidebarProvider>
@@ -42,6 +40,7 @@ function InnerDashboardLayout({ children }: { children: React.ReactNode }) {
                     </SidebarMenu>
                 </SidebarContent>
                 <SidebarFooter>
+                    {user && (
                      <div className="flex items-center gap-3 p-2">
                         <Avatar>
                             <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
@@ -55,6 +54,7 @@ function InnerDashboardLayout({ children }: { children: React.ReactNode }) {
                             <LogOut />
                         </Button>
                     </div>
+                    )}
                 </SidebarFooter>
             </Sidebar>
             <main className="flex-1 p-4 md:p-8">
@@ -66,17 +66,4 @@ function InnerDashboardLayout({ children }: { children: React.ReactNode }) {
         </div>
     </SidebarProvider>
   );
-}
-
-
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <AuthProvider>
-      <InnerDashboardLayout>{children}</InnerDashboardLayout>
-    </AuthProvider>
-  )
 }

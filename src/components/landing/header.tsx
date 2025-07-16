@@ -107,7 +107,12 @@ export function Header() {
                    {loading ? (
                      <div className="w-full h-10 bg-muted rounded-md animate-pulse mt-4" />
                     ) : user ? (
-                      <Button onClick={logout} className="mt-4">Sign Out</Button>
+                      <div className="flex flex-col gap-2 mt-4">
+                        <Button asChild className="justify-start">
+                          <Link href="/dashboard">Dashboard</Link>
+                        </Button>
+                        <Button onClick={logout} variant="outline" className="justify-start">Sign Out</Button>
+                      </div>
                     ) : (
                       <Button asChild className="mt-4">
                         <Link href="/login">Sign In</Link>
