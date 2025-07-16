@@ -11,29 +11,35 @@ export default function withAuth<P extends object>(WrappedComponent: ComponentTy
     const router = useRouter();
 
     useEffect(() => {
-      if (!loading && !user) {
-        router.push('/login');
+      if (loading) {
+        return;
       }
-    }, [user, loading, router]);
 
-    if (loading) {
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
+      if (userInfo?.role) {
+        const currentPath = window.location.pathname;
+        const expectedPath = `/${userInfo.role}`;
+        if (!currentPath.startsWith(expectedPath)) {
+          router.push(expectedPath);
+        }
+      }
+    }, [user, userInfo, loading, router]);
+
+    if (loading || !user || !userInfo) {
       return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
     }
-
-    if (!user) {
-      // This is fallback content, as the useEffect will redirect.
-      return null
-    }
-
-    if (userInfo?.role) {
-      const currentPath = window.location.pathname;
-      const expectedPath = `/${userInfo.role}`;
-      if (!currentPath.startsWith(expectedPath)) {
-        router.push(expectedPath);
-        return <div className="flex items-center justify-center min-h-screen">Redirecting...</div>;
-      }
-    }
     
+    // Ensure we don't render children if a redirect is imminent
+    const currentPath = window.location.pathname;
+    const expectedPath = `/${userInfo.role}`;
+    if (!currentPath.startsWith(expectedPath)) {
+        return <div className="flex items-center justify-center min-h-screen">Redirecting...</div>;
+    }
+
     return <WrappedComponent {...props} />;
   };
 
