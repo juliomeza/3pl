@@ -2,8 +2,8 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
-import { auth } from '@/lib/firebase/config';
+import { User, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, getAuth } from 'firebase/auth';
+import { app } from '@/lib/firebase/config';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
@@ -26,57 +26,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
+  const auth = getAuth(app);
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
-    await signInWithRedirect(auth, provider);
+    try {
+      const result = await signInWithPopup(auth, provider);
+      setUser(result.user);
+      router.push('/dashboard');
+    } catch (error: any) {
+      console.error("Authentication failed", error);
+      toast({
+        title: "Authentication Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const logout = async () => {
     await signOut(auth);
-    // No need to redirect here, onAuthStateChanged will handle it
-    // which prevents race conditions with protected routes.
+    // onAuthStateChanged will handle the redirect to /login
   };
   
-  useEffect(() => {
-    const processRedirect = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result) {
-          // User signed in or linked.
-          setUser(result.user);
-          router.push('/dashboard');
-        }
-      } catch (error: any) {
-        // Handle Errors here.
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.error("Auth redirect error:", errorCode, errorMessage);
-        toast({
-          title: "Authentication Failed",
-          description: "Could not sign in after redirect. Please try again.",
-          variant: "destructive",
-        });
-      }
-    };
-    processRedirect();
-  }, [router, toast]);
-
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
-       if (!currentUser) {
-        // If the user logs out, they should be taken to the login page
-        // But only if they are not already there.
-        if (window.location.pathname !== '/login') {
-            router.push('/login');
-        }
+      if (!currentUser && window.location.pathname.startsWith('/dashboard')) {
+        router.push('/login');
       }
     });
     return () => unsubscribe();
-  }, [router]);
+  }, [auth, router]);
+
 
   const value = {
     user,
@@ -85,7 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     logout,
   };
 
-  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
