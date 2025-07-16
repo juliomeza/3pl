@@ -2,21 +2,28 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, signOut, User, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
+import { 
+  onAuthStateChanged, 
+  signOut, 
+  User, 
+  GithubAuthProvider, 
+  signInWithRedirect, 
+  getRedirectResult 
+} from 'firebase/auth';
 import { auth } from '@/lib/firebase/config';
 import { useRouter } from 'next/navigation';
 
 type AuthContextType = {
   user: User | null;
   loading: boolean;
-  signInWithGoogle: () => Promise<void>;
+  signInWithGithub: () => Promise<void>;
   logout: () => void;
 };
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  signInWithGoogle: async () => {},
+  signInWithGithub: async () => {},
   logout: () => {},
 });
 
@@ -26,47 +33,66 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    // This effect should run only once on mount to initialize auth
-    const initializeAuth = async () => {
+    console.log('[AuthProvider] Mounted. Initializing auth check.');
+
+    const processAuth = async () => {
       try {
+        console.log('[AuthProvider] Calling getRedirectResult...');
         const result = await getRedirectResult(auth);
+        console.log('[AuthProvider] getRedirectResult promise resolved.');
+
         if (result && result.user) {
-          // User signed in via redirect.
+          console.log('[AuthProvider] getRedirectResult SUCCESS. User found:', result.user.displayName);
           setUser(result.user);
           router.push('/dashboard');
+        } else {
+          console.log('[AuthProvider] getRedirectResult: No redirect result found.');
         }
       } catch (error) {
-        console.error("Error during getRedirectResult:", error);
+        console.error('[AuthProvider] Error in getRedirectResult:', error);
       }
     };
-    initializeAuth();
+    
+    processAuth();
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+      console.log('[AuthProvider] onAuthStateChanged triggered. User:', currentUser ? currentUser.displayName : 'null');
+      if (currentUser) {
+        setUser(currentUser);
+      }
+      // This is the key: only set loading to false after the first auth state check.
+      // This gives getRedirectResult time to run.
+      console.log('[AuthProvider] First auth check complete. Setting loading to false.');
       setLoading(false);
     });
 
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
+    return () => {
+      console.log('[AuthProvider] Unmounting. Cleaning up subscription.');
+      unsubscribe();
+    };
   }, [router]);
 
-
-  const signInWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
+  const signInWithGithub = async () => {
+    const provider = new GithubAuthProvider();
+    console.log('[AuthProvider] Starting GitHub sign-in with redirect...');
     await signInWithRedirect(auth, provider);
   };
 
   const logout = async () => {
+    console.log('[AuthProvider] Logging out.');
     await signOut(auth);
-    router.push('/');
+    setUser(null); // Explicitly set user to null
+    router.push('/login');
   };
 
   const value = {
     user,
     loading,
-    signInWithGoogle,
+    signInWithGithub,
     logout,
   };
+
+  console.log(`[AuthProvider] Rendering with state: { loading: ${loading}, user: ${user ? user.displayName : 'null'} }`);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
