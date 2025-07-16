@@ -12,7 +12,9 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
+    console.log(`LoginPage: useEffect triggered. Loading: ${loading}, User: ${!!user}`);
     if (!loading && user) {
+      console.log('LoginPage: User found, redirecting to /dashboard.');
       router.push('/dashboard');
     }
   }, [user, loading, router]);

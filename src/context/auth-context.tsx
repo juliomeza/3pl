@@ -26,34 +26,47 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
+    console.log('AuthProvider: useEffect started. Initializing auth state check.');
+
+    const processRedirectResult = async () => {
+      try {
+        console.log('AuthProvider: Calling getRedirectResult...');
+        const result = await getRedirectResult(auth);
+        if (result) {
+          console.log('AuthProvider: getRedirectResult SUCCESS. User found:', result.user.email);
+          setUser(result.user);
+          router.push('/dashboard');
+        } else {
+          console.log('AuthProvider: getRedirectResult returned null (no redirect session).');
+        }
+      } catch (error) {
+        console.error('AuthProvider: Error in getRedirectResult:', error);
+      }
+    };
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      console.log('AuthProvider: onAuthStateChanged triggered. User:', currentUser?.email || 'null');
       setUser(currentUser);
+      console.log('AuthProvider: Setting loading to false.');
       setLoading(false);
     });
-    
-    // Check for redirect result
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result) {
-          // This is the signed-in user
-          const user = result.user;
-          setUser(user);
-          router.push('/dashboard');
-        }
-      })
-      .catch((error) => {
-        console.error('Error getting redirect result:', error);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
 
-    return () => unsubscribe();
+    processRedirectResult();
+
+    return () => {
+      console.log('AuthProvider: Cleanup useEffect.');
+      unsubscribe();
+    };
   }, [router]);
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    await signInWithRedirect(auth, provider);
+    try {
+      console.log('AuthProvider: Attempting signInWithRedirect...');
+      await signInWithRedirect(auth, provider);
+    } catch (error) {
+      console.error('AuthProvider: Error signing in with Google:', error);
+    }
   };
 
   const logout = async () => {
