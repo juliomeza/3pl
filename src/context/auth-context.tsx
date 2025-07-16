@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithRedirect, getAuth } from 'firebase/auth';
+import { User, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, getAuth } from 'firebase/auth';
 import { app } from '@/lib/firebase/config';
 import { useRouter } from 'next/navigation';
 
@@ -28,7 +28,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    await signInWithRedirect(auth, provider);
+    setLoading(true);
+    try {
+      const result = await signInWithPopup(auth, provider);
+      setUser(result.user);
+      router.push('/dashboard');
+    } catch (error) {
+      console.error("Authentication failed", error);
+      // Handle error, e.g., show a toast message
+    } finally {
+      setLoading(false);
+    }
   };
 
   const logout = async () => {

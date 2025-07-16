@@ -21,7 +21,8 @@ export default function withAuth<P extends object>(WrappedComponent: ComponentTy
     }
 
     if (!user) {
-      return null; // or a loading spinner, while redirecting
+      // This will be shown briefly before the useEffect redirects
+      return <div className="flex items-center justify-center min-h-screen">Redirecting to login...</div>;
     }
     
     return <WrappedComponent {...props} />;
