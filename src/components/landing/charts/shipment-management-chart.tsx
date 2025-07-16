@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts"
@@ -31,13 +32,15 @@ const chartConfig = {
 
 export function ShipmentManagementChart() {
   return (
-    <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
+    <ChartContainer config={chartConfig} className="w-full">
       <AreaChart
         accessibilityLayer
         data={chartData}
         margin={{
+          top: 10,
+          right: 10,
           left: -20,
-          right: 0,
+          bottom: 0,
         }}
       >
         <CartesianGrid vertical={false} />
@@ -47,6 +50,7 @@ export function ShipmentManagementChart() {
           axisLine={false}
           tickMargin={8}
           interval={0}
+          tickFormatter={(value) => value.slice(-2)}
         />
         <YAxis />
         <Tooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />

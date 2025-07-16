@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Bar, BarChart, Line, LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ComposedChart } from "recharts"
@@ -29,12 +30,14 @@ const chartConfig = {
 
 export function LogisticsOverviewChart() {
   return (
-    <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
+    <ChartContainer config={chartConfig} className="w-full">
       <ComposedChart 
         data={chartData}
         margin={{
+          top: 10,
+          right: 10,
           left: -20,
-          right: -10,
+          bottom: 0,
         }}
       >
         <CartesianGrid vertical={false} />
