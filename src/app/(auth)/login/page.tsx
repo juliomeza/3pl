@@ -29,6 +29,12 @@ export default function LoginPage() {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
   
+  // If user is already logged in, this will be null briefly before redirection.
+  // We don't render the login form to avoid a flash of content.
+  if (user) {
+    return null;
+  }
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-full max-w-md mx-4">

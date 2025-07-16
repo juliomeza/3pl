@@ -2,21 +2,21 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, signOut, User, GoogleAuthProvider, signInWithRedirect } from 'firebase/auth';
+import { onAuthStateChanged, signOut, User, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth } from '@/lib/firebase/config';
 import { useRouter } from 'next/navigation';
 
 type AuthContextType = {
   user: User | null;
   loading: boolean;
-  signInWithGoogle: () => void;
+  signInWithGoogle: () => Promise<void>;
   logout: () => void;
 };
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  signInWithGoogle: () => {},
+  signInWithGoogle: async () => {},
   logout: () => {},
 });
 
@@ -26,31 +26,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    // onAuthStateChanged returns an unsubscribe function
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-      } else {
-        setUser(null);
-      }
-      // Set loading to false only after the initial check is complete.
-      // This listener handles both existing sessions and the result of a redirect.
+      setUser(currentUser);
       setLoading(false);
     });
 
-    // Cleanup subscription on unmount
     return () => unsubscribe();
   }, []);
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    setLoading(true); // Set loading before redirect
-    await signInWithRedirect(auth, provider);
+    setLoading(true);
+    try {
+      const result = await signInWithPopup(auth, provider);
+      if (result.user) {
+        setUser(result.user);
+        router.push('/dashboard');
+      }
+    } catch (error) {
+      console.error("Login failed", error);
+    } finally {
+        setLoading(false);
+    }
   };
 
   const logout = async () => {
     await signOut(auth);
-    setUser(null); // Explicitly set user to null
+    setUser(null);
     router.push('/');
   };
 
