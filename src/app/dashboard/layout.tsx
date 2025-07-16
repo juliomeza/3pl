@@ -2,18 +2,17 @@
 'use client';
 
 import { useAuth } from '@/context/auth-context';
-import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from '@/components/ui/sidebar';
-import { Home, User, LogOut } from 'lucide-react';
+import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
+import { Home } from 'lucide-react';
 import Link from 'next/link';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   
   return (
     <SidebarProvider>
@@ -39,29 +38,17 @@ export default function DashboardLayout({
                         </SidebarMenuItem>
                     </SidebarMenu>
                 </SidebarContent>
-                <SidebarFooter>
-                    {user && (
-                     <div className="flex items-center gap-3 p-2">
-                        <Avatar>
-                            <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
-                            <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col overflow-hidden">
-                            <span className="text-sm font-semibold truncate">{user.displayName}</span>
-                            <span className="text-xs text-muted-foreground truncate">{user.email}</span>
-                        </div>
-                        <Button variant="ghost" size="icon" onClick={logout} className="ml-auto">
-                            <LogOut />
-                        </Button>
-                    </div>
-                    )}
-                </SidebarFooter>
             </Sidebar>
-            <main className="flex-1 p-4 md:p-8">
-                 <div className="md:hidden flex justify-end mb-4">
-                    <SidebarTrigger />
+            <main className="flex-1 flex flex-col">
+                 <header className="flex items-center justify-between p-4 border-b md:justify-end">
+                    <div className="md:hidden">
+                        <SidebarTrigger />
+                    </div>
+                    <DashboardHeader />
+                </header>
+                <div className="p-4 md:p-8">
+                    {children}
                 </div>
-                {children}
             </main>
         </div>
     </SidebarProvider>
