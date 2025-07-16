@@ -26,38 +26,50 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-    });
+    console.log('AuthProvider Mounted. Initializing auth check.');
     
-    // Check for redirect result
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      console.log('onAuthStateChanged triggered. User:', currentUser ? currentUser.email : null);
+      setUser(currentUser);
+      // We will set loading to false only after getRedirectResult is also done.
+    });
+
     getRedirectResult(auth)
       .then((result) => {
+        console.log('getRedirectResult promise resolved.');
         if (result && result.user) {
-          // This means a user has just signed in via redirect.
+          console.log('getRedirectResult SUCCESS. User:', result.user.email);
+          // User signed in via redirect. Update state and redirect to dashboard.
           setUser(result.user);
           router.push('/dashboard');
+        } else {
+          console.log('getRedirectResult: No redirect result found.');
         }
       })
       .catch((error) => {
         console.error("Error during getRedirectResult:", error);
       })
       .finally(() => {
-        // In a real app, you might want to ensure loading is only false
-        // after both onAuthStateChanged and getRedirectResult have run.
-        // For simplicity here, we let onAuthStateChanged handle the final loading state.
+        // This runs after onAuthStateChanged and getRedirectResult have been initiated.
+        // It ensures we don't stop loading until Firebase has had a chance to check the session.
+        console.log('AuthProvider auth checks complete. Setting loading to false.');
+        setLoading(false);
       });
 
-    return () => unsubscribe();
+    return () => {
+      console.log('AuthProvider Unmounted.');
+      unsubscribe();
+    }
   }, [router]);
 
   const signInWithGoogle = async () => {
+    console.log('signInWithGoogle called.');
     const provider = new GoogleAuthProvider();
     await signInWithRedirect(auth, provider);
   };
 
   const logout = async () => {
+    console.log('logout called.');
     await signOut(auth);
     setUser(null);
     router.push('/');
@@ -70,6 +82,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     logout,
   };
 
+  console.log('AuthProvider rendering with state:', { loading, user: user ? user.email : null });
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
