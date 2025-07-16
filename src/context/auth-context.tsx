@@ -94,15 +94,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setLoading(true);
       if (currentUser) {
-        setLoading(true);
         setUser(currentUser);
-        const fetchedUserInfo = await fetchUserInfo(currentUser);
-        const protectedRoutes = ['/client', '/employee'];
-        const currentPath = window.location.pathname;
-        if (!protectedRoutes.some(route => currentPath.startsWith(route))) {
-            handleRedirect(fetchedUserInfo.role);
-        }
+        await fetchUserInfo(currentUser);
       } else {
         setUser(null);
         setUserInfo(null);
@@ -110,7 +105,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     });
     return () => unsubscribe();
-  }, [auth, router, db]);
+  }, [auth, db]);
 
   const value = {
     user,

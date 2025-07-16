@@ -16,7 +16,7 @@ export default function withAuth<P extends object>(WrappedComponent: ComponentTy
       }
 
       if (!user) {
-        router.push('/login');
+        router.replace('/login');
         return;
       }
 
@@ -24,7 +24,7 @@ export default function withAuth<P extends object>(WrappedComponent: ComponentTy
         const currentPath = window.location.pathname;
         const expectedPath = `/${userInfo.role}`;
         if (!currentPath.startsWith(expectedPath)) {
-          router.push(expectedPath);
+          router.replace(expectedPath);
         }
       }
     }, [user, userInfo, loading, router]);
@@ -33,11 +33,11 @@ export default function withAuth<P extends object>(WrappedComponent: ComponentTy
       return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
     }
     
-    // Ensure we don't render children if a redirect is imminent
+    // While redirecting, show a loading state instead of the component to prevent flashes of content
     const currentPath = window.location.pathname;
     const expectedPath = `/${userInfo.role}`;
     if (!currentPath.startsWith(expectedPath)) {
-        return <div className="flex items-center justify-center min-h-screen">Redirecting...</div>;
+        return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
     }
 
     return <WrappedComponent {...props} />;
