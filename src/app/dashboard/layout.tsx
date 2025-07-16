@@ -10,33 +10,29 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useEffect } from 'react';
 
+function Redirect({ to }: { to: string }) {
+  const router = useRouter();
+  useEffect(() => {
+    router.push(to);
+  }, [router, to]);
+  return null;
+}
+
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const { user, loading, logout } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    // Only run this check if loading is complete
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [user, loading, router]);
   
-  // While loading, show a loading indicator and don't render children
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
-  // If loading is complete and there's no user, the useEffect above will have already started the redirect.
-  // Returning null here prevents a flash of the dashboard content.
   if (!user) {
-    return null;
+    return <Redirect to="/login" />;
   }
   
-  // If loading is complete and there is a user, show the dashboard.
   return (
     <SidebarProvider>
         <div className="flex min-h-screen bg-background">
