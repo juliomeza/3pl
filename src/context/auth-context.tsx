@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { User, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithRedirect } from 'firebase/auth';
 import { auth } from '@/lib/firebase/config';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -29,23 +29,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-    setLoading(true);
-    try {
-      const result = await signInWithPopup(auth, provider);
-      setUser(result.user);
-      router.push('/dashboard');
-    } catch (error: any) {
-      console.error("Authentication failed", error);
-      toast({
-        title: "Authentication Failed",
-        description: error.message || "Could not sign in with Google. Please try again.",
-        variant: "destructive",
-      });
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
+    // No need for custom parameters as redirect flow is less sensitive
+    await signInWithRedirect(auth, provider);
   };
 
   const logout = async () => {
