@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, signOut, User, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { onAuthStateChanged, signOut, User, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { auth } from '@/lib/firebase/config';
 import { useRouter } from 'next/navigation';
 
@@ -30,24 +30,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(currentUser);
       setLoading(false);
     });
+    
+    // Check for redirect result
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result && result.user) {
+          // This means a user has just signed in via redirect.
+          setUser(result.user);
+          router.push('/dashboard');
+        }
+      })
+      .catch((error) => {
+        console.error("Error during getRedirectResult:", error);
+      })
+      .finally(() => {
+        // In a real app, you might want to ensure loading is only false
+        // after both onAuthStateChanged and getRedirectResult have run.
+        // For simplicity here, we let onAuthStateChanged handle the final loading state.
+      });
 
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    setLoading(true);
-    try {
-      const result = await signInWithPopup(auth, provider);
-      if (result.user) {
-        setUser(result.user);
-        router.push('/dashboard');
-      }
-    } catch (error) {
-      console.error("Login failed", error);
-    } finally {
-        setLoading(false);
-    }
+    await signInWithRedirect(auth, provider);
   };
 
   const logout = async () => {
