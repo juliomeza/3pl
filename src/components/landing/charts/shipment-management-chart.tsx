@@ -36,8 +36,8 @@ export function ShipmentManagementChart() {
         accessibilityLayer
         data={chartData}
         margin={{
-          left: 12,
-          right: 12,
+          left: -20,
+          right: 0,
         }}
       >
         <CartesianGrid vertical={false} />
@@ -46,6 +46,7 @@ export function ShipmentManagementChart() {
           tickLine={false}
           axisLine={false}
           tickMargin={8}
+          interval={0}
         />
         <YAxis />
         <Tooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />

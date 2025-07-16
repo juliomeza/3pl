@@ -30,7 +30,13 @@ const chartConfig = {
 export function LogisticsOverviewChart() {
   return (
     <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
-      <ComposedChart data={chartData}>
+      <ComposedChart 
+        data={chartData}
+        margin={{
+          left: -20,
+          right: -10,
+        }}
+      >
         <CartesianGrid vertical={false} />
         <XAxis
           dataKey="month"
@@ -38,6 +44,7 @@ export function LogisticsOverviewChart() {
           tickMargin={10}
           axisLine={false}
           tickFormatter={(value) => value.slice(0, 3)}
+          interval={0}
         />
         <YAxis yAxisId="left" orientation="left" stroke="hsl(var(--foreground))" />
         <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--chart-5))" />
