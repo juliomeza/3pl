@@ -16,6 +16,8 @@ export default function DashboardLayout({
   const { user, logout } = useAuth();
   
   if (!user) {
+    // This can show a brief loading state while the AuthProvider and withAuth HOC
+    // are resolving the user's session.
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
   

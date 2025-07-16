@@ -6,7 +6,7 @@ import {
   onAuthStateChanged, 
   signOut, 
   User, 
-  GithubAuthProvider, 
+  GithubAuthProvider,
   signInWithRedirect, 
   getRedirectResult 
 } from 'firebase/auth';
