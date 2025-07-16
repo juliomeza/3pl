@@ -37,44 +37,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  const handleRedirect = (role: 'client' | 'employee' | undefined) => {
-    if (!role) {
-        router.push('/login');
-        return;
-    }
-    const targetPath = role === 'employee' ? '/employee' : '/client';
-    router.push(targetPath);
-  };
-
-  const fetchUserInfo = async (firebaseUser: User) => {
-    const userRef = doc(db, 'users', firebaseUser.uid);
-    const userSnap = await getDoc(userRef);
-    let currentUserInfo: UserInfo;
-
-    if (userSnap.exists()) {
-      currentUserInfo = userSnap.data() as UserInfo;
-    } else {
-      currentUserInfo = {
-        role: 'client',
-        email: firebaseUser.email,
-        displayName: firebaseUser.displayName,
-        createdAt: new Date(),
-      };
-      await setDoc(userRef, currentUserInfo);
-    }
-    setUserInfo(currentUserInfo);
-    return currentUserInfo;
-  };
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setLoading(true);
+      if (currentUser) {
+        setUser(currentUser);
+        const userRef = doc(db, 'users', currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          setUserInfo(userSnap.data() as UserInfo);
+        } else {
+          // New user, create their profile
+          const newUserInfo: UserInfo = {
+            role: 'client', // Default role
+            email: currentUser.email,
+            displayName: currentUser.displayName,
+            createdAt: new Date(),
+          };
+          await setDoc(userRef, newUserInfo);
+          setUserInfo(newUserInfo);
+        }
+      } else {
+        setUser(null);
+        setUserInfo(null);
+      }
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, [auth, db]);
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
     try {
       const result = await signInWithPopup(auth, provider);
-      // fetchUserInfo is now called within onAuthStateChanged, 
-      // so we just need to redirect after login.
-      const fetchedUserInfo = await fetchUserInfo(result.user);
-      handleRedirect(fetchedUserInfo.role);
+      // Redirection is now handled by withAuth HOC after state updates
+      const expectedPath = result.user ? (await getDoc(doc(db, 'users', result.user.uid))).get('role') === 'employee' ? '/employee' : '/client' : '/login';
+      router.push(expectedPath);
     } catch (error: any) {
       console.error("Authentication failed", error);
       if (error.code !== 'auth/popup-closed-by-user') {
@@ -91,21 +90,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await signOut(auth);
     router.push('/login');
   };
-  
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setLoading(true);
-      if (currentUser) {
-        setUser(currentUser);
-        await fetchUserInfo(currentUser);
-      } else {
-        setUser(null);
-        setUserInfo(null);
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, [auth]);
 
   const value = {
     user,

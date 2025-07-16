@@ -7,21 +7,23 @@ import { useEffect, ComponentType } from 'react';
 
 export default function withAuth<P extends object>(WrappedComponent: ComponentType<P>) {
   const WithAuthComponent = (props: P) => {
-    const { user, loading, userInfo } = useAuth();
+    const { user, userInfo, loading } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
+      // Don't do anything while loading
       if (loading) {
-        return; // Wait until loading is false
+        return;
       }
 
+      // If loading is finished and there's no user, redirect to login
       if (!user) {
         router.replace('/login');
         return;
       }
 
-      // Once user and userInfo are loaded, check for correct role path
-      if (userInfo?.role) {
+      // If user and userInfo are loaded, we can check for correct role path
+      if (user && userInfo) {
         const currentPath = window.location.pathname;
         const expectedPath = `/${userInfo.role}`;
         
@@ -32,12 +34,13 @@ export default function withAuth<P extends object>(WrappedComponent: ComponentTy
       }
     }, [user, userInfo, loading, router]);
 
-    // Render a loading state while auth state is being determined or redirection is happening.
+    // While loading or if user/userInfo is not yet available, show a loading screen.
     if (loading || !user || !userInfo) {
       return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
     }
     
-    // While redirecting, show a loading state instead of the component to prevent flashes of incorrect content.
+    // Security check: If userInfo is loaded, but the user is on the wrong path,
+    // continue showing loading to prevent flashing incorrect content during redirection.
     const currentPath = window.location.pathname;
     const expectedPath = `/${userInfo.role}`;
     if (!currentPath.startsWith(expectedPath)) {
