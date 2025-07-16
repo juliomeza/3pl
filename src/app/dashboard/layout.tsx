@@ -6,6 +6,8 @@ import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader
 import { Home } from 'lucide-react';
 import Link from 'next/link';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
+import { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
 
 export default function DashboardLayout({
   children,
@@ -13,6 +15,22 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { user } = useAuth();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // The scroll event is on the main content area, not the window
+      const mainElement = document.querySelector('main');
+      if (mainElement) {
+        setIsScrolled(mainElement.scrollTop > 10);
+      }
+    };
+    
+    const mainElement = document.querySelector('main');
+    mainElement?.addEventListener('scroll', handleScroll);
+    
+    return () => mainElement?.removeEventListener('scroll', handleScroll);
+  }, []);
   
   return (
     <SidebarProvider>
@@ -39,17 +57,22 @@ export default function DashboardLayout({
                     </SidebarMenu>
                 </SidebarContent>
             </Sidebar>
-            <main className="flex-1 flex flex-col">
-                 <header className="flex items-center justify-between p-4 border-b md:justify-end">
+            <div className="flex-1 flex flex-col">
+                 <header className={cn(
+                    "sticky top-0 z-40 flex items-center justify-between p-4 md:justify-end transition-all duration-300",
+                    isScrolled && "bg-background/80 backdrop-blur-lg border-b"
+                  )}>
                     <div className="md:hidden">
                         <SidebarTrigger />
                     </div>
                     <DashboardHeader />
                 </header>
-                <div className="p-4 md:p-8">
-                    {children}
-                </div>
-            </main>
+                <main className="flex-1 flex flex-col overflow-y-auto">
+                    <div className="p-4 md:p-8">
+                        {children}
+                    </div>
+                </main>
+            </div>
         </div>
     </SidebarProvider>
   );
