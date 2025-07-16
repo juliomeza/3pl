@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error("Authentication failed", error);
       toast({
         title: "Authentication Failed",
-        description: error.message || "Could not sign in with Google. Please try again.",
+        description: "Could not sign in with Google. Please check if the domain is authorized or try again.",
         variant: "destructive",
       });
       setUser(null);
@@ -58,7 +58,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(currentUser);
       setLoading(false);
     });
-
     return () => unsubscribe();
   }, [auth]);
 
