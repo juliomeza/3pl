@@ -2,21 +2,19 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, onAuthStateChanged, signInWithRedirect, signOut, GoogleAuthProvider } from 'firebase/auth';
-import { auth } from '@/lib/firebase/config';
+import { User, onAuthStateChanged, signOut, GoogleAuthProvider, getAuth, signInWithRedirect, getRedirectResult, setPersistence, browserLocalPersistence } from 'firebase/auth';
+import { app } from '@/lib/firebase/config';
 import { useRouter } from 'next/navigation';
 
 type AuthContextType = {
   user: User | null;
   loading: boolean;
-  signInWithGoogle: () => Promise<void>;
   logout: () => void;
 };
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  signInWithGoogle: async () => {},
   logout: () => {},
 });
 
@@ -24,41 +22,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true); 
   const router = useRouter();
-
-  const signInWithGoogle = async () => {
-    console.log('[AuthProvider] Attempting to sign in with Google...');
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithRedirect(auth, provider);
-    } catch (error) {
-      console.error('[AuthProvider] signInWithRedirect failed.', error);
-    }
-  };
+  const auth = getAuth(app);
 
   const logout = async () => {
     console.log('[AuthProvider] Logging out...');
     await signOut(auth);
-    // After signing out, onAuthStateChanged will set user to null
-    // and the protected route logic will handle redirection.
+    setUser(null);
     router.push('/login');
   };
 
   useEffect(() => {
     console.log('[AuthProvider] useEffect started. Subscribing to onAuthStateChanged.');
+
+    // This handles the redirect result from Google
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          console.log('[AuthProvider] getRedirectResult found a user.', result.user);
+          // The onAuthStateChanged listener below will handle setting the user state
+        } else {
+          console.log('[AuthProvider] getRedirectResult found no user.');
+        }
+      })
+      .catch((error) => {
+        console.error('[AuthProvider] Error in getRedirectResult:', error);
+      })
+      .finally(() => {
+         // The real "loading" state is determined by onAuthStateChanged firing once.
+         // This is just for information.
+         console.log("[AuthProvider] getRedirectResult finished.")
+      });
     
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      console.log('[AuthProvider] onAuthStateChanged triggered. User:', currentUser);
+      console.log('[AuthProvider] onAuthStateChanged triggered. User:', currentUser ? currentUser.displayName : 'null');
       setUser(currentUser);
       console.log('[AuthProvider] Auth state determined. Setting loading to false.');
       setLoading(false);
-
-      if (currentUser) {
-        // If user is determined, redirect to dashboard if not already there.
-        if(window.location.pathname.startsWith('/login')) {
-           console.log('[AuthProvider] User is logged in, redirecting from /login to /dashboard.');
-           router.push('/dashboard');
-        }
-      }
     });
 
     // Cleanup subscription on unmount
@@ -66,13 +65,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log('[AuthProvider] useEffect cleanup. Unsubscribing from onAuthStateChanged.');
       unsubscribe();
     }
-  }, [router]);
+  }, [auth]);
 
 
   const value = {
     user,
     loading,
-    signInWithGoogle,
     logout,
   };
 

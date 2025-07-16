@@ -1,24 +1,20 @@
 
 'use client';
 
-import { useAuth } from '@/context/auth-context';
+import { AuthProvider, useAuth } from '@/context/auth-context';
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from '@/components/ui/sidebar';
 import { Home, User, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function InnerDashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   
   if (!user) {
-    // This can show a brief loading state while the AuthProvider and withAuth HOC
-    // are resolving the user's session.
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    // This part is now handled by the withAuth HOC, but as a fallback,
+    // we can show a loading state or nothing, while withAuth decides.
+    return <div className="flex items-center justify-center min-h-screen">Loading user...</div>;
   }
   
   return (
@@ -70,4 +66,17 @@ export default function DashboardLayout({
         </div>
     </SidebarProvider>
   );
+}
+
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <AuthProvider>
+      <InnerDashboardLayout>{children}</InnerDashboardLayout>
+    </AuthProvider>
+  )
 }

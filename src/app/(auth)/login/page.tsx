@@ -3,33 +3,21 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/context/auth-context';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { getAuth, signInWithRedirect, GoogleAuthProvider } from 'firebase/auth';
+import { app } from '@/lib/firebase/config';
 
 export default function LoginPage() {
-  const { user, loading, signInWithGoogle } = useAuth();
-  const router = useRouter();
+  const auth = getAuth(app);
 
-  useEffect(() => {
-    // If we are done loading and the user is somehow already here, redirect them away.
-    if (!loading && user) {
-      router.push('/dashboard');
-    }
-  }, [user, loading, router]);
-  
   const handleGoogleSignIn = async () => {
+    const provider = new GoogleAuthProvider();
     try {
-      await signInWithGoogle();
+      // We no longer need AuthProvider for this, we can call firebase directly.
+      await signInWithRedirect(auth, provider);
     } catch (error) {
       console.error('[LoginPage] Login failed', error);
     }
   };
-
-  // Do not render the login form if we are still loading or if the user is logged in
-  if (loading || user) {
-    return <div className="flex items-center justify-center min-h-screen">Authenticating...</div>;
-  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
