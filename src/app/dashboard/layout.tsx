@@ -16,8 +16,6 @@ export default function DashboardLayout({
   const { user, logout } = useAuth();
   
   if (!user) {
-    // The withAuth HOC on the page will handle redirection. 
-    // This is a fallback to avoid rendering with a null user.
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
   
