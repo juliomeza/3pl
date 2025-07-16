@@ -38,11 +38,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const db = getFirestore(app);
 
   const handleRedirect = (role: 'client' | 'employee' | undefined) => {
-    if (role === 'employee') {
-      router.push('/employee');
-    } else {
-      router.push('/client');
+    if (!role) {
+        router.push('/login');
+        return;
     }
+    const targetPath = role === 'employee' ? '/employee' : '/client';
+    router.push(targetPath);
   };
 
   const fetchUserInfo = async (firebaseUser: User) => {
@@ -70,7 +71,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     provider.setCustomParameters({ prompt: 'select_account' });
     try {
       const result = await signInWithPopup(auth, provider);
-      setUser(result.user);
+      // fetchUserInfo is now called within onAuthStateChanged, 
+      // so we just need to redirect after login.
       const fetchedUserInfo = await fetchUserInfo(result.user);
       handleRedirect(fetchedUserInfo.role);
     } catch (error: any) {
@@ -87,8 +89,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     await signOut(auth);
-    setUser(null);
-    setUserInfo(null);
     router.push('/login');
   };
   
@@ -105,7 +105,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     });
     return () => unsubscribe();
-  }, [auth, db]);
+  }, [auth]);
 
   const value = {
     user,

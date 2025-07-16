@@ -12,7 +12,7 @@ export default function withAuth<P extends object>(WrappedComponent: ComponentTy
 
     useEffect(() => {
       if (loading) {
-        return;
+        return; // Wait until loading is false
       }
 
       if (!user) {
@@ -20,26 +20,31 @@ export default function withAuth<P extends object>(WrappedComponent: ComponentTy
         return;
       }
 
+      // Once user and userInfo are loaded, check for correct role path
       if (userInfo?.role) {
         const currentPath = window.location.pathname;
         const expectedPath = `/${userInfo.role}`;
+        
+        // If user is on the wrong dashboard, redirect them to the correct one.
         if (!currentPath.startsWith(expectedPath)) {
           router.replace(expectedPath);
         }
       }
     }, [user, userInfo, loading, router]);
 
+    // Render a loading state while auth state is being determined or redirection is happening.
     if (loading || !user || !userInfo) {
       return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
     }
     
-    // While redirecting, show a loading state instead of the component to prevent flashes of content
+    // While redirecting, show a loading state instead of the component to prevent flashes of incorrect content.
     const currentPath = window.location.pathname;
     const expectedPath = `/${userInfo.role}`;
     if (!currentPath.startsWith(expectedPath)) {
         return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
     }
 
+    // If everything is correct, render the actual component.
     return <WrappedComponent {...props} />;
   };
 
