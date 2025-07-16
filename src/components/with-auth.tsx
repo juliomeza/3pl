@@ -10,26 +10,28 @@ export default function withAuth<P extends object>(WrappedComponent: ComponentTy
     const { user, loading } = useAuth();
     const router = useRouter();
 
-    useEffect(() => {
-      // This effect runs when the component mounts or when loading/user state changes.
-      // It ensures that if auth state is resolved and there's no user, we redirect.
-      if (!loading && !user) {
-        router.push('/login');
-      }
-    }, [user, loading, router]);
+    console.log('[withAuth] Rendering. State:', { loading, user: !!user });
 
-    // While loading, show a loading indicator.
     if (loading) {
-      return <div className="flex items-center justify-center min-h-screen">Loading Auth...</div>;
+      console.log('[withAuth] Still loading auth state. Rendering loading indicator.');
+      return <div className="flex items-center justify-center min-h-screen">Authenticating...</div>;
     }
 
-    // If there is a user, render the wrapped component.
-    if (user) {
-      return <WrappedComponent {...props} />;
+    if (!user) {
+      console.log('[withAuth] Not loading and no user. Rendering auth failed message.');
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen">
+            <h1 className="text-2xl font-bold mb-4">Authentication Failed</h1>
+            <p className="text-muted-foreground mb-8">You are not logged in. Please go to the login page to sign in.</p>
+            <button onClick={() => router.push('/login')} className="px-4 py-2 bg-primary text-primary-foreground rounded-md">
+              Go to Login
+            </button>
+        </div>
+      );
     }
-
-    // If no user and not loading, we'll be redirecting, so return null to avoid rendering anything.
-    return null;
+    
+    console.log('[withAuth] Auth check passed. Rendering wrapped component.');
+    return <WrappedComponent {...props} />;
   };
 
   WithAuthComponent.displayName = `withAuth(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`;
