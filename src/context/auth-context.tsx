@@ -2,14 +2,12 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User } from 'firebase/auth';
+import { User, onAuthStateChanged, signInWithRedirect, signOut, GoogleAuthProvider } from 'firebase/auth';
+import { auth } from '@/lib/firebase/config';
 import { useRouter } from 'next/navigation';
 
-// Define a type for our mock user to satisfy the User type from Firebase
-type MockUser = Pick<User, 'uid' | 'displayName' | 'email' | 'photoURL'>;
-
 type AuthContextType = {
-  user: MockUser | null;
+  user: User | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   logout: () => void;
@@ -17,44 +15,46 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  loading: false,
+  loading: true,
   signInWithGoogle: async () => {},
   logout: () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<MockUser | null>(null);
-  // Set loading to false initially as we are not waiting for Firebase
-  const [loading, setLoading] = useState(false); 
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true); 
   const router = useRouter();
 
-  // FAKE SIGN-IN FUNCTION
   const signInWithGoogle = async () => {
-    console.log('[AuthProvider-FAKE] Faking Google Sign-In...');
-    setLoading(true);
-    // Simulate a network delay
-    setTimeout(() => {
-      const mockUser: MockUser = {
-        uid: 'fake-user-123',
-        displayName: 'Fake User',
-        email: 'fake.user@example.com',
-        photoURL: 'https://i.pravatar.cc/40?u=fakeuser',
-      };
-      setUser(mockUser);
-      setLoading(false);
-      console.log('[AuthProvider-FAKE] Fake user set. Redirecting to /dashboard.');
-      router.push('/dashboard');
-    }, 500);
+    const provider = new GoogleAuthProvider();
+    await signInWithRedirect(auth, provider);
   };
 
-  // FAKE LOGOUT FUNCTION
-  const logout = () => {
-    console.log('[AuthProvider-FAKE] Faking Logout...');
-    setUser(null);
+  const logout = async () => {
+    await signOut(auth);
     router.push('/login');
   };
 
-  console.log(`[AuthProvider-FAKE] Rendering with state: { loading: ${loading}, user: ${!!user} }`);
+  useEffect(() => {
+    // onAuthStateChanged is the recommended way to get the current user.
+    // It automatically handles the result of a redirect operation.
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+      
+      if (currentUser) {
+         // If user is determined, redirect to dashboard if not already there.
+         // This is a simple way to handle post-login redirect.
+         if(window.location.pathname.startsWith('/login')) {
+            router.push('/dashboard');
+         }
+      }
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [router]);
+
 
   const value = {
     user,
@@ -63,7 +63,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     logout,
   };
 
-  // No longer show a loading screen here, as we control it manually
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 

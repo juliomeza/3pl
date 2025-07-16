@@ -14,7 +14,6 @@ export default function withAuth<P extends object>(WrappedComponent: ComponentTy
       // This effect runs when the component mounts or when loading/user state changes.
       // It ensures that if auth state is resolved and there's no user, we redirect.
       if (!loading && !user) {
-        console.log('[withAuth] Not loading and no user. Redirecting to /login.');
         router.push('/login');
       }
     }, [user, loading, router]);
