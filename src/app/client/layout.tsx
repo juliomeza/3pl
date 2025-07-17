@@ -47,25 +47,25 @@ function ClientLayout({
     <SidebarProvider>
         <div className="flex min-h-screen bg-background">
             <Sidebar>
-                <SidebarHeader className="flex-col items-center justify-center p-4">
+                <SidebarHeader className="p-4">
                      {clientInfoLoading ? (
-                        <div className="mt-2 flex flex-col items-center justify-center gap-2 group-data-[state=collapsed]/sidebar-wrapper:hidden">
-                            <Skeleton className="w-16 h-16 rounded-full" />
-                            <Skeleton className="w-24 h-4 mt-2" />
+                        <div className="flex items-center gap-2 group-data-[state=collapsed]/sidebar-wrapper:hidden">
+                            <Skeleton className="w-8 h-8 rounded-full" />
+                            <Skeleton className="w-24 h-4" />
                         </div>
                      ) : clientInfo && (
-                        <div className="mt-2 flex flex-col items-center justify-center gap-2 group-data-[state=collapsed]/sidebar-wrapper:hidden">
+                        <div className="flex items-center gap-2 group-data-[state=collapsed]/sidebar-wrapper:hidden">
                             {clientInfo.logo_url && (
                                 <Image
                                     src={clientInfo.logo_url}
                                     alt={`${clientInfo.name} logo`}
-                                    width={64}
-                                    height={64}
-                                    className="rounded-full object-contain mb-2"
+                                    width={32}
+                                    height={32}
+                                    className="rounded-full object-contain"
                                     data-ai-hint="logo"
                                 />
                             )}
-                            <span className="font-semibold text-lg text-center">{clientInfo.name}</span>
+                            <span className="font-semibold text-md">{clientInfo.name}</span>
                         </div>
                      )}
                 </SidebarHeader>
