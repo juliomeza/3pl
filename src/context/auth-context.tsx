@@ -15,7 +15,7 @@ type UserInfo = DocumentData & {
 
 type ClientInfo = DocumentData & {
   name: string;
-  logoUrl?: string;
+  logo_url?: string;
 };
 
 type AuthContextType = {

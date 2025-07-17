@@ -19,11 +19,11 @@ function ClientDashboardPage() {
             
             {clientInfoLoading ? (
                <Skeleton className="h-20 w-40 mt-4" />
-            ) : clientInfo?.logoUrl && (
+            ) : clientInfo?.logo_url && (
               <div className="mt-4">
                 <p className="text-sm text-muted-foreground mb-2">Client Logo:</p>
                 <Image
-                    src={clientInfo.logoUrl}
+                    src={clientInfo.logo_url}
                     alt={`${clientInfo.name} logo`}
                     width={160}
                     height={80}

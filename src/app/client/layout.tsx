@@ -55,11 +55,11 @@ function ClientLayout({
                         </Link>
                          {clientInfoLoading ? (
                             <Skeleton className="w-8 h-8 rounded-full" />
-                         ) : clientInfo?.logoUrl && (
+                         ) : clientInfo?.logo_url && (
                             <>
                                 <SeparatorHorizontal className="w-4 h-4 text-muted-foreground group-data-[state=collapsed]/sidebar-wrapper:hidden" />
                                 <Image
-                                    src={clientInfo.logoUrl}
+                                    src={clientInfo.logo_url}
                                     alt={`${clientInfo.name} logo`}
                                     width={32}
                                     height={32}
