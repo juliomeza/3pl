@@ -4,9 +4,23 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/auth-context';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function LoginPage() {
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, user, userInfo, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && userInfo) {
+      if (userInfo.role === 'none') {
+        router.replace('/pending-access');
+      } else if (userInfo.role === 'client' || userInfo.role === 'employee') {
+        router.replace(`/${userInfo.role}`);
+      }
+    }
+  }, [userInfo, loading, router]);
+
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">

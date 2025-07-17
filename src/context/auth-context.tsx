@@ -47,7 +47,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (userSnap.exists()) {
           setUserInfo(userSnap.data() as UserInfo);
         } else {
-          // New user, create their profile with 'none' role.
           const newUserInfo: UserInfo = {
             role: 'none',
             email: currentUser.email,
@@ -55,7 +54,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             createdAt: serverTimestamp(),
           };
           await setDoc(userRef, newUserInfo);
-          // We fetch it again to get the server-generated timestamp
           const newUserSnap = await getDoc(userRef);
           setUserInfo(newUserSnap.data() as UserInfo);
         }
@@ -72,16 +70,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
     try {
-      const result = await signInWithPopup(auth, provider);
-      // Redirection is now handled by the withAuth HOC after state updates
-      const userDoc = await getDoc(doc(db, 'users', result.user.uid));
-      const role = userDoc.exists() ? userDoc.data()?.role : 'none';
-
-      if (role === 'client' || role === 'employee') {
-          router.push(`/${role}`);
-      } else {
-          router.push('/pending-access');
-      }
+      await signInWithPopup(auth, provider);
+      // Redirection is now handled by the login page's useEffect
     } catch (error: any) {
       console.error("Authentication failed", error);
       if (error.code !== 'auth/popup-closed-by-user') {
