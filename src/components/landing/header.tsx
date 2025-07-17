@@ -26,7 +26,7 @@ const navLinks = [
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
-  const { user, loading, logout } = useAuth();
+  const { user, userInfo, loading, logout } = useAuth();
   const pathname = usePathname();
 
   useEffect(() => {
@@ -36,6 +36,12 @@ export function Header() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const getDashboardPath = () => {
+    if (!userInfo) return '/login';
+    if (userInfo.role === 'none') return '/pending-access';
+    return `/${userInfo.role}`;
+  };
 
   return (
     <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${isScrolled ? 'bg-background/80 backdrop-blur-lg border-b' : 'bg-transparent'}`}>
@@ -69,7 +75,7 @@ export function Header() {
                   <DropdownMenuContent>
                     <DropdownMenuLabel>{user.displayName}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild><Link href="/dashboard">Dashboard</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link href={getDashboardPath()}>Dashboard</Link></DropdownMenuItem>
                     <DropdownMenuItem onClick={logout}>Sign out</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -109,7 +115,7 @@ export function Header() {
                     ) : user ? (
                       <div className="flex flex-col gap-2 mt-4">
                         <Button asChild className="justify-start">
-                          <Link href="/dashboard">Dashboard</Link>
+                          <Link href={getDashboardPath()}>Dashboard</Link>
                         </Button>
                         <Button onClick={logout} variant="outline" className="justify-start">Sign Out</Button>
                       </div>
