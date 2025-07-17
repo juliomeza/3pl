@@ -49,12 +49,12 @@ function ClientLayout({
             <Sidebar>
                 <SidebarHeader className="p-4">
                      {clientInfoLoading ? (
-                        <div className="flex items-center gap-2 group-data-[state=collapsed]/sidebar-wrapper:hidden">
+                        <div className="flex items-center gap-2">
                             <Skeleton className="w-8 h-8 rounded-full" />
                             <Skeleton className="w-24 h-4" />
                         </div>
                      ) : clientInfo && (
-                        <div className="flex items-center gap-2 group-data-[state=collapsed]/sidebar-wrapper:hidden">
+                        <div className="flex items-center gap-2">
                             {clientInfo.logo_url && (
                                 <Image
                                     src={clientInfo.logo_url}
@@ -65,7 +65,7 @@ function ClientLayout({
                                     data-ai-hint="logo"
                                 />
                             )}
-                            <span className="font-semibold text-md">{clientInfo.name}</span>
+                            <span className="font-semibold text-md group-data-[state=collapsed]/sidebar-wrapper:hidden">{clientInfo.name}</span>
                         </div>
                      )}
                 </SidebarHeader>
@@ -87,7 +87,7 @@ function ClientLayout({
                     </SidebarMenu>
                 </SidebarContent>
                  <SidebarFooter>
-                    <div className="flex items-center justify-center gap-2 h-14 border-t">
+                    <div className="flex items-center justify-start gap-2 h-14 p-2">
                         <Link href="/" className="flex items-center gap-2 font-headline text-md font-semibold text-foreground">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-foreground"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
                             <span className="group-data-[state=collapsed]/sidebar-wrapper:hidden">Synapse3PL</span>
