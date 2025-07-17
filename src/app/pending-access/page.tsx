@@ -4,8 +4,9 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/auth-context';
+import withAuth from '@/components/with-auth';
 
-export default function PendingAccessPage() {
+function PendingAccessPage() {
   const { logout } = useAuth();
 
   return (
@@ -32,3 +33,5 @@ export default function PendingAccessPage() {
     </div>
   );
 }
+
+export default withAuth(PendingAccessPage);
