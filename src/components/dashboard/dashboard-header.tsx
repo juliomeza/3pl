@@ -20,7 +20,8 @@ export function DashboardHeader() {
 
   const getDashboardPath = () => {
     if (!userInfo) return '/login';
-    return userInfo.role === 'employee' ? '/employee' : '/client';
+    if (userInfo.role === 'none') return '/pending-access';
+    return `/${userInfo.role}`;
   }
 
   return (
