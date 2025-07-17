@@ -3,7 +3,7 @@
 
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
-import { Bot, Home, PlusCircle, BarChart3, SeparatorHorizontal } from 'lucide-react';
+import { Bot, Home, PlusCircle, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -47,31 +47,33 @@ function ClientLayout({
     <SidebarProvider>
         <div className="flex min-h-screen bg-background">
             <Sidebar>
-                <SidebarHeader>
-                    <div className="flex items-center gap-3">
+                <SidebarHeader className="flex-col items-stretch text-center">
+                    <div className="flex items-center justify-center gap-3">
                         <Link href="/" className="flex items-center gap-2 font-headline text-xl font-semibold text-foreground">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-foreground"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
                             <span className="group-data-[state=collapsed]/sidebar-wrapper:hidden">Synapse3PL</span>
                         </Link>
-                         {clientInfoLoading ? (
-                            <Skeleton className="w-24 h-8" />
-                         ) : clientInfo && clientInfo.logo_url && (
-                            <>
-                                <SeparatorHorizontal className="w-4 h-4 text-muted-foreground group-data-[state=collapsed]/sidebar-wrapper:hidden" />
-                                <div className="flex items-center gap-2">
-                                  <Image
-                                      src={`${clientInfo.logo_url}&t=${new Date().getTime()}`}
-                                      alt={`${clientInfo.name} logo`}
-                                      width={28}
-                                      height={28}
-                                      className="rounded-full object-contain"
-                                      data-ai-hint="logo"
-                                  />
-                                  <span className="font-semibold text-sm group-data-[state=collapsed]/sidebar-wrapper:hidden">{clientInfo.name}</span>
-                                </div>
-                            </>
-                         )}
                     </div>
+                     {clientInfoLoading ? (
+                        <div className="mt-4 flex flex-col items-center gap-2 group-data-[state=collapsed]/sidebar-wrapper:hidden">
+                            <Skeleton className="w-16 h-16 rounded-lg" />
+                            <Skeleton className="w-24 h-4" />
+                        </div>
+                     ) : clientInfo && (
+                        <div className="mt-4 flex flex-col items-center gap-2 group-data-[state=collapsed]/sidebar-wrapper:hidden">
+                            {clientInfo.logo_url && (
+                                <Image
+                                    src={clientInfo.logo_url}
+                                    alt={`${clientInfo.name} logo`}
+                                    width={64}
+                                    height={64}
+                                    className="rounded-lg object-contain"
+                                    data-ai-hint="logo"
+                                />
+                            )}
+                            <span className="font-semibold text-sm">{clientInfo.name}</span>
+                        </div>
+                     )}
                 </SidebarHeader>
                 <SidebarContent>
                     <SidebarMenu>
