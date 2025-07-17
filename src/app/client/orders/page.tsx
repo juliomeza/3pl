@@ -1,9 +1,12 @@
 
+import { Wrench } from 'lucide-react';
+
 export default function ClientOrdersPage() {
   return (
-    <div>
-      <h1 className="text-3xl font-bold font-headline mb-8">Create Orders</h1>
-      <p>This is where clients will create inbound and outbound orders.</p>
+    <div className="flex flex-col items-center justify-center h-[50vh] text-center">
+      <Wrench className="w-16 h-16 mb-4 text-muted-foreground" />
+      <h1 className="text-3xl font-bold font-headline mb-2">Create Orders</h1>
+      <p className="text-lg text-muted-foreground">Esta sección está en construcción.</p>
     </div>
   );
 }

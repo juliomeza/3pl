@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import withAuth from '@/components/with-auth';
 
 const menuItems = [
-  { href: '/client', label: 'Dashboard', icon: Home },
+  { href: '/client', label: 'Dashboard', icon: Home, exact: true },
   { href: '/client/orders', label: 'Create Order', icon: PlusCircle },
   { href: '/client/reports', label: 'Reports', icon: BarChart3 },
   { href: '/client/assistant', label: 'AI Assistant', icon: Bot },
@@ -47,23 +47,26 @@ function ClientLayout({
                 <SidebarHeader>
                     <div className="flex items-center gap-2">
                         <Link href="/" className="flex items-center gap-2 font-headline text-xl font-semibold text-foreground">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-foreground"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-foreground"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
                             <span className="group-data-[state=collapsed]/sidebar-wrapper:hidden">Synapse3PL</span>
                         </Link>
                     </div>
                 </SidebarHeader>
                 <SidebarContent>
                     <SidebarMenu>
-                        {menuItems.map((item) => (
-                            <SidebarMenuItem key={item.href}>
-                                <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.label}>
-                                    <Link href={item.href}>
-                                        <item.icon />
-                                        <span className="group-data-[state=collapsed]/sidebar-wrapper:hidden">{item.label}</span>
-                                    </Link>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-                        ))}
+                        {menuItems.map((item) => {
+                            const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+                            return (
+                                <SidebarMenuItem key={item.href}>
+                                    <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
+                                        <Link href={item.href}>
+                                            <item.icon />
+                                            <span className="group-data-[state=collapsed]/sidebar-wrapper:hidden">{item.label}</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            );
+                        })}
                     </SidebarMenu>
                 </SidebarContent>
             </Sidebar>
