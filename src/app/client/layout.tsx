@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, SidebarFooter } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import { Bot, Home, PlusCircle, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
@@ -47,31 +47,25 @@ function ClientLayout({
     <SidebarProvider>
         <div className="flex min-h-screen bg-background">
             <Sidebar>
-                <SidebarHeader className="flex-col items-stretch px-4">
-                    <div className="flex items-center justify-center gap-3 h-14">
-                        <Link href="/" className="flex items-center gap-2 font-headline text-xl font-semibold text-foreground">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-foreground"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
-                            <span className="group-data-[state=collapsed]/sidebar-wrapper:hidden">Synapse3PL</span>
-                        </Link>
-                    </div>
+                <SidebarHeader className="flex-col items-center justify-center p-4">
                      {clientInfoLoading ? (
-                        <div className="mt-2 flex items-center justify-center gap-2 group-data-[state=collapsed]/sidebar-wrapper:hidden">
-                            <Skeleton className="w-6 h-6 rounded-md" />
-                            <Skeleton className="w-24 h-4" />
+                        <div className="mt-2 flex flex-col items-center justify-center gap-2 group-data-[state=collapsed]/sidebar-wrapper:hidden">
+                            <Skeleton className="w-16 h-16 rounded-full" />
+                            <Skeleton className="w-24 h-4 mt-2" />
                         </div>
                      ) : clientInfo && (
-                        <div className="mt-2 flex items-center justify-center gap-2 group-data-[state=collapsed]/sidebar-wrapper:hidden border-t pt-4">
+                        <div className="mt-2 flex flex-col items-center justify-center gap-2 group-data-[state=collapsed]/sidebar-wrapper:hidden">
                             {clientInfo.logo_url && (
                                 <Image
                                     src={clientInfo.logo_url}
                                     alt={`${clientInfo.name} logo`}
-                                    width={24}
-                                    height={24}
-                                    className="rounded-md object-contain"
+                                    width={64}
+                                    height={64}
+                                    className="rounded-full object-contain mb-2"
                                     data-ai-hint="logo"
                                 />
                             )}
-                            <span className="font-semibold text-sm">{clientInfo.name}</span>
+                            <span className="font-semibold text-lg text-center">{clientInfo.name}</span>
                         </div>
                      )}
                 </SidebarHeader>
@@ -92,6 +86,14 @@ function ClientLayout({
                         })}
                     </SidebarMenu>
                 </SidebarContent>
+                 <SidebarFooter>
+                    <div className="flex items-center justify-center gap-2 h-14 border-t">
+                        <Link href="/" className="flex items-center gap-2 font-headline text-md font-semibold text-foreground">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-foreground"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                            <span className="group-data-[state=collapsed]/sidebar-wrapper:hidden">Synapse3PL</span>
+                        </Link>
+                    </div>
+                </SidebarFooter>
             </Sidebar>
             <div className="flex-1 flex flex-col">
                  <header className={cn(
