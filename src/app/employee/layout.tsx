@@ -3,12 +3,20 @@
 
 import { useAuth } from '@/context/auth-context';
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
-import { Home } from 'lucide-react';
+import { Home, Building2, BarChart3, Bot } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import withAuth from '@/components/with-auth';
+
+const menuItems = [
+  { href: '/employee', label: 'Dashboard', icon: Home },
+  { href: '/employee/management', label: 'Management', icon: Building2 },
+  { href: '/employee/reports', label: 'Reports', icon: BarChart3 },
+  { href: '/employee/assistant', label: 'AI Assistant', icon: Bot },
+];
 
 function EmployeeLayout({
   children,
@@ -16,6 +24,7 @@ function EmployeeLayout({
   children: React.ReactNode;
 }) {
   const [isScrolled, setIsScrolled] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -39,20 +48,22 @@ function EmployeeLayout({
                     <div className="flex items-center gap-2">
                         <Link href="/" className="flex items-center gap-2 font-headline text-xl font-semibold text-foreground">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-accent"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
-                            Synapse3PL
+                            <span className="group-data-[state=collapsed]/sidebar-wrapper:hidden">Synapse3PL</span>
                         </Link>
                     </div>
                 </SidebarHeader>
                 <SidebarContent>
                     <SidebarMenu>
-                        <SidebarMenuItem>
-                            <SidebarMenuButton asChild isActive={true}>
-                                <Link href="/employee">
-                                    <Home />
-                                    <span>Employee Home</span>
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
+                        {menuItems.map((item) => (
+                            <SidebarMenuItem key={item.href}>
+                                <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.label}>
+                                    <Link href={item.href}>
+                                        <item.icon />
+                                        <span className="group-data-[state=collapsed]/sidebar-wrapper:hidden">{item.label}</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        ))}
                     </SidebarMenu>
                 </SidebarContent>
             </Sidebar>
