@@ -54,18 +54,23 @@ function ClientLayout({
                             <span className="group-data-[state=collapsed]/sidebar-wrapper:hidden">Synapse3PL</span>
                         </Link>
                          {clientInfoLoading ? (
-                            <Skeleton className="w-8 h-8 rounded-full" />
-                         ) : clientInfo?.logo_url && (
+                            <Skeleton className="w-24 h-8" />
+                         ) : clientInfo && (
                             <>
                                 <SeparatorHorizontal className="w-4 h-4 text-muted-foreground group-data-[state=collapsed]/sidebar-wrapper:hidden" />
-                                <Image
-                                    src={clientInfo.logo_url}
-                                    alt={`${clientInfo.name} logo`}
-                                    width={32}
-                                    height={32}
-                                    className="rounded-full object-contain"
-                                    data-ai-hint="logo"
-                                />
+                                <div className="flex items-center gap-2">
+                                  {clientInfo.logo_url && (
+                                    <Image
+                                        src={clientInfo.logo_url}
+                                        alt={`${clientInfo.name} logo`}
+                                        width={28}
+                                        height={28}
+                                        className="rounded-full object-contain"
+                                        data-ai-hint="logo"
+                                    />
+                                  )}
+                                  <span className="font-semibold text-sm group-data-[state=collapsed]/sidebar-wrapper:hidden">{clientInfo.name}</span>
+                                </div>
                             </>
                          )}
                     </div>
