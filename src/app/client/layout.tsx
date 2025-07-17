@@ -57,8 +57,8 @@ function ClientLayout({
                             <Skeleton className="w-6 h-6 rounded-full ml-2" />
                          ) : clientInfo?.logoUrl && (
                              <>
-                                <SeparatorHorizontal className="w-4 h-4 text-muted-foreground group-data-[state=collapsed]/sidebar-wrapper:hidden" />
-                                <Image src={clientInfo.logoUrl} alt={clientInfo.name} width={24} height={24} className="rounded-sm group-data-[state=collapsed]/sidebar-wrapper:hidden" />
+                                <SeparatorHorizontal className="w-4 h-4 text-muted-foreground" />
+                                <Image src={clientInfo.logoUrl} alt={clientInfo.name} width={24} height={24} className="rounded-sm" />
                              </>
                          )}
                     </div>
