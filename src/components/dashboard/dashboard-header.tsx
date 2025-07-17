@@ -18,10 +18,9 @@ import {
 export function DashboardHeader() {
   const { user, userInfo, loading, logout } = useAuth();
 
-  const getDashboardPath = () => {
-    if (!userInfo) return '/login';
-    if (userInfo.role === 'none') return '/pending-access';
-    return `/${userInfo.role}`;
+  const getSettingsPath = () => {
+    if (!userInfo) return '#';
+    return `/${userInfo.role}/settings`;
   }
 
   return (
@@ -38,10 +37,20 @@ export function DashboardHeader() {
               </Avatar>
               </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent>
-              <DropdownMenuLabel>{user.displayName}</DropdownMenuLabel>
+          <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {user.email}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild><Link href={getDashboardPath()}>Dashboard</Link></DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={getSettingsPath()}>Settings</Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={logout}>Sign out</DropdownMenuItem>
           </DropdownMenuContent>
           </DropdownMenu>
