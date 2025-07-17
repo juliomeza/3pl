@@ -3,13 +3,13 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, getAuth } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, DocumentData } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, DocumentData, serverTimestamp } from 'firebase/firestore';
 import { app } from '@/lib/firebase/config';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
 type UserInfo = DocumentData & {
-  role: 'employee' | 'client';
+  role: 'employee' | 'client' | 'none';
 };
 
 type AuthContextType = {
@@ -47,15 +47,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (userSnap.exists()) {
           setUserInfo(userSnap.data() as UserInfo);
         } else {
-          // New user, create their profile
+          // New user, create their profile with 'none' role.
           const newUserInfo: UserInfo = {
-            role: 'client', // Default role
+            role: 'none',
             email: currentUser.email,
             displayName: currentUser.displayName,
-            createdAt: new Date(),
+            createdAt: serverTimestamp(),
           };
           await setDoc(userRef, newUserInfo);
-          setUserInfo(newUserInfo);
+          // We fetch it again to get the server-generated timestamp
+          const newUserSnap = await getDoc(userRef);
+          setUserInfo(newUserSnap.data() as UserInfo);
         }
       } else {
         setUser(null);
@@ -71,9 +73,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     provider.setCustomParameters({ prompt: 'select_account' });
     try {
       const result = await signInWithPopup(auth, provider);
-      // Redirection is now handled by withAuth HOC after state updates
-      const expectedPath = result.user ? (await getDoc(doc(db, 'users', result.user.uid))).get('role') === 'employee' ? '/employee' : '/client' : '/login';
-      router.push(expectedPath);
+      // Redirection is now handled by the withAuth HOC after state updates
+      const userDoc = await getDoc(doc(db, 'users', result.user.uid));
+      const role = userDoc.exists() ? userDoc.data()?.role : 'none';
+
+      if (role === 'client' || role === 'employee') {
+          router.push(`/${role}`);
+      } else {
+          router.push('/pending-access');
+      }
     } catch (error: any) {
       console.error("Authentication failed", error);
       if (error.code !== 'auth/popup-closed-by-user') {
