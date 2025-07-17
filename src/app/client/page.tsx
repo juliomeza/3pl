@@ -2,6 +2,7 @@
 'use client';
 
 import { useAuth } from '@/context/auth-context';
+import Image from 'next/image';
 
 function ClientDashboardPage() {
   const { user, clientInfo } = useAuth();
@@ -10,6 +11,15 @@ function ClientDashboardPage() {
       <div>
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold font-headline">Welcome, {clientInfo?.name || user?.displayName || 'User'}!</h1>
+            {clientInfo?.logoUrl && (
+              <Image 
+                src={clientInfo.logoUrl} 
+                alt={`${clientInfo.name} logo`}
+                width={80} 
+                height={80}
+                className="rounded-md"
+              />
+            )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="bg-card p-6 rounded-lg shadow-sm">

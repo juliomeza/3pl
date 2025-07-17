@@ -53,14 +53,6 @@ function ClientLayout({
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-foreground"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
                             <span className="group-data-[state=collapsed]/sidebar-wrapper:hidden">Synapse3PL</span>
                         </Link>
-                         {loading ? (
-                            <Skeleton className="w-6 h-6 rounded-full ml-2" />
-                         ) : clientInfo?.logoUrl && (
-                             <>
-                                <SeparatorHorizontal className="w-4 h-4 text-muted-foreground" />
-                                <Image src={clientInfo.logoUrl} alt={clientInfo.name} width={24} height={24} className="rounded-sm" />
-                             </>
-                         )}
                     </div>
                 </SidebarHeader>
                 <SidebarContent>
