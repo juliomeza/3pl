@@ -47,27 +47,27 @@ function ClientLayout({
     <SidebarProvider>
         <div className="flex min-h-screen bg-background">
             <Sidebar>
-                <SidebarHeader className="flex-col items-stretch text-center">
-                    <div className="flex items-center justify-center gap-3">
+                <SidebarHeader className="flex-col items-stretch px-4">
+                    <div className="flex items-center justify-center gap-3 h-14">
                         <Link href="/" className="flex items-center gap-2 font-headline text-xl font-semibold text-foreground">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-foreground"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
                             <span className="group-data-[state=collapsed]/sidebar-wrapper:hidden">Synapse3PL</span>
                         </Link>
                     </div>
                      {clientInfoLoading ? (
-                        <div className="mt-4 flex flex-col items-center gap-2 group-data-[state=collapsed]/sidebar-wrapper:hidden">
-                            <Skeleton className="w-16 h-16 rounded-lg" />
+                        <div className="mt-2 flex items-center justify-center gap-2 group-data-[state=collapsed]/sidebar-wrapper:hidden">
+                            <Skeleton className="w-6 h-6 rounded-md" />
                             <Skeleton className="w-24 h-4" />
                         </div>
                      ) : clientInfo && (
-                        <div className="mt-4 flex flex-col items-center gap-2 group-data-[state=collapsed]/sidebar-wrapper:hidden">
+                        <div className="mt-2 flex items-center justify-center gap-2 group-data-[state=collapsed]/sidebar-wrapper:hidden border-t pt-4">
                             {clientInfo.logo_url && (
                                 <Image
                                     src={clientInfo.logo_url}
                                     alt={`${clientInfo.name} logo`}
-                                    width={64}
-                                    height={64}
-                                    className="rounded-lg object-contain"
+                                    width={24}
+                                    height={24}
+                                    className="rounded-md object-contain"
                                     data-ai-hint="logo"
                                 />
                             )}
