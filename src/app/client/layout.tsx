@@ -55,20 +55,18 @@ function ClientLayout({
                         </Link>
                          {clientInfoLoading ? (
                             <Skeleton className="w-24 h-8" />
-                         ) : clientInfo && (
+                         ) : clientInfo && clientInfo.logo_url && (
                             <>
                                 <SeparatorHorizontal className="w-4 h-4 text-muted-foreground group-data-[state=collapsed]/sidebar-wrapper:hidden" />
                                 <div className="flex items-center gap-2">
-                                  {clientInfo.logo_url && (
-                                    <Image
-                                        src={clientInfo.logo_url}
-                                        alt={`${clientInfo.name} logo`}
-                                        width={28}
-                                        height={28}
-                                        className="rounded-full object-contain"
-                                        data-ai-hint="logo"
-                                    />
-                                  )}
+                                  <Image
+                                      src={`${clientInfo.logo_url}&t=${new Date().getTime()}`}
+                                      alt={`${clientInfo.name} logo`}
+                                      width={28}
+                                      height={28}
+                                      className="rounded-full object-contain"
+                                      data-ai-hint="logo"
+                                  />
                                   <span className="font-semibold text-sm group-data-[state=collapsed]/sidebar-wrapper:hidden">{clientInfo.name}</span>
                                 </div>
                             </>
