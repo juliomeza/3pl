@@ -27,7 +27,7 @@ function ClientLayout({
 }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
-  const { clientInfo, loading } = useAuth();
+  const { clientInfo, clientInfoLoading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -48,11 +48,26 @@ function ClientLayout({
         <div className="flex min-h-screen bg-background">
             <Sidebar>
                 <SidebarHeader>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                         <Link href="/" className="flex items-center gap-2 font-headline text-xl font-semibold text-foreground">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-foreground"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
                             <span className="group-data-[state=collapsed]/sidebar-wrapper:hidden">Synapse3PL</span>
                         </Link>
+                         {clientInfoLoading ? (
+                            <Skeleton className="w-8 h-8 rounded-full" />
+                         ) : clientInfo?.logoUrl && (
+                            <>
+                                <SeparatorHorizontal className="w-4 h-4 text-muted-foreground group-data-[state=collapsed]/sidebar-wrapper:hidden" />
+                                <Image
+                                    src={clientInfo.logoUrl}
+                                    alt={`${clientInfo.name} logo`}
+                                    width={32}
+                                    height={32}
+                                    className="rounded-full object-contain"
+                                    data-ai-hint="logo"
+                                />
+                            </>
+                         )}
                     </div>
                 </SidebarHeader>
                 <SidebarContent>

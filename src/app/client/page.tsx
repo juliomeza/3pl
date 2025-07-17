@@ -10,24 +10,11 @@ function ClientDashboardPage() {
 
   return (
       <div>
-          <div className="flex justify-between items-center mb-8">
+          <div className="mb-8">
             {clientInfoLoading ? (
               <Skeleton className="h-9 w-64" />
             ) : (
               <h1 className="text-3xl font-bold font-headline">Welcome, {clientInfo?.name || user?.displayName || 'User'}!</h1>
-            )}
-            
-            {clientInfoLoading ? (
-               <Skeleton className="w-20 h-20 rounded-md" />
-            ) : clientInfo?.logoUrl && (
-              <Image 
-                src={clientInfo.logoUrl} 
-                alt={`${clientInfo.name} logo`}
-                width={80} 
-                height={80}
-                className="rounded-md object-contain"
-                data-ai-hint="logo"
-              />
             )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
