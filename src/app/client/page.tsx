@@ -2,22 +2,31 @@
 'use client';
 
 import { useAuth } from '@/context/auth-context';
+import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 
 function ClientDashboardPage() {
-  const { user, clientInfo } = useAuth();
+  const { user, clientInfo, clientInfoLoading } = useAuth();
 
   return (
       <div>
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold font-headline">Welcome, {clientInfo?.name || user?.displayName || 'User'}!</h1>
-            {clientInfo?.logoUrl && (
+            {clientInfoLoading ? (
+              <Skeleton className="h-9 w-64" />
+            ) : (
+              <h1 className="text-3xl font-bold font-headline">Welcome, {clientInfo?.name || user?.displayName || 'User'}!</h1>
+            )}
+            
+            {clientInfoLoading ? (
+               <Skeleton className="w-20 h-20 rounded-md" />
+            ) : clientInfo?.logoUrl && (
               <Image 
                 src={clientInfo.logoUrl} 
                 alt={`${clientInfo.name} logo`}
                 width={80} 
                 height={80}
-                className="rounded-md"
+                className="rounded-md object-contain"
+                data-ai-hint="logo"
               />
             )}
           </div>

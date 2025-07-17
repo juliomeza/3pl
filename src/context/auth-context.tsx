@@ -23,6 +23,7 @@ type AuthContextType = {
   userInfo: UserInfo | null;
   clientInfo: ClientInfo | null;
   loading: boolean;
+  clientInfoLoading: boolean;
   signInWithGoogle: () => void;
   logout: () => void;
 };
@@ -32,6 +33,7 @@ const AuthContext = createContext<AuthContextType>({
   userInfo: null,
   clientInfo: null,
   loading: true,
+  clientInfoLoading: true,
   signInWithGoogle: () => {},
   logout: () => {},
 });
@@ -41,6 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [clientInfo, setClientInfo] = useState<ClientInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [clientInfoLoading, setClientInfoLoading] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
   const auth = getAuth(app);
@@ -49,6 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setLoading(true);
+      setClientInfoLoading(true);
       if (currentUser) {
         setUser(currentUser);
         const userRef = doc(db, 'users', currentUser.uid);
@@ -73,21 +77,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
 
         if (currentUserInfo && currentUserInfo.role === 'client' && currentUserInfo.clientId) {
-            const clientRef = doc(db, 'clients', currentUserInfo.clientId);
-            const clientSnap = await getDoc(clientRef);
-            if (clientSnap.exists()) {
-                setClientInfo(clientSnap.data() as ClientInfo);
-            } else {
-                setClientInfo(null);
+            try {
+              const clientRef = doc(db, 'clients', currentUserInfo.clientId);
+              const clientSnap = await getDoc(clientRef);
+              if (clientSnap.exists()) {
+                  setClientInfo(clientSnap.data() as ClientInfo);
+              } else {
+                  setClientInfo(null);
+              }
+            } catch (error) {
+              console.error("Error fetching client info:", error);
+              setClientInfo(null);
+            } finally {
+              setClientInfoLoading(false);
             }
         } else {
             setClientInfo(null);
+            setClientInfoLoading(false);
         }
 
       } else {
         setUser(null);
         setUserInfo(null);
         setClientInfo(null);
+        setClientInfoLoading(false);
       }
       setLoading(false);
     });
@@ -99,7 +112,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     provider.setCustomParameters({ prompt: 'select_account' });
     try {
       await signInWithPopup(auth, provider);
-      // Redirection is now handled by the login page's useEffect
     } catch (error: any) {
       console.error("Authentication failed", error);
       if (error.code !== 'auth/popup-closed-by-user') {
@@ -122,6 +134,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     userInfo,
     clientInfo,
     loading,
+    clientInfoLoading,
     signInWithGoogle,
     logout,
   };
