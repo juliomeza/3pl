@@ -4,19 +4,9 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/auth-context';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 
 export default function PendingAccessPage() {
-  const { userInfo, logout, loading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!loading && userInfo && userInfo.role !== 'none') {
-        router.replace(userInfo.role === 'client' ? '/client' : '/employee');
-    }
-  }, [userInfo, loading, router]);
-
+  const { logout } = useAuth();
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
