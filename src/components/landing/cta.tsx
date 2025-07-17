@@ -11,7 +11,7 @@ export function Cta() {
         </p>
         <div className="mt-8">
             <Button size="lg" variant="secondary" asChild>
-                <Link href="/login">Start your free trial</Link>
+                <Link href="#">Contact Us</Link>
             </Button>
         </div>
       </div>
