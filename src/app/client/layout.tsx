@@ -3,12 +3,15 @@
 
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
-import { Bot, Home, PlusCircle, BarChart3 } from 'lucide-react';
+import { Bot, Home, PlusCircle, BarChart3, SeparatorHorizontal } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import withAuth from '@/components/with-auth';
+import { useAuth } from '@/context/auth-context';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const menuItems = [
   { href: '/client', label: 'Dashboard', icon: Home, exact: true },
@@ -24,6 +27,7 @@ function ClientLayout({
 }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
+  const { clientInfo, loading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -49,6 +53,14 @@ function ClientLayout({
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-foreground"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
                             <span className="group-data-[state=collapsed]/sidebar-wrapper:hidden">Synapse3PL</span>
                         </Link>
+                         {loading ? (
+                            <Skeleton className="w-6 h-6 rounded-full ml-2" />
+                         ) : clientInfo?.logoUrl && (
+                             <>
+                                <SeparatorHorizontal className="w-4 h-4 text-muted-foreground group-data-[state=collapsed]/sidebar-wrapper:hidden" />
+                                <Image src={clientInfo.logoUrl} alt={clientInfo.name} width={24} height={24} className="rounded-sm group-data-[state=collapsed]/sidebar-wrapper:hidden" />
+                             </>
+                         )}
                     </div>
                 </SidebarHeader>
                 <SidebarContent>

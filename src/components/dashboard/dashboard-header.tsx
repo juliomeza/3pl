@@ -48,7 +48,7 @@ export function DashboardHeader() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href={getSettingsPath()}>Settings</Link>
+                <Link href="#">Settings</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={logout}>Sign out</DropdownMenuItem>

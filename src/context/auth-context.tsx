@@ -10,11 +10,18 @@ import { useToast } from '@/hooks/use-toast';
 
 type UserInfo = DocumentData & {
   role: 'employee' | 'client' | 'none';
+  clientId?: string;
+};
+
+type ClientInfo = DocumentData & {
+  name: string;
+  logoUrl?: string;
 };
 
 type AuthContextType = {
   user: User | null;
   userInfo: UserInfo | null;
+  clientInfo: ClientInfo | null;
   loading: boolean;
   signInWithGoogle: () => void;
   logout: () => void;
@@ -23,6 +30,7 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   userInfo: null,
+  clientInfo: null,
   loading: true,
   signInWithGoogle: () => {},
   logout: () => {},
@@ -31,6 +39,7 @@ const AuthContext = createContext<AuthContextType>({
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [clientInfo, setClientInfo] = useState<ClientInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
@@ -44,22 +53,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(currentUser);
         const userRef = doc(db, 'users', currentUser.uid);
         const userSnap = await getDoc(userRef);
+
+        let currentUserInfo: UserInfo | null = null;
+
         if (userSnap.exists()) {
-          setUserInfo(userSnap.data() as UserInfo);
+          currentUserInfo = userSnap.data() as UserInfo;
+          setUserInfo(currentUserInfo);
         } else {
-          const newUserInfo: UserInfo = {
+          const newUserInfoData: UserInfo = {
             role: 'none',
             email: currentUser.email,
             displayName: currentUser.displayName,
             createdAt: serverTimestamp(),
           };
-          await setDoc(userRef, newUserInfo);
+          await setDoc(userRef, newUserInfoData);
           const newUserSnap = await getDoc(userRef);
-          setUserInfo(newUserSnap.data() as UserInfo);
+          currentUserInfo = newUserSnap.data() as UserInfo;
+          setUserInfo(currentUserInfo);
         }
+
+        if (currentUserInfo && currentUserInfo.role === 'client' && currentUserInfo.clientId) {
+            const clientRef = doc(db, 'clients', currentUserInfo.clientId);
+            const clientSnap = await getDoc(clientRef);
+            if (clientSnap.exists()) {
+                setClientInfo(clientSnap.data() as ClientInfo);
+            } else {
+                setClientInfo(null);
+            }
+        } else {
+            setClientInfo(null);
+        }
+
       } else {
         setUser(null);
         setUserInfo(null);
+        setClientInfo(null);
       }
       setLoading(false);
     });
@@ -92,6 +120,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const value = {
     user,
     userInfo,
+    clientInfo,
     loading,
     signInWithGoogle,
     logout,
