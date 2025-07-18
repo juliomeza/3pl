@@ -4,13 +4,13 @@ import { Card, CardContent } from '@/components/ui/card';
 const stats = [
   { label: 'Businesses', value: '50+' },
   { label: 'Warehouses', value: '10+' },
-  { label: 'Transactions', value: '4.3M' },
+  { label: 'Transactions', value: '4.2M' },
   { label: 'Transaction value', value: '$812M' },
 ];
 
 export function Hero() {
   return (
-    <section id="hero" className="relative overflow-hidden bg-background py-4 xl:py-4">
+    <section id="hero" className="relative overflow-hidden bg-background pt-4 pb-16 xl:pt-4 xl:pb-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid xl:grid-cols-2 gap-8 items-center">
           <div className="relative z-10 w-[42rem]">
@@ -19,19 +19,10 @@ export function Hero() {
               <span className="block text-muted-foreground">management,</span>
               <span className="block font-bold text-primary">Warehousing,</span>
               <span className="block text-muted-foreground">Distribution,</span>
-              <span className="block text-muted-foreground">
-                Inventory &amp;{' '}
-                <span className="text-muted-foreground">your</span>
-              </span>
-              <span className="block text-muted-foreground">
-                own <span className="font-bold text-primary">Assistant</span>
-              </span>
-              <span className="block text-muted-foreground">
-                <span className="text-muted-foreground">made for</span>
-              </span>
-              <span className="block text-muted-foreground">
-                <span className="font-bold text-primary">E-commerce</span>
-              </span>
+              <span className="block text-muted-foreground">Inventory & your</span>
+              <span className="block font-bold text-primary">own Assistant</span>
+              <span className="block text-muted-foreground">made for</span>
+              <span className="block font-bold text-primary">E-commerce</span>
             </h1>
           </div>
           <div className="relative hidden xl:block h-full">
