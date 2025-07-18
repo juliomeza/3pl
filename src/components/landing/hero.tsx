@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from '@/components/ui/card';
 
 const stats = [
@@ -13,11 +14,14 @@ export function Hero() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid xl:grid-cols-2 gap-8 items-center">
           <div className="relative z-10">
-            <h1 className="font-headline text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-muted-foreground">
-              Logistics management, <span className="text-foreground">Warehousing</span>, Distribution, <span className="text-foreground">Inventory</span> & your own <span className="text-foreground">Assistant</span> made for <span className="text-foreground">E&#8209;commerce</span>
+            <h1 className="font-headline text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl md:text-6xl">
+              <span className="block">Logistics management,</span>
+              <span className="block text-primary">Warehousing, Distribution,</span>
+              <span className="block text-primary">Inventory &amp; your own Assistant</span>
+              <span className="block">made for E-commerce</span>
             </h1>
           </div>
-          <div className="relative hidden xl:block h-[500px]">
+          <div className="relative hidden xl:block h-full">
             <FloatingCards />
           </div>
         </div>
