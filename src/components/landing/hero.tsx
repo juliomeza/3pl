@@ -10,7 +10,7 @@ const stats = [
 
 export function Hero() {
   return (
-    <section id="hero" className="relative overflow-hidden bg-background pt-4 pb-32 xl:pt-4 xl:pb-32">
+    <section id="hero" className="relative overflow-hidden bg-background pt-4 pb-24 xl:pt-4 xl:pb-32">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative">
           <div className="relative z-10 mx-auto max-w-7xl">
@@ -69,9 +69,9 @@ function FloatingCards() {
             <div className="flex justify-between items-baseline text-muted-foreground"><span>Avg. delivery time</span><span className="font-semibold text-right text-foreground">1.2d</span></div>
           </CardContent>
         </Card>
-        <Card className="absolute top-[260px] right-[100px] w-[300px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-1s' }}>
+        <Card className="absolute top-[260px] right-[80px] w-[300px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-1s' }}>
           <CardContent className="p-4 space-y-2 text-sm">
-             <p className="font-semibold text-base">Active Routes</p>
+             <p className="font-semibold text-base">Shipment Status</p>
              <div className="flex justify-between items-baseline text-muted-foreground"><span>In transit</span><span className="font-semibold text-foreground">342</span></div>
             <div className="flex justify-between items-baseline text-muted-foreground"><span>Completed today</span><span className="font-semibold text-foreground">121</span></div>
             <MiniChart />
