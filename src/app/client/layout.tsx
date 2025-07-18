@@ -45,7 +45,7 @@ function ClientLayout({
   
   return (
     <SidebarProvider>
-        <div className="flex min-h-screen bg-background">
+        <div className="flex min-h-screen bg-background w-full">
             <Sidebar>
                 <SidebarHeader className="p-4">
                      {clientInfoLoading ? (

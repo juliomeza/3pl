@@ -41,7 +41,7 @@ function EmployeeLayout({
   
   return (
     <SidebarProvider>
-        <div className="flex min-h-screen bg-background">
+        <div className="flex min-h-screen bg-background w-full">
             <Sidebar>
                 <SidebarHeader>
                     <div className="flex items-center gap-2">
