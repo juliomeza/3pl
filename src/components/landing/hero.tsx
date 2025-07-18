@@ -9,15 +9,15 @@ const stats = [
 
 export function Hero() {
   return (
-    <section id="hero" className="relative overflow-hidden py-4 xl:py-20 bg-background">
+    <section id="hero" className="relative overflow-hidden bg-background py-4 xl:py-4">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid xl:grid-cols-5 gap-8 items-center">
-          <div className="relative z-10 xl:col-span-3">
-            <h1 className="font-headline text-5xl md:text-6xl font-bold tracking-tight text-muted-foreground leading-tight md:leading-tight">
-              Logistics management, <span className="text-foreground">Warehousing</span>, Distribution, Inventory &amp; your own <span className="text-foreground">Assistant</span> made for <span className="text-foreground">E&#8209;commerce</span>
+        <div className="grid xl:grid-cols-2 gap-8 items-center">
+          <div className="relative z-10">
+            <h1 className="font-headline text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-muted-foreground">
+              Logistics management, <span className="text-foreground">Warehousing</span>, Distribution, <span className="text-foreground">Inventory</span> & your own <span className="text-foreground">Assistant</span> made for <span className="text-foreground">E&#8209;commerce</span>
             </h1>
           </div>
-          <div className="relative hidden xl:block xl:col-span-2">
+          <div className="relative hidden xl:block h-[500px]">
             <FloatingCards />
           </div>
         </div>
@@ -38,9 +38,9 @@ export function Hero() {
 
 function FloatingCards() {
   return (
-    <div className="absolute top-0 right-0 w-[900px] h-[600px] -translate-y-1/4 translate-x-1/4 transform-gpu rotate-[5deg]">
+    <div className="absolute top-0 right-0 w-full h-full transform-gpu">
       <div className="relative w-full h-full">
-        <Card className="absolute top-[80px] right-[450px] w-[340px] h-auto float-animation shadow-2xl" style={{ animationDelay: '0s' }}>
+        <Card className="absolute top-[80px] -right-[50px] w-[340px] h-auto float-animation shadow-2xl" style={{ animationDelay: '0s' }}>
           <CardContent className="p-4 space-y-2 text-sm">
             <p className="font-semibold text-base">Inventory Control</p>
             <div className="flex justify-between items-baseline text-muted-foreground"><span>Products stored</span><span className="font-semibold text-right text-foreground">1,247</span></div>
@@ -48,18 +48,11 @@ function FloatingCards() {
             <div className="flex justify-between items-baseline text-muted-foreground"><span>Avg. delivery time</span><span className="font-semibold text-right text-foreground">1.2d</span></div>
           </CardContent>
         </Card>
-        <Card className="absolute top-[260px] right-[300px] w-[300px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-1s' }}>
+        <Card className="absolute top-[260px] right-[100px] w-[300px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-1s' }}>
           <CardContent className="p-4 space-y-2 text-sm">
              <p className="font-semibold text-base">Active Routes</p>
              <div className="flex justify-between items-baseline text-muted-foreground"><span>In transit</span><span className="font-semibold text-foreground">342</span></div>
             <div className="flex justify-between items-baseline text-muted-foreground"><span>Completed today</span><span className="font-semibold text-foreground">121</span></div>
-            <MiniChart />
-          </CardContent>
-        </Card>
-        <Card className="absolute top-[460px] right-[380px] w-[280px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-6s' }}>
-          <CardContent className="p-4 space-y-2 text-sm">
-             <p className="font-semibold text-base">Performance</p>
-             <div className="flex justify-between items-baseline text-muted-foreground"><span>Efficiency</span><span className="font-semibold text-foreground">98.3%</span></div>
             <MiniChart />
           </CardContent>
         </Card>
