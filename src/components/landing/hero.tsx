@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 
 const stats = [
   { label: 'Businesses', value: '50+' },
@@ -9,12 +9,12 @@ const stats = [
 
 export function Hero() {
   return (
-    <section id="hero" className="relative overflow-hidden py-20 md:py-32 bg-background">
+    <section id="hero" className="relative overflow-hidden pt-16 md:pt-24 pb-20 md:pb-32 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid xl:grid-cols-5 gap-8 items-center">
           <div className="relative z-10 xl:col-span-3">
-            <h1 className="font-headline text-5xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-gray-400 mb-6 leading-tight md:leading-snug">
-              Logistics management, <span className="text-foreground">Warehousing</span>, Distribution, Inventory & your own <span className="text-foreground">Assistant</span> made for <span className="text-foreground">E-commerce</span>
+            <h1 className="font-headline text-5xl md:text-6xl font-bold tracking-tight text-muted-foreground leading-tight md:leading-tight">
+              Logistics management, <span className="text-foreground">Warehousing</span>, Distribution, Inventory &amp; your own <span className="text-foreground">Assistant</span> made for <span className="text-foreground">E&#8209;commerce</span>
             </h1>
           </div>
           <div className="relative hidden xl:block xl:col-span-2 h-[500px]">
@@ -40,30 +40,26 @@ function FloatingCards() {
   return (
     <div className="absolute top-0 right-0 w-[900px] h-[600px] -translate-y-1/4 translate-x-1/4 transform-gpu rotate-[5deg]">
       <div className="relative w-full h-full">
-        <Card className="absolute top-[100px] right-[450px] w-[340px] h-auto float-animation shadow-2xl" style={{ animationDelay: '0s' }}>
-          <CardHeader>
-            <p className="font-semibold">Daily Snapshot</p>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div className="flex justify-between items-baseline"><span>Orders today</span><span className="font-semibold text-right">1,247</span></div>
+        <Card className="absolute top-[80px] right-[450px] w-[340px] h-auto float-animation shadow-2xl" style={{ animationDelay: '0s' }}>
+          <CardContent className="p-4 space-y-2 text-sm">
+            <p className="font-semibold text-base">Inventory Control</p>
+            <div className="flex justify-between items-baseline text-muted-foreground"><span>Products stored</span><span className="font-semibold text-right text-foreground">1,247</span></div>
+            <div className="flex justify-between items-baseline text-muted-foreground"><span>Orders today</span><span className="font-semibold text-right text-foreground">89</span></div>
+            <div className="flex justify-between items-baseline text-muted-foreground"><span>Avg. delivery time</span><span className="font-semibold text-right text-foreground">1.2d</span></div>
+          </CardContent>
+        </Card>
+        <Card className="absolute top-[260px] right-[300px] w-[300px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-1s' }}>
+          <CardContent className="p-4 space-y-2 text-sm">
+             <p className="font-semibold text-base">Active Routes</p>
+             <div className="flex justify-between items-baseline text-muted-foreground"><span>In transit</span><span className="font-semibold text-foreground">342</span></div>
+            <div className="flex justify-between items-baseline text-muted-foreground"><span>Completed today</span><span className="font-semibold text-foreground">121</span></div>
             <MiniChart />
           </CardContent>
         </Card>
-        <Card className="absolute top-[280px] right-[300px] w-[300px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-1s' }}>
-          <CardHeader>
-            <p className="font-semibold">Order Accuracy</p>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-             <div className="flex justify-between items-baseline"><span>Fulfillment Rate</span><span className="font-semibold">99.8%</span></div>
-            <MiniChart />
-          </CardContent>
-        </Card>
-        <Card className="absolute top-[480px] right-[380px] w-[340px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-6s' }}>
-          <CardHeader>
-            <p className="font-semibold">Performance</p>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-             <div className="flex justify-between items-baseline"><span>Efficiency</span><span className="font-semibold">98.3%</span></div>
+        <Card className="absolute top-[460px] right-[380px] w-[280px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-6s' }}>
+          <CardContent className="p-4 space-y-2 text-sm">
+             <p className="font-semibold text-base">Performance</p>
+             <div className="flex justify-between items-baseline text-muted-foreground"><span>Efficiency</span><span className="font-semibold text-foreground">98.3%</span></div>
             <MiniChart />
           </CardContent>
         </Card>
