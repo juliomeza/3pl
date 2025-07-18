@@ -13,7 +13,7 @@ export function Hero() {
     <section id="hero" className="relative overflow-hidden bg-background pt-4 pb-24 xl:pt-4 xl:pb-32">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative lg:grid lg:grid-cols-2 lg:gap-8 items-center">
-            <div className="relative z-10">
+            <div className="relative z-10 lg:w-1/2">
                 <h1 className="font-headline text-6xl lg:text-7xl font-bold tracking-tighter text-foreground">
                     <span className="block text-muted-foreground">Logistics</span>
                     <span className="block text-muted-foreground">management,</span>
@@ -25,7 +25,7 @@ export function Hero() {
                     <span className="block font-bold text-primary">E-commerce</span>
                 </h1>
             </div>
-            <div className="relative mt-12 lg:mt-0 lg:h-full">
+            <div className="relative mt-12 lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 lg:h-full">
                 <FloatingCards />
             </div>
         </div>
@@ -46,7 +46,7 @@ export function Hero() {
 
 function FloatingCards() {
   return (
-    <div className="relative w-full h-[350px] lg:absolute lg:top-0 lg:right-0 lg:w-full lg:h-full transform-gpu">
+    <div className="relative w-full h-[350px] lg:h-full">
       <div className="relative w-full h-full">
         <Card className="absolute top-[80px] -right-[50px] w-[340px] h-auto float-animation shadow-2xl" style={{ animationDelay: '0s' }}>
           <CardContent className="p-4 space-y-2 text-sm">
