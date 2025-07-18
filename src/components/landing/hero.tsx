@@ -13,15 +13,15 @@ export function Hero() {
     <section id="hero" className="relative overflow-hidden bg-background py-4 xl:py-4">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid xl:grid-cols-2 gap-8 items-center">
-          <div className="relative z-10">
-             <h1 className="font-headline text-5xl sm:text-6xl md:text-7xl xl:text-8xl font-extrabold tracking-tighter text-foreground max-w-2xl">
+          <div className="relative z-10 w-[36rem]">
+             <h1 className="font-headline text-5xl sm:text-6xl xl:text-7xl font-bold tracking-tighter text-foreground">
               <span className="block text-muted-foreground">Logistics</span>
               <span className="block text-muted-foreground">management,</span>
-              <span className="block text-primary">Warehousing,</span>
+              <span className="block font-bold text-primary">Warehousing,</span>
               <span className="block text-muted-foreground">Distribution,</span>
               <span className="block text-muted-foreground">Inventory &amp; your</span>
-              <span className="block text-muted-foreground">own <span className="text-primary">Assistant</span> made</span>
-              <span className="block text-muted-foreground">for <span className="text-primary">E-commerce</span></span>
+              <span className="block text-muted-foreground">own <span className="text-primary font-bold">Assistant</span> made</span>
+              <span className="block text-muted-foreground">for <span className="font-bold text-primary">E-commerce</span></span>
             </h1>
           </div>
           <div className="relative hidden xl:block h-full">
