@@ -13,7 +13,7 @@ export function Hero() {
     <section id="hero" className="relative overflow-hidden bg-background pt-4 pb-24 xl:pt-4 xl:pb-32">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid xl:grid-cols-2 gap-8 items-center">
-          <div className="relative z-10 w-[42rem]">
+          <div className="relative z-10">
             <h1 className="font-headline text-6xl lg:text-7xl font-bold tracking-tighter text-foreground">
               <span className="block text-muted-foreground">Logistics</span>
               <span className="block text-muted-foreground">management,</span>
