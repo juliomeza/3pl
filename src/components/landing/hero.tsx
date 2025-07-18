@@ -21,13 +21,13 @@ export function Hero() {
               <span className="block text-muted-foreground">Distribution,</span>
               <span className="block text-muted-foreground">
                 Inventory &amp;{' '}
-                <span className="text-primary font-bold">your</span>
+                <span className="text-muted-foreground">your</span>
               </span>
               <span className="block text-muted-foreground">
                 own <span className="font-bold text-primary">Assistant</span>
               </span>
               <span className="block text-muted-foreground">
-                <span className="text-primary font-bold">made</span> for
+                <span className="text-muted-foreground">made for</span>
               </span>
               <span className="block text-muted-foreground">
                 <span className="font-bold text-primary">E-commerce</span>
