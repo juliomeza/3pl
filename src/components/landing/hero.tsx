@@ -19,13 +19,13 @@ export function Hero() {
                     <span className="block text-muted-foreground">management,</span>
                     <span className="block font-bold text-primary">Warehousing,</span>
                     <span className="block text-muted-foreground">Distribution,</span>
-                    <span className="block text-muted-foreground">Inventory &amp; your</span>
+                    <span className="block text-muted-foreground">Inventory & your</span>
                     <span className="block font-bold text-primary">own Assistant</span>
                     <span className="block text-muted-foreground">made for</span>
                     <span className="block font-bold text-primary">E-commerce</span>
                 </h1>
             </div>
-            <div className="relative mt-12 lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 lg:h-full">
+            <div className="hidden lg:block relative mt-12 lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 lg:h-full">
                 <FloatingCards />
             </div>
         </div>
