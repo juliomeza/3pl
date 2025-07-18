@@ -9,7 +9,7 @@ const stats = [
 
 export function Hero() {
   return (
-    <section id="hero" className="relative overflow-hidden py-4 bg-background">
+    <section id="hero" className="relative overflow-hidden py-4 xl:py-20 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid xl:grid-cols-5 gap-8 items-center">
           <div className="relative z-10 xl:col-span-3">
@@ -17,7 +17,7 @@ export function Hero() {
               Logistics management, <span className="text-foreground">Warehousing</span>, Distribution, Inventory &amp; your own <span className="text-foreground">Assistant</span> made for <span className="text-foreground">E&#8209;commerce</span>
             </h1>
           </div>
-          <div className="relative hidden xl:block xl:col-span-2 h-[500px]">
+          <div className="relative hidden xl:block xl:col-span-2">
             <FloatingCards />
           </div>
         </div>
