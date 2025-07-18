@@ -14,7 +14,7 @@ export function Hero() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid xl:grid-cols-2 gap-8 items-center">
           <div className="relative z-10 w-[42rem]">
-            <h1 className="font-headline text-5xl sm:text-6xl xl:text-7xl font-bold tracking-tighter text-foreground">
+            <h1 className="font-headline text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tighter text-foreground">
               <span className="block text-muted-foreground">Logistics</span>
               <span className="block text-muted-foreground">management,</span>
               <span className="block font-bold text-primary">Warehousing,</span>
