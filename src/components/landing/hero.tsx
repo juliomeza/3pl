@@ -14,11 +14,14 @@ export function Hero() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid xl:grid-cols-2 gap-8 items-center">
           <div className="relative z-10">
-            <h1 className="font-headline text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl md:text-6xl">
-              <span className="block">Logistics management,</span>
-              <span className="block text-primary">Warehousing, Distribution,</span>
-              <span className="block text-primary">Inventory &amp; your own Assistant</span>
-              <span className="block">made for E-commerce</span>
+             <h1 className="font-headline text-5xl sm:text-6xl md:text-7xl xl:text-8xl font-extrabold tracking-tighter text-foreground max-w-2xl">
+              <span className="block text-muted-foreground">Logistics</span>
+              <span className="block text-muted-foreground">management,</span>
+              <span className="block text-primary">Warehousing,</span>
+              <span className="block text-muted-foreground">Distribution,</span>
+              <span className="block text-muted-foreground">Inventory &amp; your</span>
+              <span className="block text-muted-foreground">own <span className="text-primary">Assistant</span> made</span>
+              <span className="block text-muted-foreground">for <span className="text-primary">E-commerce</span></span>
             </h1>
           </div>
           <div className="relative hidden xl:block h-full">
