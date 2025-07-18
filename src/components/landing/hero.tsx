@@ -27,7 +27,9 @@ export function Hero() {
                 own <span className="font-bold text-primary">Assistant</span>
               </span>
               <span className="block text-muted-foreground">
-                <span className="text-primary font-bold">made</span> for{' '}
+                <span className="text-primary font-bold">made</span> for
+              </span>
+              <span className="block text-muted-foreground">
                 <span className="font-bold text-primary">E-commerce</span>
               </span>
             </h1>
