@@ -9,7 +9,7 @@ const stats = [
 
 export function Hero() {
   return (
-    <section id="hero" className="relative overflow-hidden pt-8 md:pt-12 pb-20 md:pb-32 bg-background">
+    <section id="hero" className="relative overflow-hidden py-8 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid xl:grid-cols-5 gap-8 items-center">
           <div className="relative z-10 xl:col-span-3">
