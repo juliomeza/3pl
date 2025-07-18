@@ -52,56 +52,61 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setLoading(true);
-      setClientInfoLoading(true);
-      if (currentUser) {
-        setUser(currentUser);
-        const userRef = doc(db, 'users', currentUser.uid);
-        const userSnap = await getDoc(userRef);
-
-        let currentUserInfo: UserInfo | null = null;
-
-        if (userSnap.exists()) {
-          currentUserInfo = userSnap.data() as UserInfo;
-          setUserInfo(currentUserInfo);
-        } else {
-          const newUserInfoData: UserInfo = {
-            role: 'none',
-            email: currentUser.email,
-            displayName: currentUser.displayName,
-            createdAt: serverTimestamp(),
-          };
-          await setDoc(userRef, newUserInfoData);
-          const newUserSnap = await getDoc(userRef);
-          currentUserInfo = newUserSnap.data() as UserInfo;
-          setUserInfo(currentUserInfo);
-        }
-
-        if (currentUserInfo && currentUserInfo.role === 'client' && currentUserInfo.clientId) {
-            try {
-              const clientRef = doc(db, 'clients', currentUserInfo.clientId);
-              const clientSnap = await getDoc(clientRef);
-              if (clientSnap.exists()) {
-                  setClientInfo(clientSnap.data() as ClientInfo);
-              } else {
-                  setClientInfo(null);
-              }
-            } catch (error) {
-              console.error("Error fetching client info:", error);
-              setClientInfo(null);
-            } finally {
-              setClientInfoLoading(false);
-            }
-        } else {
-            setClientInfo(null);
-            setClientInfoLoading(false);
-        }
-
-      } else {
+      if (!currentUser) {
         setUser(null);
         setUserInfo(null);
         setClientInfo(null);
+        setLoading(false);
+        setClientInfoLoading(false);
+        return;
+      }
+
+      setUser(currentUser);
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userSnap = await getDoc(userRef);
+
+      let currentUserInfo: UserInfo;
+
+      if (userSnap.exists()) {
+        currentUserInfo = userSnap.data() as UserInfo;
+      } else {
+        const newUserInfoData: UserInfo = {
+          role: 'none',
+          email: currentUser.email,
+          displayName: currentUser.displayName,
+          createdAt: serverTimestamp(),
+        };
+        await setDoc(userRef, newUserInfoData);
+        const newUserSnap = await getDoc(userRef);
+        currentUserInfo = newUserSnap.data() as UserInfo;
+      }
+      
+      setUserInfo(currentUserInfo);
+      
+      // Explicitly handle different roles
+      if (currentUserInfo.role === 'client' && currentUserInfo.clientId) {
+        setClientInfoLoading(true);
+        try {
+          const clientRef = doc(db, 'clients', currentUserInfo.clientId);
+          const clientSnap = await getDoc(clientRef);
+          if (clientSnap.exists()) {
+            setClientInfo(clientSnap.data() as ClientInfo);
+          } else {
+            console.warn(`Client document with ID ${currentUserInfo.clientId} not found.`);
+            setClientInfo(null);
+          }
+        } catch (error) {
+          console.error("Error fetching client info:", error);
+          setClientInfo(null);
+        } finally {
+          setClientInfoLoading(false);
+        }
+      } else {
+        // For 'employee' or 'none' roles, there's no client info to fetch.
+        setClientInfo(null);
         setClientInfoLoading(false);
       }
+      
       setLoading(false);
     });
     return () => unsubscribe();
