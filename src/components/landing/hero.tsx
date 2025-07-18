@@ -14,7 +14,7 @@ export function Hero() {
         <div className="grid xl:grid-cols-5 gap-8 items-center">
           <div className="relative z-10 xl:col-span-3">
             <h1 className="font-headline text-5xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-gray-400 mb-6 leading-tight md:leading-snug">
-              Logistics management, <span className="text-foreground">Warehousing</span>, Distribution, Inventory & your own <span className="text-foreground">Assistant</span> made for <span className="text-foreground">E-commerce</span>.
+              Logistics management, <span className="text-foreground">Warehousing</span>, Distribution, Inventory & your own <span className="text-foreground">Assistant</span> made for <span className="text-foreground">E-commerce</span>
             </h1>
           </div>
           <div className="relative hidden xl:block xl:col-span-2 h-[500px]">
