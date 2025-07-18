@@ -10,24 +10,27 @@ const stats = [
 
 export function Hero() {
   return (
-    <section id="hero" className="relative overflow-hidden bg-background pt-4 pb-24 xl:pt-4 xl:pb-32">
+    <section id="hero" className="relative overflow-hidden bg-background pt-4 pb-32 xl:pt-4 xl:pb-32">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative lg:grid lg:grid-cols-2 lg:gap-8 items-center">
-            <div className="relative z-10 lg:w-1/2">
-                <h1 className="font-headline text-6xl lg:text-7xl font-bold tracking-tighter text-foreground">
+        <div className="relative">
+          <div className="relative z-10 mx-auto max-w-7xl">
+            <div className="relative z-10 w-[42rem] sm:w-auto">
+              <h1 className="font-headline text-6xl lg:text-7xl font-bold tracking-tighter text-foreground">
                     <span className="block text-muted-foreground">Logistics</span>
                     <span className="block text-muted-foreground">management,</span>
                     <span className="block font-bold text-primary">Warehousing,</span>
                     <span className="block text-muted-foreground">Distribution,</span>
                     <span className="block text-muted-foreground">Inventory & your</span>
-                    <span className="block font-bold text-primary">own Assistant</span>
+                    <span className="block font-bold text-primary">own</span>
+                    <span className="block font-bold text-primary">Assistant</span>
                     <span className="block text-muted-foreground">made for</span>
                     <span className="block font-bold text-primary">E-commerce</span>
                 </h1>
             </div>
-            <div className="hidden lg:block relative mt-12 lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 lg:h-full">
-                <FloatingCards />
-            </div>
+          </div>
+          <div className="hidden lg:block relative mt-12 lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 lg:h-full">
+            <FloatingCards />
+          </div>
         </div>
         <div className="mt-16 md:mt-24">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
