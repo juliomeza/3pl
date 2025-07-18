@@ -20,9 +20,8 @@ export function Hero() {
                     <span className="block text-muted-foreground">management,</span>
                     <span className="block font-bold text-primary">Warehousing,</span>
                     <span className="block text-muted-foreground">Distribution,</span>
-                    <span className="block text-muted-foreground">Inventory & your</span>
-                    <span className="block font-bold text-primary">own</span>
-                    <span className="block font-bold text-primary">Assistant</span>
+                    <span className="block text-muted-foreground">Inventory &amp; your</span>
+                    <span className="block text-muted-foreground">own <span className="font-bold text-primary">Assistant</span></span>
                     <span className="block text-muted-foreground">made for</span>
                     <span className="block font-bold text-primary">E-commerce</span>
                 </h1>
