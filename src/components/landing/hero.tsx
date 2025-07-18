@@ -14,7 +14,7 @@ export function Hero() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative">
           <div className="relative z-10 mx-auto max-w-7xl">
-            <div className="relative z-10 w-[42rem] sm:w-auto">
+            <div className="relative z-10 sm:w-auto">
               <h1 className="font-headline text-6xl lg:text-7xl font-bold tracking-tighter text-foreground">
                     <span className="block text-muted-foreground">Logistics</span>
                     <span className="block text-muted-foreground">management,</span>
@@ -50,6 +50,17 @@ function FloatingCards() {
   return (
     <div className="relative w-full h-[350px] lg:h-full">
       <div className="relative w-full h-full">
+         <Card className="absolute top-[20px] left-[0px] w-[300px] h-auto float-animation shadow-2xl" style={{ animationDelay: '-2s' }}>
+          <CardContent className="p-4 space-y-2 text-sm">
+            <p className="font-semibold text-base">AI Insight</p>
+            <p className="text-muted-foreground">
+                <span className="font-medium text-foreground">Q:</span> What's my inventory turnover rate?
+            </p>
+            <p className="text-muted-foreground">
+                <span className="font-medium text-foreground">A:</span> It's 4.2, which is 15% higher than last month.
+            </p>
+          </CardContent>
+        </Card>
         <Card className="absolute top-[80px] -right-[50px] w-[340px] h-auto float-animation shadow-2xl" style={{ animationDelay: '0s' }}>
           <CardContent className="p-4 space-y-2 text-sm">
             <p className="font-semibold text-base">Inventory Control</p>
