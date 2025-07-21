@@ -6,6 +6,9 @@ import { Pool } from 'pg';
 // You need to set POSTGRES_URL in your .env file.
 const pool = new Pool({
   connectionString: process.env.POSTGRES_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 export const db = {
