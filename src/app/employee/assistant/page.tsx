@@ -1,8 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
-import { useFormState } from 'react-dom';
+import { useState, useActionState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,7 +20,7 @@ const initialState = {
 };
 
 export default function EmployeeAssistantPage() {
-  const [state, formAction] = useFormState(getAiInsight, initialState);
+  const [state, formAction] = useActionState(getAiInsight, initialState);
   const [messages, setMessages] = useState<Message[]>([]);
   const [pending, setPending] = useState(false);
 
