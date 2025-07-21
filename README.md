@@ -19,7 +19,7 @@ This is a Next.js project bootstrapped with Firebase Studio, for a third-party l
 - Accent color: Light Gray (`#F3F4F6`), corresponding to HSL(220, 14.3%, 95.9%).
 - Headline font: 'Space Grotesk', sans-serif, for headlines and short amounts of body text; if longer text is anticipated, use this for headlines and 'Inter' for body
 - Body font: 'Inter', a grotesque-style sans-serif with a modern, machined, objective, neutral look; suitable for headlines or body text
-- Use minimalist icons to represent features and functions, aligning with a modern and clean UI. Consider using boxicons, feather or any icon sets under Apache license
+- Use minimalist icons from the `lucide-react` library to represent features and functions, aligning with a modern and clean UI.
 - Maintain a clean and well-spaced layout using a grid system to ensure readability and ease of navigation.
 - Implement subtle transitions and animations on interactive elements (buttons, links) to provide user feedback and enhance the overall experience.
 
