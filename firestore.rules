@@ -3,20 +3,18 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users can read their own user document.
+    // Users can read and create their own user document.
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
-      // NOTE: There is no write rule. This might prevent users from being created or updated.
+      allow create: if request.auth != null && request.auth.uid == userId;
+      // NOTE: Updates to user documents (like role changes) must be done from a trusted environment (e.g., Cloud Function or Admin SDK).
     }
 
-    // Users can read the client document they are associated with.
+    // Client users can read their associated client document.
+    // Employees could have broader read access if needed in the future.
     match /clients/{clientId} {
       allow read: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.clientId == clientId;
-      // NOTE: There is no write rule. This might prevent clients from being created or updated.
+      // NOTE: Client documents should be managed from a trusted environment.
     }
-
-    // WARNING: Collections like 'orders', 'shipments', and 'products' are not protected.
-    // Any authenticated user can currently read, write, and delete data in these collections.
-    // You should add specific rules for them.
   }
 }
