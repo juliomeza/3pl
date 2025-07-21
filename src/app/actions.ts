@@ -3,8 +3,7 @@
 
 import { aiLogisticsAssistant } from '@/ai/flows/logistics-insights';
 
-export async function getAiInsight(prevState: any, formData: FormData) {
-  const query = formData.get('query') as string;
+export async function getAiInsight(query: string) {
 
   if (!query) {
     return { insight: 'Please provide a query.', query, data: null };

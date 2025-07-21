@@ -7,35 +7,38 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Input } from '@/components/ui/input';
 import { getAiInsight } from '@/app/actions';
 import { Bot, User, Loader2 } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
 
 type Message = {
     role: 'user' | 'assistant';
     content: string;
+    data?: any;
 };
 
 export default function EmployeeAssistantPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [currentData, setCurrentData] = useState<any>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || isLoading) return;
 
     const userMessage: Message = { role: 'user', content: input };
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
+    setCurrentData(null);
     setInput('');
 
-    const formData = new FormData();
-    formData.append('query', input);
-
     try {
-      const result = await getAiInsight(null, formData);
+      const result = await getAiInsight(input);
       if (result.insight) {
-        const assistantMessage: Message = { role: 'assistant', content: result.insight };
+        const assistantMessage: Message = { role: 'assistant', content: result.insight, data: result.data };
         setMessages((prev) => [...prev, assistantMessage]);
+        if(result.data) {
+          setCurrentData(result.data);
+        }
       }
     } catch (error) {
       const errorMessage: Message = { role: 'assistant', content: 'Sorry, I encountered an error.' };
@@ -47,56 +50,73 @@ export default function EmployeeAssistantPage() {
 
 
   return (
-    <div className="flex flex-col h-[calc(100vh-10rem)]">
-      <h1 className="text-3xl font-bold font-headline mb-4">AI Logistics Assistant</h1>
-      
-      <Card className="flex-1 flex flex-col">
-        <CardHeader>
-          <CardTitle>Conversation</CardTitle>
-        </CardHeader>
-        <CardContent className="flex-1 overflow-y-auto space-y-4 p-6">
-          {messages.map((message, index) => (
-            <div key={index} className={`flex items-start gap-3 text-sm ${message.role === 'user' ? 'justify-end' : ''}`}>
-              {message.role === 'assistant' && <Bot className="w-5 h-5 text-primary flex-shrink-0 mt-1" />}
-              <div className={`p-3 rounded-lg max-w-[85%] ${message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                {message.content.split('\n').map((line, i) => <p key={i}>{line}</p>)}
-              </div>
-              {message.role === 'user' && <User className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-1" />}
-            </div>
-          ))}
-           {isLoading && (
-              <div className="flex items-start gap-3 text-sm">
-                <Bot className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
-                <div className="p-3 rounded-lg max-w-[85%] bg-muted flex items-center space-x-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Thinking...</span>
+    <div className="flex flex-col h-[calc(100vh-10rem)] gap-8">
+      <div className="flex-1 flex flex-col gap-4">
+        <h1 className="text-3xl font-bold font-headline">AI Logistics Assistant</h1>
+        <Card className="flex-1 flex flex-col">
+          <CardHeader>
+            <CardTitle>Conversation</CardTitle>
+          </CardHeader>
+          <CardContent className="flex-1 overflow-y-auto space-y-4 p-6">
+            {messages.map((message, index) => (
+              <div key={index} className={`flex items-start gap-3 text-sm ${message.role === 'user' ? 'justify-end' : ''}`}>
+                {message.role === 'assistant' && <Bot className="w-5 h-5 text-primary flex-shrink-0 mt-1" />}
+                <div className={`p-3 rounded-lg max-w-[85%] ${message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                  {message.content.split('\n').map((line, i) => <p key={i}>{line}</p>)}
                 </div>
+                {message.role === 'user' && <User className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-1" />}
               </div>
-            )}
-        </CardContent>
-        <CardFooter className="p-4 border-t">
-          <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask a question about your logistics data..."
-              className="flex-1"
-              disabled={isLoading}
-            />
-            <Button type="submit" disabled={isLoading}>Ask</Button>
-          </form>
-        </CardFooter>
-      </Card>
-
-      <div className="mt-8">
-        <h2 className="text-2xl font-bold font-headline mb-4">Data View</h2>
-        <Card>
-            <CardContent className="p-6">
-                <p className="text-muted-foreground">The data table corresponding to your query will appear here.</p>
-            </CardContent>
+            ))}
+            {isLoading && (
+                <div className="flex items-start gap-3 text-sm">
+                  <Bot className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
+                  <div className="p-3 rounded-lg max-w-[85%] bg-muted flex items-center space-x-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Thinking...</span>
+                  </div>
+                </div>
+              )}
+          </CardContent>
+          <CardFooter className="p-4 border-t">
+            <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full">
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask a question about your logistics data..."
+                className="flex-1"
+                disabled={isLoading}
+              />
+              <Button type="submit" disabled={isLoading}>Ask</Button>
+            </form>
+          </CardFooter>
         </Card>
       </div>
 
+      <div className="flex-shrink-0 flex flex-col gap-4 h-1/2">
+        <h2 className="text-2xl font-bold font-headline">Data View</h2>
+        <Card className="flex-1 overflow-auto">
+            <CardContent className="p-6">
+              {currentData && currentData.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      {Object.keys(currentData[0]).map(key => <TableHead key={key}>{key}</TableHead>)}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {currentData.map((row: any, rowIndex: number) => (
+                      <TableRow key={rowIndex}>
+                        {Object.values(row).map((cell: any, cellIndex: number) => <TableCell key={cellIndex}>{String(cell)}</TableCell>)}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <p className="text-muted-foreground">The data table corresponding to your query will appear here.</p>
+              )}
+            </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
