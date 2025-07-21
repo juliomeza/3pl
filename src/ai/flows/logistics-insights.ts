@@ -72,21 +72,12 @@ const prompt = ai.definePrompt({
   input: { schema: AiLogisticsAssistantInputSchema },
   output: { schema: AiLogisticsAssistantOutputSchema },
   tools: [executeDbQuery],
-  prompt: `You are an expert logistics AI assistant. Your role is to answer questions about logistics data by querying a PostgreSQL database.
+  prompt: `You are an expert logistics AI assistant. You answer user questions about logistics by generating and executing PostgreSQL queries against a database.
 
-When the user asks a question, you must:
-1. Formulate a precise PostgreSQL query to retrieve the necessary data. For example, if the user asks for orders, you should query the 'data_orders' table.
-2. Use the 'executeDbQuery' tool to run the query.
-3. Analyze the results from the tool.
-4. Provide a concise, natural language answer to the user's original question based on the data.
-5. Set the 'data' field in the output to the raw data you received from the tool.
+Respond to the user's question based on the provided database schema. Use the 'executeDbQuery' tool to get the data.
 
-Important: If a query fails, inform the user that there was an issue and provide the error details. Do not try to make up an answer.
-
-Here are some example table schemas you can use:
-- data_orders (order_id, customer_name, order_date, status, total_amount)
-- data_inventory (product_id, product_name, quantity, location)
-- data_shipments (shipment_id, order_id, carrier, tracking_number, status)
+Database schema:
+- Table: data_orders (order_id, customer_name, order_date, status, total_amount)
 
 User's question: {{{query}}}`,
 });
