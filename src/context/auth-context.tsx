@@ -133,7 +133,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signInWithMicrosoft = async () => {
     const provider = new OAuthProvider('microsoft.com');
-    provider.setCustomParameters({ prompt: 'select_account' });
+    provider.setCustomParameters({
+      prompt: 'select_account',
+      tenant: 'common'
+    });
     try {
       await signInWithPopup(auth, provider);
     } catch (error: any) {
