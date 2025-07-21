@@ -13,7 +13,7 @@ function ClientDashboardPage() {
             {clientInfoLoading ? (
               <Skeleton className="h-9 w-64" />
             ) : (
-              <h1 className="text-3xl font-bold font-headline">Welcome, {clientInfo?.name || user?.displayName || 'User'}!</h1>
+              <h1 className="text-3xl font-bold font-headline">Welcome, {user?.displayName || clientInfo?.name || 'User'}!</h1>
             )}
           </div>
           
