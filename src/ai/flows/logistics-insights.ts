@@ -1,3 +1,4 @@
+
 // use server'
 
 /**
@@ -18,6 +19,7 @@ export type AiLogisticsAssistantInput = z.infer<typeof AiLogisticsAssistantInput
 
 const AiLogisticsAssistantOutputSchema = z.object({
   insight: z.string().describe('The insight or answer to the question about logistics data.'),
+  data: z.any().optional().describe('The data retrieved to answer the question, if any.'),
 });
 export type AiLogisticsAssistantOutput = z.infer<typeof AiLogisticsAssistantOutputSchema>;
 
@@ -41,6 +43,7 @@ const aiLogisticsAssistantFlow = ai.defineFlow(
     outputSchema: AiLogisticsAssistantOutputSchema,
   },
   async input => {
+    // For now, we are not using the database. This will be added in the next step.
     const {output} = await prompt(input);
     return output!;
   }
