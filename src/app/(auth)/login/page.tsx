@@ -35,7 +35,7 @@ export default function LoginPage() {
           <div className="flex justify-center mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-foreground"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
           </div>
-          <CardTitle className="font-headline text-2xl">Log in to Synapse3PL</CardTitle>
+          <CardTitle className="font-headline text-2xl">Log in to Reliable 3PL</CardTitle>
           <CardDescription>
             Choose a provider below to continue.
           </CardDescription>

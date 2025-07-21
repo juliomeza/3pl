@@ -90,7 +90,7 @@ function ClientLayout({
                     <div className="flex items-center justify-start gap-2 h-14 p-2">
                         <Link href="/" className="flex items-center gap-2 font-headline text-md font-semibold text-foreground">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-foreground"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
-                            <span className="group-data-[state=collapsed]/sidebar-wrapper:hidden">Synapse3PL</span>
+                            <span className="group-data-[state=collapsed]/sidebar-wrapper:hidden">Reliable 3PL</span>
                         </Link>
                     </div>
                 </SidebarFooter>

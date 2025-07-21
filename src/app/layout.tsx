@@ -13,7 +13,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <title>Synapse3PL - Smart Logistics Management</title>
+        <title>Reliable 3PL - Smart Logistics Management</title>
         <meta name="description" content="Logistics management, Warehousing, Distribution, Inventory & your own Assistant made for E-commerce." />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

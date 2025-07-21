@@ -1,4 +1,5 @@
-# Synapse3PL
+
+# Reliable 3PL
 
 This is a Next.js project bootstrapped with Firebase Studio, for a third-party logistics (3PL) software platform.
 

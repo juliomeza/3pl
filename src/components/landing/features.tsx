@@ -1,3 +1,4 @@
+
 import { CheckCircle2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { AiAssistant } from './ai-assistant';
@@ -29,7 +30,7 @@ const featureData = [
   },
    {
     title: 'AI Assistant',
-    description: 'Ask Synapse3PL anything and get tailored insights into your logistics situation. Understand your biggest costs and opportunities to get a better grasp on your operations to help you cut costs and find opportunities.',
+    description: 'Ask Reliable 3PL anything and get tailored insights into your logistics situation. Understand your biggest costs and opportunities to get a better grasp on your operations to help you cut costs and find opportunities.',
     points: ['Tailored insights', 'Cost analysis', 'Opportunity identification'],
     component: <AiAssistant />,
     align: 'left'
