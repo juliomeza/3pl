@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, getAuth } from 'firebase/auth';
+import { User, onAuthStateChanged, signOut, GoogleAuthProvider, OAuthProvider, signInWithPopup, getAuth } from 'firebase/auth';
 import { getFirestore, doc, getDoc, setDoc, DocumentData, serverTimestamp } from 'firebase/firestore';
 import { app } from '@/lib/firebase/config';
 import { useRouter } from 'next/navigation';
@@ -25,6 +25,7 @@ type AuthContextType = {
   loading: boolean;
   clientInfoLoading: boolean;
   signInWithGoogle: () => void;
+  signInWithMicrosoft: () => void;
   logout: () => void;
 };
 
@@ -35,6 +36,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   clientInfoLoading: true,
   signInWithGoogle: () => {},
+  signInWithMicrosoft: () => {},
   logout: () => {},
 });
 
@@ -129,6 +131,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const signInWithMicrosoft = async () => {
+    const provider = new OAuthProvider('microsoft.com');
+    provider.setCustomParameters({ prompt: 'select_account' });
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error: any) {
+      console.error("Authentication failed", error);
+       if (error.code !== 'auth/popup-closed-by-user') {
+        toast({
+          title: "Authentication Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+
   const logout = async () => {
     await signOut(auth);
     router.push('/login');
@@ -141,6 +161,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loading,
     clientInfoLoading,
     signInWithGoogle,
+    signInWithMicrosoft,
     logout,
   };
 
