@@ -1,5 +1,5 @@
 
-// use server'
+'use server'
 
 /**
  * @fileOverview AI agent that provides insights from logistics data.
@@ -11,6 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { db } from '@/lib/db';
 
 const AiLogisticsAssistantInputSchema = z.object({
   query: z.string().describe('The question about logistics data.'),
@@ -42,9 +43,20 @@ const aiLogisticsAssistantFlow = ai.defineFlow(
     inputSchema: AiLogisticsAssistantInputSchema,
     outputSchema: AiLogisticsAssistantOutputSchema,
   },
-  async input => {
-    // For now, we are not using the database. This will be added in the next step.
-    const {output} = await prompt(input);
-    return output!;
+  async (input) => {
+    try {
+      const result = await db.query('SELECT NOW()', []);
+      const time = result.rows[0].now;
+      return {
+        insight: `Successfully connected to the database! The current database time is: ${time}. We can now proceed with the next steps.`,
+        data: null,
+      };
+    } catch (error: any) {
+      console.error('Database connection test failed:', error);
+      return {
+        insight: `Database connection failed. Please check your POSTGRES_URL in the .env file. Error: ${error.message}`,
+        data: null,
+      };
+    }
   }
 );
