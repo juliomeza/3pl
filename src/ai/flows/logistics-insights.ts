@@ -61,23 +61,55 @@ const executeDbQuery = ai.defineTool(
       return result.rows;
     } catch (error: any) {
       console.error('Database query failed:', error);
-      // Return a descriptive error message to the model so it can retry or notify the user.
       return { error: `Query failed: ${error.message}` };
     }
   }
 );
 
+/**
+ * Fetches the schema of the public tables in the PostgreSQL database.
+ * @returns A string describing the database schema.
+ */
+async function getDatabaseSchema(): Promise<string> {
+  try {
+    const query = `
+      SELECT table_name, column_name, data_type
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+      ORDER BY table_name, ordinal_position;
+    `;
+    const result = await db.query(query, []);
+    const tables: Record<string, string[]> = {};
+    result.rows.forEach(row => {
+      if (!tables[row.table_name]) {
+        tables[row.table_name] = [];
+      }
+      tables[row.table_name].push(`${row.column_name} (${row.data_type})`);
+    });
+
+    return Object.entries(tables)
+      .map(([tableName, columns]) => `- Table: ${tableName} (${columns.join(', ')})`)
+      .join('\n');
+  } catch (error) {
+    console.error('Failed to fetch database schema:', error);
+    return 'Could not retrieve database schema.';
+  }
+}
+
 const prompt = ai.definePrompt({
   name: 'aiLogisticsAssistantPrompt',
-  input: { schema: AiLogisticsAssistantInputSchema },
+  input: { schema: z.object({
+    query: z.string(),
+    dbSchema: z.string(),
+  })},
   output: { schema: AiLogisticsAssistantOutputSchema },
   tools: [executeDbQuery],
   prompt: `You are an expert logistics AI assistant. You answer user questions about logistics by generating and executing PostgreSQL queries against a database.
 
-Respond to the user's question based on the provided database schema. Use the 'executeDbQuery' tool to get the data.
+Use the 'executeDbQuery' tool to get the data required to answer the user's question.
 
-Database schema:
-- Table: data_orders (order_id, customer_name, order_date, status, total_amount)
+Use the following database schema to construct your queries:
+{{{dbSchema}}}
 
 User's question: {{{query}}}`,
 });
@@ -89,7 +121,14 @@ const aiLogisticsAssistantFlow = ai.defineFlow(
     outputSchema: AiLogisticsAssistantOutputSchema,
   },
   async (input) => {
-    const llmResponse = await prompt(input);
+    // Dynamically fetch the schema
+    const dbSchema = await getDatabaseSchema();
+
+    const llmResponse = await prompt({
+      query: input.query,
+      dbSchema: dbSchema,
+    });
+    
     const output = llmResponse.output;
 
     if (!output) {
@@ -99,9 +138,26 @@ const aiLogisticsAssistantFlow = ai.defineFlow(
       };
     }
 
+    // Check if the LLM decided to return data directly without an insight
+    if (Array.isArray(output) && output.length > 0) {
+        return {
+            insight: "Here is the data you requested.",
+            data: output,
+        }
+    }
+    
+    // Check if the output has the expected structure
+    if (output.insight) {
+        return {
+            insight: output.insight,
+            data: output.data,
+        };
+    }
+
+    // Fallback for unexpected LLM output formats
     return {
-      insight: output.insight,
-      data: output.data,
+        insight: 'I received a response, but it was not in the expected format. Here is the raw data.',
+        data: output
     };
   }
 );
