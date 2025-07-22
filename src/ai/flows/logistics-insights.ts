@@ -67,15 +67,15 @@ const executeDbQuery = ai.defineTool(
 );
 
 /**
- * Fetches the schema of the public tables in the PostgreSQL database.
- * @returns A string describing the database schema.
+ * Fetches the schema of the public tables in the PostgreSQL database that start with 'data_'.
+ * @returns A string describing the relevant database schema.
  */
 async function getDatabaseSchema(): Promise<string> {
   try {
     const query = `
       SELECT table_name, column_name, data_type
       FROM information_schema.columns
-      WHERE table_schema = 'public'
+      WHERE table_schema = 'public' AND table_name LIKE 'data_%'
       ORDER BY table_name, ordinal_position;
     `;
     const result = await db.query(query, []);
@@ -87,9 +87,14 @@ async function getDatabaseSchema(): Promise<string> {
       tables[row.table_name].push(`${row.column_name} (${row.data_type})`);
     });
 
-    return Object.entries(tables)
+    const schema = Object.entries(tables)
       .map(([tableName, columns]) => `- Table: ${tableName} (${columns.join(', ')})`)
       .join('\n');
+      
+    if (!schema) {
+      return "No tables starting with 'data_' found in the database.";
+    }
+    return schema;
   } catch (error) {
     console.error('Failed to fetch database schema:', error);
     return 'Could not retrieve database schema.';
@@ -104,11 +109,11 @@ const prompt = ai.definePrompt({
   })},
   output: { schema: AiLogisticsAssistantOutputSchema },
   tools: [executeDbQuery],
-  prompt: `You are an expert logistics AI assistant. You answer user questions about logistics by generating and executing PostgreSQL queries against a database.
+  prompt: `You are an expert logistics AI assistant. Your role is to answer user questions by generating and executing PostgreSQL queries against a database.
 
-Use the 'executeDbQuery' tool to get the data required to answer the user's question.
+You MUST use the 'executeDbQuery' tool to get the data required to answer the user's question. Do not answer based on prior knowledge.
 
-Use the following database schema to construct your queries:
+Use the following database schema to construct your queries. You can only query tables listed here.
 {{{dbSchema}}}
 
 User's question: {{{query}}}`,
