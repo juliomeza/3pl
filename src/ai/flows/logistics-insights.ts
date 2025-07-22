@@ -68,12 +68,12 @@ const executeDbQuery = ai.defineTool(
 
 /**
  * Fetches the schema of the public tables in the PostgreSQL database that start with 'data_'.
- * @returns A string describing the relevant database schema as CREATE TABLE statements.
+ * @returns A string describing the relevant database schema.
  */
 async function getDatabaseSchema(): Promise<string> {
   try {
     const query = `
-      SELECT table_name, column_name, data_type
+      SELECT table_name, column_name
       FROM information_schema.columns
       WHERE table_schema = 'public' AND table_name LIKE 'data_%'
       ORDER BY table_name, ordinal_position;
@@ -84,22 +84,17 @@ async function getDatabaseSchema(): Promise<string> {
       return "No tables starting with 'data_' found in the database.";
     }
 
-    const tables: Record<string, { column_name: string, data_type: string }[]> = {};
+    const tables: Record<string, string[]> = {};
     result.rows.forEach(row => {
       if (!tables[row.table_name]) {
         tables[row.table_name] = [];
       }
-      tables[row.table_name].push({ column_name: row.column_name, data_type: row.data_type });
+      tables[row.table_name].push(row.column_name);
     });
 
     const schema = Object.entries(tables)
-      .map(([tableName, columns]) => {
-        const columnDefinitions = columns
-          .map(col => `  "${col.column_name}" ${col.data_type}`)
-          .join(',\n');
-        return `CREATE TABLE "${tableName}" (\n${columnDefinitions}\n);`;
-      })
-      .join('\n\n');
+      .map(([tableName, columns]) => `- Table: ${tableName} (${columns.join(', ')})`)
+      .join('\n');
       
     return schema;
   } catch (error) {
@@ -121,20 +116,17 @@ const prompt = ai.definePrompt({
   },
   prompt: `You are an expert logistics AI assistant. Your role is to answer user questions by generating and executing PostgreSQL queries against a database.
 
-You will be provided with a database schema in the format of CREATE TABLE statements.
+You will be provided with the database schema.
 
-RULES:
-1. You MUST use the 'executeDbQuery' tool to get the data required to answer the user's question. Do not answer based on prior knowledge.
-2. You MUST NOT invent columns that are not present in the provided schema.
-3. You MUST use double quotes around table and column names in your queries to ensure correct casing (e.g., SELECT "columnName" FROM "tableName").
-4. Formulate your final answer in natural, conversational language. Do not mention that you are querying a table. For example, instead of "There are 5 orders in the data_orders table", say "There are 5 orders."
+When a user asks to filter by a value (e.g., "for warehouse 10"), you MUST construct the WHERE clause using the exact column name from the schema. For example, if the schema has a 'warehouse' column, your query must use 'WHERE warehouse = '10'', NOT 'WHERE warehouse_id = 10'.
 
-DATABASE SCHEMA:
+Use the 'executeDbQuery' tool to get the data required to answer the user's question.
+
+Database Schema:
 {{{dbSchema}}}
 
-Based on the schema and rules above, answer the following user question.
-
-User's question: {{{query}}}`,
+User's question:
+{{{query}}}`,
 });
 
 const aiLogisticsAssistantFlow = ai.defineFlow(
@@ -171,6 +163,10 @@ const aiLogisticsAssistantFlow = ai.defineFlow(
     
     // Check if the output has the expected structure
     if (output.insight) {
+        // Simple replace to make the response more natural
+        if (typeof output.insight === 'string') {
+            output.insight = output.insight.replace(/in the data_orders table/g, '');
+        }
         return {
             insight: output.insight,
             data: output.data,
