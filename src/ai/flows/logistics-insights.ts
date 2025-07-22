@@ -68,7 +68,7 @@ const executeDbQuery = ai.defineTool(
 
 /**
  * Fetches the schema of the public tables in the PostgreSQL database that start with 'data_'.
- * @returns A string describing the relevant database schema.
+ * @returns A string describing the relevant database schema as CREATE TABLE statements.
  */
 async function getDatabaseSchema(): Promise<string> {
   try {
@@ -79,21 +79,28 @@ async function getDatabaseSchema(): Promise<string> {
       ORDER BY table_name, ordinal_position;
     `;
     const result = await db.query(query, []);
-    const tables: Record<string, string[]> = {};
+    
+    if (result.rows.length === 0) {
+      return "No tables starting with 'data_' found in the database.";
+    }
+
+    const tables: Record<string, { column_name: string, data_type: string }[]> = {};
     result.rows.forEach(row => {
       if (!tables[row.table_name]) {
         tables[row.table_name] = [];
       }
-      tables[row.table_name].push(`${row.column_name} (${row.data_type})`);
+      tables[row.table_name].push({ column_name: row.column_name, data_type: row.data_type });
     });
 
     const schema = Object.entries(tables)
-      .map(([tableName, columns]) => `- Table: ${tableName} (${columns.join(', ')})`)
-      .join('\n');
+      .map(([tableName, columns]) => {
+        const columnDefinitions = columns
+          .map(col => `  "${col.column_name}" ${col.data_type}`)
+          .join(',\n');
+        return `CREATE TABLE "${tableName}" (\n${columnDefinitions}\n);`;
+      })
+      .join('\n\n');
       
-    if (!schema) {
-      return "No tables starting with 'data_' found in the database.";
-    }
     return schema;
   } catch (error) {
     console.error('Failed to fetch database schema:', error);
@@ -114,10 +121,18 @@ const prompt = ai.definePrompt({
   },
   prompt: `You are an expert logistics AI assistant. Your role is to answer user questions by generating and executing PostgreSQL queries against a database.
 
-You MUST use the 'executeDbQuery' tool to get the data required to answer the user's question. Do not answer based on prior knowledge.
+You will be provided with a database schema in the format of CREATE TABLE statements.
 
-Use the following database schema to construct your queries. You can only query tables listed here.
+RULES:
+1. You MUST use the 'executeDbQuery' tool to get the data required to answer the user's question. Do not answer based on prior knowledge.
+2. You MUST NOT invent columns that are not present in the provided schema.
+3. You MUST use double quotes around table and column names in your queries to ensure correct casing (e.g., SELECT "columnName" FROM "tableName").
+4. Formulate your final answer in natural, conversational language. Do not mention that you are querying a table. For example, instead of "There are 5 orders in the data_orders table", say "There are 5 orders."
+
+DATABASE SCHEMA:
 {{{dbSchema}}}
+
+Based on the schema and rules above, answer the following user question.
 
 User's question: {{{query}}}`,
 });
