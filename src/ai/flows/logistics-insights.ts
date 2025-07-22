@@ -109,6 +109,9 @@ const prompt = ai.definePrompt({
   })},
   output: { schema: AiLogisticsAssistantOutputSchema },
   tools: [executeDbQuery],
+  config: {
+    temperature: 0,
+  },
   prompt: `You are an expert logistics AI assistant. Your role is to answer user questions by generating and executing PostgreSQL queries against a database.
 
 You MUST use the 'executeDbQuery' tool to get the data required to answer the user's question. Do not answer based on prior knowledge.
