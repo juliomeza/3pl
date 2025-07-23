@@ -171,9 +171,18 @@ const aiLogisticsAssistantFlow = ai.defineFlow(
       dbSchema: dbSchema,
     });
     
-    // Corrected the error: .output is a property, not a function.
     const output = llmResponse.output; 
-    const sqlQuery = lastExecutedQuery; // Get the query from our variable.
+    const sqlQuery = lastExecutedQuery;
+    
+    // This is our safeguard.
+    // If we have an insight but no SQL query was executed, it's a hallucination.
+    if (output?.insight && !sqlQuery) {
+      return {
+        insight: "I'm sorry, I cannot answer that question at this moment.",
+        data: null,
+        sqlQuery: null,
+      };
+    }
     
     if (!output) {
       return {
@@ -187,7 +196,6 @@ const aiLogisticsAssistantFlow = ai.defineFlow(
     let toolResponseData = null;
 
     if (history) {
-        // We still need to get the data from the tool response.
         const toolResponse = history.find((m: any) => m.role === 'tool');
         if (toolResponse) {
             toolResponseData = toolResponse.content[0]?.part.data;
