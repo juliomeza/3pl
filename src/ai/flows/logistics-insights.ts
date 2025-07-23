@@ -67,7 +67,7 @@ const executeDbQuery = ai.defineTool(
 );
 
 /**
- * Fetches the schema of the public tables in the PostgreSQL database that start with 'data_'.
+ * Fetches the schema of the public tables in the PostgreSQL database that start with 'logistics_'.
  * @returns A string describing the relevant database schema.
  */
 async function getDatabaseSchema(): Promise<string> {
@@ -75,13 +75,13 @@ async function getDatabaseSchema(): Promise<string> {
     const query = `
       SELECT table_name, column_name
       FROM information_schema.columns
-      WHERE table_schema = 'public' AND table_name LIKE 'data_%'
+      WHERE table_schema = 'public' AND table_name LIKE 'logistics_%'
       ORDER BY table_name, ordinal_position;
     `;
     const result = await db.query(query, []);
     
     if (result.rows.length === 0) {
-      return "No tables starting with 'data_' found in the database.";
+      return "No tables starting with 'logistics_' found in the database.";
     }
 
     const tables: Record<string, string[]> = {};
@@ -165,7 +165,7 @@ const aiLogisticsAssistantFlow = ai.defineFlow(
     if (output.insight) {
         // Simple replace to make the response more natural
         if (typeof output.insight === 'string') {
-            output.insight = output.insight.replace(/in the data_orders table/g, '');
+            output.insight = output.insight.replace(/in the logistics_orders table/g, '');
         }
         return {
             insight: output.insight,
