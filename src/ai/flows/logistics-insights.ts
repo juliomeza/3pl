@@ -136,9 +136,7 @@ const aiLogisticsAssistantFlow = ai.defineFlow(
     outputSchema: AiLogisticsAssistantOutputSchema,
   },
   async (input) => {
-    // Dynamically fetch the schema
     const dbSchema = await getDatabaseSchema();
-
     const llmResponse = await prompt({
       query: input.query,
       dbSchema: dbSchema,
@@ -153,6 +151,12 @@ const aiLogisticsAssistantFlow = ai.defineFlow(
       };
     }
 
+    const toolResponse = llmResponse.history?.find(
+      (h) => h.role === 'tool'
+    );
+    
+    const toolResponseData = toolResponse?.content[0]?.part.data;
+    
     // Check if the LLM decided to return data directly without an insight
     if (Array.isArray(output) && output.length > 0) {
         return {
@@ -163,20 +167,19 @@ const aiLogisticsAssistantFlow = ai.defineFlow(
     
     // Check if the output has the expected structure
     if (output.insight) {
-        // Simple replace to make the response more natural
         if (typeof output.insight === 'string') {
             output.insight = output.insight.replace(/in the logistics_orders table/g, '');
         }
         return {
             insight: output.insight,
-            data: output.data,
+            data: toolResponseData || output.data,
         };
     }
 
     // Fallback for unexpected LLM output formats
     return {
         insight: 'I received a response, but it was not in the expected format. Here is the raw data.',
-        data: output
+        data: toolResponseData || output
     };
   }
 );

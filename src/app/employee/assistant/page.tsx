@@ -59,6 +59,39 @@ export default function EmployeeAssistantPage() {
     }
   };
 
+  const renderData = () => {
+    if (!currentData) {
+      return <p className="text-muted-foreground">The data table corresponding to your query will appear here.</p>;
+    }
+    
+    // If it's an array of objects, render a table
+    if (Array.isArray(currentData) && currentData.length > 0 && typeof currentData[0] === 'object') {
+      return (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {Object.keys(currentData[0]).map(key => <TableHead key={key}>{key}</TableHead>)}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {currentData.map((row: any, rowIndex: number) => (
+              <TableRow key={rowIndex}>
+                {Object.values(row).map((cell: any, cellIndex: number) => <TableCell key={cellIndex}>{String(cell)}</TableCell>)}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      );
+    }
+    
+    // Otherwise, stringify the data and show it in a preformatted block
+    return (
+      <pre className="text-sm bg-muted p-4 rounded-md overflow-x-auto">
+        <code>{JSON.stringify(currentData, null, 2)}</code>
+      </pre>
+    );
+  };
+
 
   return (
     <div className="flex flex-col h-[calc(100vh-12rem)] gap-4">
@@ -120,24 +153,7 @@ export default function EmployeeAssistantPage() {
             <h2 className="text-2xl font-bold font-headline">Data View</h2>
             <Card className="flex-1 overflow-auto">
                 <CardContent className="p-6">
-                {currentData && currentData.length > 0 ? (
-                    <Table>
-                    <TableHeader>
-                        <TableRow>
-                        {Object.keys(currentData[0]).map(key => <TableHead key={key}>{key}</TableHead>)}
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {currentData.map((row: any, rowIndex: number) => (
-                        <TableRow key={rowIndex}>
-                            {Object.values(row).map((cell: any, cellIndex: number) => <TableCell key={cellIndex}>{String(cell)}</TableCell>)}
-                        </TableRow>
-                        ))}
-                    </TableBody>
-                    </Table>
-                ) : (
-                    <p className="text-muted-foreground">The data table corresponding to your query will appear here.</p>
-                )}
+                 {renderData()}
                 </CardContent>
             </Card>
         </div>
