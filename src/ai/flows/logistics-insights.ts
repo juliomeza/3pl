@@ -13,6 +13,9 @@ import { ai } from '@/ai/genkit';
 import { db } from '@/lib/db';
 import { z } from 'genkit';
 
+// This variable will hold the last query executed by the tool.
+let lastExecutedQuery: string | null | undefined = null;
+
 const AiLogisticsAssistantInputSchema = z.object({
   query: z.string().describe('The question about logistics data.'),
 });
@@ -20,6 +23,7 @@ export type AiLogisticsAssistantInput = z.infer<
   typeof AiLogisticsAssistantInputSchema
 >;
 
+// Define a new, extended output schema for our flow that includes the SQL query.
 const AiLogisticsAssistantOutputSchema = z.object({
   insight: z
     .string()
@@ -30,10 +34,30 @@ const AiLogisticsAssistantOutputSchema = z.object({
     .any()
     .optional()
     .describe('The data retrieved to answer the question, if any.'),
+  sqlQuery: z
+    .string()
+    .optional()
+    .nullable()
+    .describe('The SQL query that was executed to get the data.'),
 });
 export type AiLogisticsAssistantOutput = z.infer<
   typeof AiLogisticsAssistantOutputSchema
 >;
+
+// Define the original, simpler output schema that the AI prompt will use.
+// This ensures the AI is not burdened with generating the sqlQuery property.
+const AiPromptOutputSchema = z.object({
+    insight: z
+      .string()
+      .describe(
+        'The insight or answer to the question about logistics data, in natural language.'
+      ),
+    data: z
+      .any()
+      .optional()
+      .describe('The data retrieved to answer the question, if any.'),
+});
+
 
 export async function aiLogisticsAssistant(
   input: AiLogisticsAssistantInput
@@ -55,6 +79,8 @@ const executeDbQuery = ai.defineTool(
     outputSchema: z.any(),
   },
   async (input) => {
+    // Store the query in our module-scoped variable.
+    lastExecutedQuery = input.query;
     try {
       console.log(`Executing query: ${input.query}`);
       const result = await db.query(input.query, []);
@@ -109,7 +135,7 @@ const prompt = ai.definePrompt({
     query: z.string(),
     dbSchema: z.string(),
   })},
-  output: { schema: AiLogisticsAssistantOutputSchema },
+  output: { schema: AiPromptOutputSchema }, // Use the simpler AI-facing schema
   tools: [executeDbQuery],
   config: {
     temperature: 0,
@@ -133,39 +159,49 @@ const aiLogisticsAssistantFlow = ai.defineFlow(
   {
     name: 'aiLogisticsAssistantFlow',
     inputSchema: AiLogisticsAssistantInputSchema,
-    outputSchema: AiLogisticsAssistantOutputSchema,
+    outputSchema: AiLogisticsAssistantOutputSchema, // The flow returns the extended schema
   },
   async (input) => {
+    // Reset the last query at the beginning of each flow run.
+    lastExecutedQuery = null;
+    
     const dbSchema = await getDatabaseSchema();
     const llmResponse = await prompt({
       query: input.query,
       dbSchema: dbSchema,
     });
     
-    const output = llmResponse.output;
-
+    // Corrected the error: .output is a property, not a function.
+    const output = llmResponse.output; 
+    const sqlQuery = lastExecutedQuery; // Get the query from our variable.
+    
     if (!output) {
       return {
         insight: 'I could not generate a response. Please try again.',
         data: null,
+        sqlQuery: sqlQuery,
       };
     }
 
-    const toolResponse = llmResponse.history?.find(
-      (h) => h.role === 'tool'
-    );
+    const history = (llmResponse as any).history;
+    let toolResponseData = null;
+
+    if (history) {
+        // We still need to get the data from the tool response.
+        const toolResponse = history.find((m: any) => m.role === 'tool');
+        if (toolResponse) {
+            toolResponseData = toolResponse.content[0]?.part.data;
+        }
+    }
     
-    const toolResponseData = toolResponse?.content[0]?.part.data;
-    
-    // Check if the LLM decided to return data directly without an insight
     if (Array.isArray(output) && output.length > 0) {
         return {
             insight: "Here is the data you requested.",
             data: output,
+            sqlQuery: sqlQuery,
         }
     }
     
-    // Check if the output has the expected structure
     if (output.insight) {
         if (typeof output.insight === 'string') {
             output.insight = output.insight.replace(/in the logistics_orders table/g, '');
@@ -173,13 +209,14 @@ const aiLogisticsAssistantFlow = ai.defineFlow(
         return {
             insight: output.insight,
             data: toolResponseData || output.data,
+            sqlQuery: sqlQuery,
         };
     }
 
-    // Fallback for unexpected LLM output formats
     return {
         insight: 'I received a response, but it was not in the expected format. Here is the raw data.',
-        data: toolResponseData || output
+        data: toolResponseData || output,
+        sqlQuery: sqlQuery,
     };
   }
 );
