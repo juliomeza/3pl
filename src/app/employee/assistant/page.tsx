@@ -13,6 +13,7 @@ type Message = {
     role: 'user' | 'assistant';
     content: string;
     data?: any;
+    query?: string;
 };
 
 export default function EmployeeAssistantPage() {
@@ -20,6 +21,7 @@ export default function EmployeeAssistantPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [currentData, setCurrentData] = useState<any>(null);
+  const [currentQuery, setCurrentQuery] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -29,15 +31,24 @@ export default function EmployeeAssistantPage() {
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
     setCurrentData(null);
+    setCurrentQuery(null);
     setInput('');
 
     try {
       const result = await getAiInsight(input);
       if (result.insight) {
-        const assistantMessage: Message = { role: 'assistant', content: result.insight, data: result.data };
+        const assistantMessage: Message = { 
+          role: 'assistant', 
+          content: result.insight, 
+          data: result.data, 
+          query: result.query 
+        };
         setMessages((prev) => [...prev, assistantMessage]);
         if(result.data) {
           setCurrentData(result.data);
+        }
+        if (result.query) {
+          setCurrentQuery(result.query);
         }
       }
     } catch (error) {
@@ -50,7 +61,7 @@ export default function EmployeeAssistantPage() {
 
 
   return (
-    <div className="flex flex-col h-[calc(100vh-10rem)] gap-8">
+    <div className="flex flex-col h-[calc(100vh-12rem)] gap-4">
       <div className="flex-1 flex flex-col gap-4">
         <h1 className="text-3xl font-bold font-headline">AI Logistics Assistant</h1>
         <Card className="flex-1 flex flex-col">
@@ -92,30 +103,44 @@ export default function EmployeeAssistantPage() {
         </Card>
       </div>
 
-      <div className="flex-shrink-0 flex flex-col gap-4 h-1/2">
-        <h2 className="text-2xl font-bold font-headline">Data View</h2>
-        <Card className="flex-1 overflow-auto">
-            <CardContent className="p-6">
-              {currentData && currentData.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      {Object.keys(currentData[0]).map(key => <TableHead key={key}>{key}</TableHead>)}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {currentData.map((row: any, rowIndex: number) => (
-                      <TableRow key={rowIndex}>
-                        {Object.values(row).map((cell: any, cellIndex: number) => <TableCell key={cellIndex}>{String(cell)}</TableCell>)}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <p className="text-muted-foreground">The data table corresponding to your query will appear here.</p>
-              )}
-            </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-[40%]">
+        <div className="flex flex-col gap-4">
+            <h2 className="text-2xl font-bold font-headline">SQL Query</h2>
+            <Card className="flex-1 overflow-auto">
+                <CardContent className="p-6">
+                {currentQuery ? (
+                    <pre className="text-sm bg-muted p-4 rounded-md overflow-x-auto"><code>{currentQuery}</code></pre>
+                ) : (
+                    <p className="text-muted-foreground">The SQL query will appear here.</p>
+                )}
+                </CardContent>
+            </Card>
+        </div>
+        <div className="flex flex-col gap-4">
+            <h2 className="text-2xl font-bold font-headline">Data View</h2>
+            <Card className="flex-1 overflow-auto">
+                <CardContent className="p-6">
+                {currentData && currentData.length > 0 ? (
+                    <Table>
+                    <TableHeader>
+                        <TableRow>
+                        {Object.keys(currentData[0]).map(key => <TableHead key={key}>{key}</TableHead>)}
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {currentData.map((row: any, rowIndex: number) => (
+                        <TableRow key={rowIndex}>
+                            {Object.values(row).map((cell: any, cellIndex: number) => <TableCell key={cellIndex}>{String(cell)}</TableCell>)}
+                        </TableRow>
+                        ))}
+                    </TableBody>
+                    </Table>
+                ) : (
+                    <p className="text-muted-foreground">The data table corresponding to your query will appear here.</p>
+                )}
+                </CardContent>
+            </Card>
+        </div>
       </div>
     </div>
   );
