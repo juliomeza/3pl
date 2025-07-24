@@ -27,6 +27,7 @@ export type AiLogisticsAssistantInput = z.infer<
 const AiLogisticsAssistantOutputSchema = z.object({
   insight: z
     .string()
+    .optional()
     .describe(
       'The insight or answer to the question about logistics data, in natural language.'
     ),
@@ -49,6 +50,7 @@ export type AiLogisticsAssistantOutput = z.infer<
 const AiPromptOutputSchema = z.object({
     insight: z
       .string()
+      .optional()
       .describe(
         'The insight or answer to the question about logistics data, in natural language.'
       ),
@@ -99,7 +101,7 @@ const executeDbQuery = ai.defineTool(
 async function getDatabaseSchema(): Promise<string> {
   try {
     const query = `
-      SELECT table_name, column_name
+      SELECT table_name, column_name, data_type
       FROM information_schema.columns
       WHERE table_schema = 'public' AND table_name LIKE 'logistics_%'
       ORDER BY table_name, ordinal_position;
@@ -115,7 +117,7 @@ async function getDatabaseSchema(): Promise<string> {
       if (!tables[row.table_name]) {
         tables[row.table_name] = [];
       }
-      tables[row.table_name].push(row.column_name);
+      tables[row.table_name].push(`${row.column_name} (${row.data_type})`);
     });
 
     const schema = Object.entries(tables)
@@ -144,17 +146,17 @@ const prompt = ai.definePrompt({
 
 You will be provided with the database schema.
 
-When a user asks to filter by a value (e.g., "for warehouse 10"), you MUST construct the WHERE clause using the exact column name from the schema. For example, if the schema has a 'warehouse' column, your query must use 'WHERE warehouse = '10'', NOT 'WHERE warehouse_id = 10'.
+IMPORTANT: When constructing a WHERE clause, string literals MUST be enclosed in single quotes (e.g., 'value'). Column names must be enclosed in double quotes (e.g., "column_name").
 
 Database Schema:
 {{{dbSchema}}}
 
 Examples:
 - Question: How many orders are there?
-- Tool call: \`executeDbQuery("SELECT count(*) FROM logistics_orders;")\`
+- Tool call: \`executeDbQuery({ query: 'SELECT count(*) FROM logistics_orders;' })\`
 
-- Question: How many orders for customer "some-customer-name"?
-- Tool call: \`executeDbQuery("SELECT count(*) FROM logistics_orders WHERE "customer" = 'some-customer-name';")\`
+- Question: How many orders for customer "Methapharm, Inc."?
+- Tool call: \`executeDbQuery({ query: 'SELECT count(*) FROM logistics_orders WHERE "customer" = \\'Methapharm, Inc.\\';' })\`
 
 User's question:
 {{{query}}}`,
