@@ -178,12 +178,11 @@ const aiLogisticsAssistantFlow = ai.defineFlow(
       dbSchema: dbSchema,
     });
     
-    const output = llmResponse.output; 
-    const sqlQuery = lastExecutedQuery;
+    const output = llmResponse.output;
     
     // This is our safeguard.
     // If we have an insight but no SQL query was executed, it's a hallucination.
-    if (output?.insight && !sqlQuery) {
+    if (output?.insight && !lastExecutedQuery) {
       return {
         insight: "I'm sorry, I cannot answer that question at this moment.",
         data: null,
@@ -195,57 +194,37 @@ const aiLogisticsAssistantFlow = ai.defineFlow(
       return {
         insight: 'I could not generate a response. Please try again.',
         data: null,
-        sqlQuery: sqlQuery,
+        sqlQuery: lastExecutedQuery,
       };
     }
 
     const history = (llmResponse as any).history;
     let toolResponseData = null;
+    let sqlQuery = lastExecutedQuery;
 
     if (history) {
         const toolRequest = history.find((m: any) => m.role === 'model' && m.content[0]?.part.toolRequest);
-        const sqlQuery = toolRequest?.content[0].part.toolRequest.input.query;
-
+        if (toolRequest) {
+            sqlQuery = toolRequest.content[0].part.toolRequest.input.query;
+        }
+        
         const toolResponse = history.find((m: any) => m.role === 'tool');
         if (toolResponse) {
             toolResponseData = toolResponse.content[0]?.part.data;
         }
-
-         if (output.insight) {
-            if (typeof output.insight === 'string') {
-                output.insight = output.insight.replace(/in the logistics_orders table/g, '');
-            }
-            return {
-                insight: output.insight,
-                data: toolResponseData || output.data,
-                sqlQuery: sqlQuery,
-            };
-        }
     }
     
-    
-    if (Array.isArray(output) && output.length > 0) {
+    if (toolResponseData) {
         return {
-            insight: "Here is the data you requested.",
-            data: output,
-            sqlQuery: sqlQuery,
-        }
-    }
-    
-    if (output.insight) {
-        if (typeof output.insight === 'string') {
-            output.insight = output.insight.replace(/in the logistics_orders table/g, '');
-        }
-        return {
-            insight: output.insight,
-            data: toolResponseData || output.data,
+            insight: output.insight || "Here is the data you requested.",
+            data: toolResponseData,
             sqlQuery: sqlQuery,
         };
     }
 
     return {
-        insight: 'I received a response, but it was not in the expected format. Here is the raw data.',
-        data: toolResponseData || output,
+        insight: output.insight || 'I received a response, but it was not in the expected format. Here is the raw data.',
+        data: output.data || output,
         sqlQuery: sqlQuery,
     };
   }

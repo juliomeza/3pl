@@ -60,8 +60,12 @@ export default function EmployeeAssistantPage() {
   };
 
   const renderData = () => {
-    if (!currentData) {
+    if (currentData === null) {
       return <p className="text-muted-foreground">The data table corresponding to your query will appear here.</p>;
+    }
+
+    if (Array.isArray(currentData) && currentData.length === 0) {
+      return <p className="text-muted-foreground">No data found for this query.</p>;
     }
     
     // If it's an array of objects, render a table
