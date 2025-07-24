@@ -140,7 +140,7 @@ const prompt = ai.definePrompt({
   output: { schema: AiPromptOutputSchema }, // Use the simpler AI-facing schema
   tools: [executeDbQuery],
   config: {
-    temperature: 0,
+    temperature: 0.5,
   },
   prompt: `You are an expert logistics AI assistant. Your role is to answer user questions by generating and executing PostgreSQL queries against a database.
 
