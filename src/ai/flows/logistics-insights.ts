@@ -146,10 +146,15 @@ You will be provided with the database schema.
 
 When a user asks to filter by a value (e.g., "for warehouse 10"), you MUST construct the WHERE clause using the exact column name from the schema. For example, if the schema has a 'warehouse' column, your query must use 'WHERE warehouse = '10'', NOT 'WHERE warehouse_id = 10'.
 
-Use the 'executeDbQuery' tool to get the data required to answer the user's question.
-
 Database Schema:
 {{{dbSchema}}}
+
+Examples:
+- Question: How many orders are there?
+- Tool call: \`executeDbQuery("SELECT count(*) FROM logistics_orders;")\`
+
+- Question: How many orders for customer "some-customer-name"?
+- Tool call: \`executeDbQuery("SELECT count(*) FROM logistics_orders WHERE "customer" = 'some-customer-name';")\`
 
 User's question:
 {{{query}}}`,
@@ -196,11 +201,26 @@ const aiLogisticsAssistantFlow = ai.defineFlow(
     let toolResponseData = null;
 
     if (history) {
+        const toolRequest = history.find((m: any) => m.role === 'model' && m.content[0]?.part.toolRequest);
+        const sqlQuery = toolRequest?.content[0].part.toolRequest.input.query;
+
         const toolResponse = history.find((m: any) => m.role === 'tool');
         if (toolResponse) {
             toolResponseData = toolResponse.content[0]?.part.data;
         }
+
+         if (output.insight) {
+            if (typeof output.insight === 'string') {
+                output.insight = output.insight.replace(/in the logistics_orders table/g, '');
+            }
+            return {
+                insight: output.insight,
+                data: toolResponseData || output.data,
+                sqlQuery: sqlQuery,
+            };
+        }
     }
+    
     
     if (Array.isArray(output) && output.length > 0) {
         return {
