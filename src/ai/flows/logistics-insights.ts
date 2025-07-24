@@ -156,7 +156,7 @@ Examples:
 - Tool call: \`executeDbQuery({ query: 'SELECT count(*) FROM logistics_orders;' })\`
 
 - Question: How many orders for customer "Methapharm, Inc."?
-- Tool call: \`executeDbQuery({ query: 'SELECT count(*) FROM logistics_orders WHERE "customer" = \\'Methapharm, Inc.\\';' })\`
+- Tool call: \`executeDbQuery({ query: 'SELECT count(*) FROM logistics_orders WHERE "customer" = 'Methapharm, Inc.';' })\`
 
 User's question:
 {{{query}}}`,
