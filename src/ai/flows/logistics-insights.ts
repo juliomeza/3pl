@@ -140,7 +140,7 @@ const prompt = ai.definePrompt({
   output: { schema: AiPromptOutputSchema }, // Use the simpler AI-facing schema
   tools: [executeDbQuery],
   config: {
-    temperature: 0.5,
+    temperature: 1.0,
   },
   prompt: `You are an expert logistics AI assistant. Your role is to answer user questions by generating and executing PostgreSQL queries against a database.
 
@@ -155,8 +155,8 @@ Examples:
 - Question: How many orders are there?
 - Tool call: \`executeDbQuery({ query: 'SELECT count(*) FROM logistics_orders;' })\`
 
-- Question: How many orders for customer "Methapharm, Inc."?
-- Tool call: \`executeDbQuery({ query: 'SELECT count(*) FROM logistics_orders WHERE "customer" = 'Methapharm, Inc.';' })\`
+- Question: How many orders for customer "some-customer-name"?
+- Tool call: \`executeDbQuery({ query: 'SELECT count(*) FROM logistics_orders WHERE "customer" = 'some-customer-name';' })\`
 
 User's question:
 {{{query}}}`,
