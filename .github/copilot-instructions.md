@@ -53,11 +53,22 @@ npm run typecheck
 - `src/components/with-auth.tsx` - HOC for protected routes
 - `src/context/auth-context.tsx` - Global auth state management
 
+**Critical Security Pattern**: 
+- **Employee vs Client Access**: Two distinct user types with different data access levels
+- **`src/app/employee/assistant/`** - Full access to operational data and management tables
+- **`src/app/client/assistant/`** - Limited access to client-specific data only
+- **Future consideration**: May split into separate databases for enhanced security isolation
+
 ### Database Integration
 - PostgreSQL connection via `src/lib/db.ts` using connection pooling
 - Environment: `POSTGRES_URL` required
 - Schema: Tables prefixed with `logistics_` (orders, shipments, etc.)
 - AI queries specifically target tables starting with `logistics_`
+
+**Data Access Patterns**:
+- **Employee queries**: Can access all `logistics_*` tables (operational data, analytics, management)
+- **Client queries**: Should be restricted to client-specific data (their orders, shipments, etc.)
+- **Security consideration**: Implement data filtering based on user role and client ID
 
 ## Key Conventions
 
@@ -78,6 +89,12 @@ npm run typecheck
 - **Text-to-SQL**: Prioritize OpenAI implementation over Genkit
 - **Chat Assistant**: Use OpenAI for conversational AI features
 - Place new AI integrations in `src/lib/ai/` (separate from Genkit flows)
+
+**Role-Based AI Access**:
+- **Employee AI Assistant**: Access to all operational data, analytics, and management insights
+- **Client AI Assistant**: Restricted to client-specific data queries and insights
+- **Shared UI pattern**: Both assistants use similar interface (`src/app/{role}/assistant/page.tsx`)
+- **Different backend logic**: May require role-based query filtering in AI functions
 
 ## Environment Setup
 

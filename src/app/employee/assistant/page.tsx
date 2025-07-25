@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { getAiInsight } from '@/app/actions';
+import { getAiInsightOpenAI } from '@/app/actions';
 import { Bot, User, Loader2 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
 
@@ -13,7 +13,7 @@ type Message = {
     role: 'user' | 'assistant';
     content: string;
     data?: any;
-    query?: string;
+    query?: string | null;
 };
 
 export default function EmployeeAssistantPage() {
@@ -35,7 +35,7 @@ export default function EmployeeAssistantPage() {
     setInput('');
 
     try {
-      const result = await getAiInsight(input);
+      const result = await getAiInsightOpenAI(input);
       if (result.insight) {
         const assistantMessage: Message = { 
           role: 'assistant', 
