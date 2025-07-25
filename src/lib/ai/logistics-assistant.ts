@@ -62,15 +62,44 @@ ${schema}
 
 CRITICAL RULES for logistics_orders table:
 - customer: Use ILIKE for partial matching (e.g., "Abbott" should match "Abbott Nutrition")
-- warehouse: Use exact match or ILIKE if user seems to want partial matching
-- warehouse_city_state: Use ILIKE for city/state searches
+- warehouse: Use exact match for warehouse numbers (e.g., "warehouse 10" → warehouse = '10')
+- warehouse_city_state: Use ILIKE for city/state/location searches (e.g., "Lockbourne", "Boca Raton FL")
 - order_number, shipment_number: Use exact match or ILIKE for partial matches
-- order_type: Common values are "Outbound", "Inbound" 
+- order_type: Use exact match for "Outbound"/"Inbound" (case-sensitive)
+- order_class: Use ILIKE for intelligent matching based on business context:
+  * "sales orders" → ILIKE '%Sales Order%'
+  * "serialized" → ILIKE '%Serialized%'
+  * "returns" → ILIKE '%Return Authorization%'
+  * "transfers" → ILIKE '%Transfer%'
+  * "purchase orders" → ILIKE '%Purchase Order%'
+  * "international" → ILIKE '%International%'
+  * "LTL" → ILIKE '%LTL%'
+  * "pickup" → ILIKE '%Pickup%'
+  * "hazardous" → ILIKE '%Hazardous%'
 - date: Handle date ranges and comparisons properly
-- order_class: Use ILIKE for partial matching
-- destination_state, source_state: Use ILIKE for state matching
+- destination_state: Use for "to state", "shipping to", "destination"
+- source_state: Use for "from state", "origin state", "source"
 - month_name: Use exact match for month names
 - year, month, quarter, week, day: Use numeric comparisons
+
+COLUMN SELECTION INTELLIGENCE:
+- "warehouse 10" → warehouse = '10'
+- "warehouse in Lockbourne" → warehouse_city_state ILIKE '%Lockbourne%'
+- "from Florida" → source_state ILIKE '%Florida%'
+- "to California" → destination_state ILIKE '%California%'
+- "shipped from Texas" → source_state ILIKE '%Texas%'
+- "delivered to New York" → destination_state ILIKE '%New York%'
+- "inbound orders" → order_type = 'Inbound'
+- "outbound shipments" → order_type = 'Outbound'
+- "sales orders" → order_class ILIKE '%Sales Order%'
+- "serialized orders" → order_class ILIKE '%Serialized%'
+- "returns" → order_class ILIKE '%Return Authorization%'
+- "transfers" → order_class ILIKE '%Transfer%'
+- "purchase orders" → order_class ILIKE '%Purchase Order%'
+- "international orders" → order_class ILIKE '%International%'
+- "LTL shipments" → order_class ILIKE '%LTL%'
+- "pickup orders" → order_class ILIKE '%Pickup%'
+- "hazardous materials" → order_class ILIKE '%Hazardous%'
 
 SQL SYNTAX RULES:
 - Return ONLY the SQL query, no explanations or markdown
@@ -85,17 +114,28 @@ SQL SYNTAX RULES:
 
 PATTERN MATCHING EXAMPLES:
 - "How many orders for customer Abbott" → WHERE "customer" ILIKE '%Abbott%'
-- "Orders from Florida" → WHERE "source_state" ILIKE '%Florida%' OR "destination_state" ILIKE '%Florida%'
+- "Orders from Florida" → WHERE "source_state" ILIKE '%Florida%'
+- "Orders to California" → WHERE "destination_state" ILIKE '%California%'
 - "Show orders for warehouse 10" → WHERE "warehouse" = '10'
+- "Orders from Lockbourne warehouse" → WHERE "warehouse_city_state" ILIKE '%Lockbourne%'
+- "Inbound orders" → WHERE "order_type" = 'Inbound'
+- "Outbound shipments" → WHERE "order_type" = 'Outbound'
+- "Sales orders" → WHERE "order_class" ILIKE '%Sales Order%'
+- "Serialized orders" → WHERE "order_class" ILIKE '%Serialized%'
+- "Return orders" → WHERE "order_class" ILIKE '%Return Authorization%'
+- "Transfer orders" → WHERE "order_class" ILIKE '%Transfer%'
+- "International shipments" → WHERE "order_class" ILIKE '%International%'
+- "LTL orders" → WHERE "order_class" ILIKE '%LTL%'
 - "Orders in June" → WHERE "month_name" = 'June'
 - "Recent orders" → ORDER BY "date" DESC LIMIT 10
 - "Orders this year" → WHERE "year" = 2025
 
 SPECIFIC EXAMPLES:
 - "How many orders are there?" → SELECT COUNT(*) FROM logistics_orders;
-- "How many orders for customer Abbott?" → SELECT COUNT(*) FROM logistics_orders WHERE "customer" ILIKE '%Abbott%';
-- "Show recent orders for Methapharm" → SELECT * FROM logistics_orders WHERE "customer" ILIKE '%Methapharm%' ORDER BY "date" DESC LIMIT 10;
-- "Orders by state" → SELECT "destination_state", COUNT(*) FROM logistics_orders GROUP BY "destination_state" ORDER BY COUNT(*) DESC;`
+- "How many sales orders for Abbott?" → SELECT COUNT(*) FROM logistics_orders WHERE "customer" ILIKE '%Abbott%' AND "order_class" ILIKE '%Sales Order%';
+- "Show serialized orders from warehouse in Lockbourne" → SELECT * FROM logistics_orders WHERE "order_class" ILIKE '%Serialized%' AND "warehouse_city_state" ILIKE '%Lockbourne%' ORDER BY "date" DESC LIMIT 10;
+- "International orders to Florida" → SELECT * FROM logistics_orders WHERE "order_class" ILIKE '%International%' AND "destination_state" ILIKE '%Florida%' LIMIT 10;
+- "Return orders this month" → SELECT * FROM logistics_orders WHERE "order_class" ILIKE '%Return Authorization%' AND "month" = EXTRACT(MONTH FROM CURRENT_DATE) LIMIT 10;`
         },
         {
           role: "user",
