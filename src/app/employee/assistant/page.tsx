@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { getAiInsightOpenAI } from '@/app/actions';
-import { Bot, User, Loader2 } from 'lucide-react';
+import { Bot, User, Loader2, RotateCcw } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
+import { ChatMessage } from '@/lib/ai/logistics-assistant';
 
 type Message = {
     role: 'user' | 'assistant';
@@ -35,7 +36,15 @@ export default function EmployeeAssistantPage() {
     setInput('');
 
     try {
-      const result = await getAiInsightOpenAI(input);
+      // Convert messages to ChatMessage format for conversation history
+      const conversationHistory: ChatMessage[] = messages.map(msg => ({
+        role: msg.role,
+        content: msg.content,
+        sqlQuery: msg.query || null,
+        data: msg.data
+      }));
+
+      const result = await getAiInsightOpenAI(input, conversationHistory);
       if (result.insight) {
         const assistantMessage: Message = { 
           role: 'assistant', 
@@ -57,6 +66,13 @@ export default function EmployeeAssistantPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleNewChat = () => {
+    setMessages([]);
+    setCurrentData(null);
+    setCurrentQuery(null);
+    setInput('');
   };
 
   const renderData = () => {
@@ -100,12 +116,28 @@ export default function EmployeeAssistantPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-12rem)] gap-4">
       <div className="flex-1 flex flex-col gap-4">
-        <h1 className="text-3xl font-bold font-headline">AI Logistics Assistant</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold font-headline">AI Logistics Assistant</h1>
+          <Button 
+            onClick={handleNewChat}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <RotateCcw className="w-4 h-4" />
+            New Chat
+          </Button>
+        </div>
         <Card className="flex-1 flex flex-col">
           <CardHeader>
             <CardTitle>Conversation</CardTitle>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto space-y-4 p-6">
+            {messages.length === 0 && (
+              <div className="flex items-center justify-center h-full text-muted-foreground">
+                <p>Start a conversation by asking a question about your logistics data...</p>
+              </div>
+            )}
             {messages.map((message, index) => (
               <div key={index} className={`flex items-start gap-3 text-sm ${message.role === 'user' ? 'justify-end' : ''}`}>
                 {message.role === 'assistant' && <Bot className="w-5 h-5 text-primary flex-shrink-0 mt-1" />}

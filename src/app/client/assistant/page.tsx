@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { getAiInsightOpenAI } from '@/app/actions';
-import { Bot, User, Loader2 } from 'lucide-react';
+import { Bot, User, Loader2, RotateCcw } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
+import { ChatMessage } from '@/lib/ai/logistics-assistant';
 
 type Message = {
     role: 'user' | 'assistant';
@@ -35,7 +36,15 @@ export default function ClientAssistantPage() {
     setInput('');
 
     try {
-      const result = await getAiInsightOpenAI(input);
+      // Convert messages to ChatMessage format for conversation history
+      const conversationHistory: ChatMessage[] = messages.map(msg => ({
+        role: msg.role,
+        content: msg.content,
+        sqlQuery: msg.query || null,
+        data: msg.data
+      }));
+
+      const result = await getAiInsightOpenAI(input, conversationHistory);
       if (result.insight) {
         const assistantMessage: Message = { 
           role: 'assistant', 
@@ -57,6 +66,13 @@ export default function ClientAssistantPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleNewChat = () => {
+    setMessages([]);
+    setCurrentData(null);
+    setCurrentQuery(null);
+    setInput('');
   };
 
   const renderData = () => {
@@ -99,10 +115,21 @@ export default function ClientAssistantPage() {
       {/* Chat Interface */}
       <Card className="flex flex-col">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bot className="w-5 h-5" />
-            AI Logistics Assistant
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Bot className="w-5 h-5" />
+              AI Logistics Assistant
+            </CardTitle>
+            <Button 
+              onClick={handleNewChat}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <RotateCcw className="w-4 h-4" />
+              New Chat
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="flex-1 overflow-auto space-y-4">
           {messages.length === 0 ? (
