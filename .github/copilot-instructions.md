@@ -4,17 +4,13 @@
 
 This is a **Next.js 15 + Firebase + PostgreSQL** logistics management platform with AI-powered insights. The project follows a modular architecture with clear separation between client/employee roles and AI-driven data analysis.
 
-**Key Stack**: Next.js (App Router), Firebase Auth/Firestore, PostgreSQL, Google Genkit AI (migrating to OpenAI), shadcn/ui, Tailwind CSS
+**Key Stack**: Next.js (App Router), Firebase Auth/Firestore, PostgreSQL, OpenAI AI, shadcn/ui, Tailwind CSS
 
 ## Development Workflow
 
 ```bash
 # Development (runs on port 9002)
 npm run dev
-
-# AI Development (Genkit flows)
-npm run genkit:dev    # Start Genkit dev server
-npm run genkit:watch  # Watch mode for AI flows
 
 # Type checking (important - TS errors ignored in build)
 npm run typecheck
@@ -35,17 +31,17 @@ npm run typecheck
 - `src/app/employee/` - Employee-facing tools and management
 - `src/app/pending-access/` - Role-based access pending approval
 
-### AI Architecture (Migrating to OpenAI)
-- **Current**: Google Genkit for AI flows (`src/ai/genkit.ts`)
-- **Migration Plan**: OpenAI for text-to-SQL and chat assistant features
-- `src/ai/flows/` - AI flows (logistics-insights.ts for text-to-SQL)
-- `src/ai/dev.ts` - AI development entry point
-- `src/app/actions.ts` - Server actions that bridge UI to AI flows
+### AI Architecture (OpenAI)
+- **Implementation**: OpenAI GPT-4o for text-to-SQL and chat assistant features
+- `src/lib/ai/` - OpenAI integration and logistics assistant
+- `src/lib/ai/openai-client.ts` - OpenAI client configuration
+- `src/lib/ai/logistics-assistant.ts` - Main AI logic for text-to-SQL conversion
+- `src/app/actions.ts` - Server actions that bridge UI to AI functions
 
 **Critical Pattern**: 
-- **Genkit flows** use `defineFlow`, `defineTool`, and `definePrompt` (legacy)
-- **New OpenAI integrations** should use direct OpenAI API calls for better text-to-SQL performance
-- Environment variable: `OPENAI_API_KEY` for new implementations
+- **OpenAI integration** uses direct API calls for superior text-to-SQL performance
+- **Smart SQL generation** with ILIKE for partial matching and intelligent query building
+- Environment variable: `OPENAI_API_KEY` required
 
 ### Authentication & Authorization
 - Firebase Auth with Google/Microsoft OAuth
@@ -84,11 +80,10 @@ npm run typecheck
 - **Components**: Built with Radix UI primitives + Tailwind CSS
 
 ### AI Development Strategy
-- **New AI features**: Implement with OpenAI API for better text-to-SQL performance
-- **Existing Genkit flows**: Maintain until migration is complete
-- **Text-to-SQL**: Prioritize OpenAI implementation over Genkit
-- **Chat Assistant**: Use OpenAI for conversational AI features
-- Place new AI integrations in `src/lib/ai/` (separate from Genkit flows)
+- **All AI features**: Implemented with OpenAI API for superior text-to-SQL performance
+- **Text-to-SQL**: Uses intelligent ILIKE patterns for partial matching
+- **Chat Assistant**: Conversational AI with business context understanding
+- **Architecture**: All AI integrations centralized in `src/lib/ai/`
 
 **Role-Based AI Access**:
 - **Employee AI Assistant**: Access to all operational data, analytics, and management insights
@@ -101,8 +96,7 @@ npm run typecheck
 Required environment variables:
 ```bash
 POSTGRES_URL=postgresql://...
-GOOGLE_AI_API_KEY=your_google_ai_key
-OPENAI_API_KEY=your_openai_key  # For new AI features
+OPENAI_API_KEY=your_openai_api_key
 ```
 
 Firebase config is hardcoded in `src/lib/firebase/config.ts` for the `synapse3pl` project.
@@ -112,7 +106,7 @@ Firebase config is hardcoded in `src/lib/firebase/config.ts` for the `synapse3pl
 - **TypeScript errors are ignored in builds** (`ignoreBuildErrors: true`)
 - **Development server runs on port 9002** (not 3000)
 - **Firebase Studio compatibility** - Project designed to work in both environments
-- **AI Migration**: Text-to-SQL and chat features moving from Genkit to OpenAI for better performance
+- **AI text-to-SQL** currently uses OpenAI for better SQL generation
 - **Role-based routing** handles client vs employee access automatically
 - **Database schema discovery** happens dynamically for AI queries
 - **Code Language**: All code, comments, and variable names must be in English
@@ -121,6 +115,5 @@ Firebase config is hardcoded in `src/lib/firebase/config.ts` for the `synapse3pl
 
 - **Firebase Auth** → Firestore user profiles → Role-based app routing
 - **PostgreSQL** → AI flows → Natural language insights
-- **OpenAI API** (new) → Server actions → Client components (preferred for text-to-SQL)
-- **Genkit AI** (legacy) → Server actions → Client components (existing flows)
+- **OpenAI API** → Server actions → Client components (text-to-SQL)
 - **shadcn/ui** → Custom styling → Consistent design system
