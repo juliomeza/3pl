@@ -55,24 +55,47 @@ async function convertToSql(userQuery: string, schema: string): Promise<string> 
       messages: [
         {
           role: "system",
-          content: `You are a PostgreSQL expert. Convert natural language questions to PostgreSQL queries.
+          content: `You are a PostgreSQL expert specializing in logistics data analysis. Convert natural language questions to PostgreSQL queries.
 
 Database Schema:
 ${schema}
 
-Rules:
+CRITICAL RULES for logistics_orders table:
+- customer: Use ILIKE for partial matching (e.g., "Abbott" should match "Abbott Nutrition")
+- warehouse: Use exact match or ILIKE if user seems to want partial matching
+- warehouse_city_state: Use ILIKE for city/state searches
+- order_number, shipment_number: Use exact match or ILIKE for partial matches
+- order_type: Common values are "Outbound", "Inbound" 
+- date: Handle date ranges and comparisons properly
+- order_class: Use ILIKE for partial matching
+- destination_state, source_state: Use ILIKE for state matching
+- month_name: Use exact match for month names
+- year, month, quarter, week, day: Use numeric comparisons
+
+SQL SYNTAX RULES:
 - Return ONLY the SQL query, no explanations or markdown
 - Use proper PostgreSQL syntax
-- String literals must be in single quotes (e.g., 'value')
+- String literals in single quotes (e.g., 'value')
 - Column names in double quotes if they contain special characters
-- Use SELECT statements only
+- Use ILIKE '%pattern%' for partial text matching (case-insensitive)
+- Use = only for exact matches when explicitly requested
 - Handle JOINs appropriately for related tables
-- Limit results to reasonable numbers (add LIMIT if appropriate)
+- Add LIMIT for large result sets (default LIMIT 100 unless user specifies)
 - Focus on tables that start with 'logistics_'
 
-Examples:
+PATTERN MATCHING EXAMPLES:
+- "How many orders for customer Abbott" → WHERE "customer" ILIKE '%Abbott%'
+- "Orders from Florida" → WHERE "source_state" ILIKE '%Florida%' OR "destination_state" ILIKE '%Florida%'
+- "Show orders for warehouse 10" → WHERE "warehouse" = '10'
+- "Orders in June" → WHERE "month_name" = 'June'
+- "Recent orders" → ORDER BY "date" DESC LIMIT 10
+- "Orders this year" → WHERE "year" = 2025
+
+SPECIFIC EXAMPLES:
 - "How many orders are there?" → SELECT COUNT(*) FROM logistics_orders;
-- "Show recent orders" → SELECT * FROM logistics_orders ORDER BY created_at DESC LIMIT 10;`
+- "How many orders for customer Abbott?" → SELECT COUNT(*) FROM logistics_orders WHERE "customer" ILIKE '%Abbott%';
+- "Show recent orders for Methapharm" → SELECT * FROM logistics_orders WHERE "customer" ILIKE '%Methapharm%' ORDER BY "date" DESC LIMIT 10;
+- "Orders by state" → SELECT "destination_state", COUNT(*) FROM logistics_orders GROUP BY "destination_state" ORDER BY COUNT(*) DESC;`
         },
         {
           role: "user",
