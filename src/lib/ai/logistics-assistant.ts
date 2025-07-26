@@ -63,6 +63,14 @@ async function convertToSql(userQuery: string, schema: string, conversationHisto
         role: "system",
         content: `You are a PostgreSQL expert specializing in logistics data analysis. Convert natural language questions to PostgreSQL queries.
 
+IMPORTANT: Only generate SQL queries for actual data requests. Do NOT generate queries for:
+- Personal introductions ("my name is...", "I'm...", "hello")
+- Casual conversation or greetings
+- General questions about the system
+- Personal information sharing
+
+For non-data requests, respond with "NO_SQL_NEEDED" and the system will handle it conversationally.
+
 Database Schema:
 ${schema}
 
@@ -147,7 +155,19 @@ SPECIFIC EXAMPLES:
 - "Return orders this month" → SELECT * FROM logistics_orders WHERE "order_class" ILIKE '%Return Authorization%' AND "month" = EXTRACT(MONTH FROM CURRENT_DATE) LIMIT 10;
 
 CONVERSATION CONTEXT:
-When the user refers to "those", "that", "them", "these results", or similar references, use the conversation history to understand what they're referring to. Look at previous queries and results to maintain context.`
+When the user refers to "those", "that", "them", "these results", or similar references, use the conversation history to understand what they're referring to. Look at previous queries and results to maintain context.
+
+EXAMPLES OF NON-DATA REQUESTS (respond with "NO_SQL_NEEDED"):
+- "my name is John" → NO_SQL_NEEDED
+- "hello" → NO_SQL_NEEDED  
+- "how are you?" → NO_SQL_NEEDED
+- "what can you do?" → NO_SQL_NEEDED
+- "I'm the manager" → NO_SQL_NEEDED
+
+EXAMPLES OF DATA REQUESTS (generate SQL):
+- "how many orders?" → SELECT COUNT(*) FROM logistics_orders;
+- "orders for customer John" → SELECT * FROM logistics_orders WHERE "customer" ILIKE '%John%';
+- "show me recent orders" → SELECT * FROM logistics_orders ORDER BY "date" DESC LIMIT 10;`
       }
     ];
 
@@ -187,6 +207,11 @@ When the user refers to "those", "that", "them", "these results", or similar ref
     console.log('OpenAI Raw Response:', sqlQuery);
     console.log('Messages sent to OpenAI:', JSON.stringify(messages.slice(-3), null, 2)); // Last 3 messages for debugging
     
+    // Check if this is a conversational response that doesn't need SQL
+    if (sqlQuery === 'NO_SQL_NEEDED' || sqlQuery.includes('NO_SQL_NEEDED')) {
+      throw new Error('CONVERSATIONAL_RESPONSE');
+    }
+    
     // Clean up the response - sometimes OpenAI adds explanations or formatting
     if (sqlQuery.includes('```sql')) {
       const sqlMatch = sqlQuery.match(/```sql\s*([\s\S]*?)\s*```/);
@@ -223,7 +248,65 @@ When the user refers to "those", "that", "them", "these results", or similar ref
     return sqlQuery;
   } catch (error) {
     console.error('Failed to convert to SQL:', error);
+    console.log('Error details:', error instanceof Error, error instanceof Error ? error.message : 'not an error');
+    // Let CONVERSATIONAL_RESPONSE errors bubble up unchanged
+    if (error instanceof Error && error.message === 'CONVERSATIONAL_RESPONSE') {
+      console.log('Detected CONVERSATIONAL_RESPONSE, re-throwing...');
+      throw error;
+    }
     throw new Error('Could not generate SQL query from your request');
+  }
+}
+
+/**
+ * Generate conversational response for non-data queries
+ */
+async function generateConversationalResponse(userQuery: string, conversationHistory: ChatMessage[] = []): Promise<string> {
+  try {
+    // Build conversation context
+    let conversationContext = '';
+    if (conversationHistory.length > 0) {
+      const recentHistory = conversationHistory.slice(-3);
+      conversationContext = 'Recent conversation:\n';
+      recentHistory.forEach((msg) => {
+        if (msg.role === 'user') {
+          conversationContext += `User: ${msg.content}\n`;
+        } else if (msg.role === 'assistant') {
+          conversationContext += `Assistant: ${msg.content.substring(0, 80)}${msg.content.length > 80 ? '...' : ''}\n`;
+        }
+      });
+      conversationContext += '\n';
+    }
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are a helpful AI assistant for a logistics management system. 
+
+Guidelines:
+- Be friendly and conversational
+- Keep responses brief and focused
+- Remember user information when relevant (like their name)
+- Don't make assumptions about data or orders unless explicitly queried
+- Acknowledge personal introductions appropriately
+- If asked about capabilities, mention you can help with logistics data queries
+- Stay professional but warm`
+        },
+        {
+          role: "user",
+          content: `${conversationContext}Current message: "${userQuery}"`
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 150
+    });
+
+    return response.choices[0].message.content || 'Hello! How can I help you with your logistics data today?';
+  } catch (error) {
+    console.error('Failed to generate conversational response:', error);
+    return 'Hello! How can I help you with your logistics data today?';
   }
 }
 
@@ -307,8 +390,22 @@ export async function processLogisticsQuery(userQuery: string, conversationHisto
     // Get database schema
     const schema = await getDatabaseSchema();
     
-    // Convert to SQL using OpenAI with conversation context
-    const sqlQuery = await convertToSql(userQuery, schema, conversationHistory);
+    // Try to convert to SQL using OpenAI with conversation context
+    let sqlQuery: string;
+    try {
+      sqlQuery = await convertToSql(userQuery, schema, conversationHistory);
+    } catch (error: any) {
+      // Check if this is a conversational response
+      if (error.message === 'CONVERSATIONAL_RESPONSE') {
+        const conversationalResponse = await generateConversationalResponse(userQuery, conversationHistory);
+        return {
+          insight: conversationalResponse,
+          data: null,
+          sqlQuery: null
+        };
+      }
+      throw error; // Re-throw other errors
+    }
     
     // Execute the query
     const data = await executeSqlQuery(sqlQuery);
