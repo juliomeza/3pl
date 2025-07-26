@@ -356,11 +356,19 @@ async function explainResults(userQuery: string, sqlQuery: string, data: any[], 
 Guidelines:
 - Be conversational and helpful
 - Explain what the data shows in business terms
-- Mention key insights or patterns
-- Keep explanations brief but informative
-- If no data is returned, explain why that might be
+- Include key insights, percentages, and patterns when relevant
+- Keep responses SHORT and punchy - aim for 2-3 sentences max
+- Start with the main number/result, then add one smart insight
+- End with a brief question or suggestion for next steps
+- If no data is returned, explain why briefly
 - Use conversation context to provide more relevant explanations
-- When the user asks follow-up questions, reference previous results appropriately`
+- When the user asks follow-up questions, reference previous results appropriately
+
+RESPONSE STYLE:
+- Lead with the key number/fact
+- Add ONE meaningful business insight with percentage if relevant
+- Suggest next action briefly
+- Keep it friendly but concise`
         },
         {
           role: "user",
@@ -372,7 +380,7 @@ Please explain what this data shows, considering the conversation context.`
         }
       ],
       temperature: 0.3,
-      max_tokens: 300
+      max_tokens: 200
     });
 
     return response.choices[0].message.content || 'Here are your query results.';
