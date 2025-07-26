@@ -171,8 +171,8 @@ EXAMPLES OF DATA REQUESTS (generate SQL):
       }
     ];
 
-    // Add conversation history (last 4 messages to keep context manageable and clear)
-    const recentHistory = conversationHistory.slice(-4);
+    // Add conversation history (last 6 messages to provide better context and memory)
+    const recentHistory = conversationHistory.slice(-6);
     recentHistory.forEach(msg => {
       if (msg.role === 'user') {
         messages.push({
@@ -266,7 +266,7 @@ async function generateConversationalResponse(userQuery: string, conversationHis
     // Build conversation context
     let conversationContext = '';
     if (conversationHistory.length > 0) {
-      const recentHistory = conversationHistory.slice(-3);
+      const recentHistory = conversationHistory.slice(-6);
       conversationContext = 'Recent conversation:\n';
       recentHistory.forEach((msg) => {
         if (msg.role === 'user') {
@@ -334,7 +334,7 @@ async function explainResults(userQuery: string, sqlQuery: string, data: any[], 
     // Build conversation context for the explanation
     let conversationContext = '';
     if (conversationHistory.length > 0) {
-      const recentHistory = conversationHistory.slice(-4); // Last 4 messages for context
+      const recentHistory = conversationHistory.slice(-8); // Last 8 messages for comprehensive context
       conversationContext = 'Previous conversation context:\n';
       recentHistory.forEach((msg, index) => {
         if (msg.role === 'user') {
