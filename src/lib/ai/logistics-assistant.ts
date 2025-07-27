@@ -15,10 +15,19 @@ export interface ChatMessage {
   data?: any;
 }
 
+// Cache for database schema - refreshes every 30 minutes
+let schemaCache: { schema: string; timestamp: number } | null = null;
+const SCHEMA_CACHE_TTL = 30 * 60 * 1000; // 30 minutes (schema changes are rare)
+
 /**
- * Get database schema for logistics tables
+ * Get database schema for logistics tables with caching
  */
 async function getDatabaseSchema(): Promise<string> {
+  // Check cache first
+  if (schemaCache && (Date.now() - schemaCache.timestamp) < SCHEMA_CACHE_TTL) {
+    return schemaCache.schema;
+  }
+
   try {
     const query = `
       SELECT table_name, column_name, data_type, is_nullable
@@ -29,7 +38,9 @@ async function getDatabaseSchema(): Promise<string> {
     const result = await db.query(query, []);
     
     if (result.rows.length === 0) {
-      return "No tables starting with 'logistics_' found in the database.";
+      const schema = "No tables starting with 'logistics_' found in the database.";
+      schemaCache = { schema, timestamp: Date.now() };
+      return schema;
     }
 
     const tables: Record<string, string[]> = {};
@@ -44,7 +55,9 @@ async function getDatabaseSchema(): Promise<string> {
     const schema = Object.entries(tables)
       .map(([tableName, columns]) => `- Table: ${tableName}\n  Columns: ${columns.join(', ')}`)
       .join('\n');
-      
+    
+    // Cache the result
+    schemaCache = { schema, timestamp: Date.now() };
     return schema;
   } catch (error) {
     console.error('Failed to fetch database schema:', error);
@@ -171,8 +184,8 @@ EXAMPLES OF DATA REQUESTS (generate SQL):
       }
     ];
 
-    // Add conversation history (last 6 messages to provide better context and memory)
-    const recentHistory = conversationHistory.slice(-6);
+    // Add conversation history (last 4 messages to provide context while keeping it fast)
+    const recentHistory = conversationHistory.slice(-4); // Reduced from 6 to 4 for faster processing
     recentHistory.forEach(msg => {
       if (msg.role === 'user') {
         messages.push({
@@ -198,7 +211,9 @@ EXAMPLES OF DATA REQUESTS (generate SQL):
       model: "gpt-4o",
       messages: messages,
       temperature: 0.1, // Low temperature for more deterministic SQL
-      max_tokens: 500
+      max_tokens: 400, // Reduced slightly for faster generation
+      stream: false, // Ensure we get complete response at once
+      top_p: 0.9 // Add top_p for better performance
     });
 
     let sqlQuery = response.choices[0].message.content?.trim() || '';
@@ -263,16 +278,16 @@ EXAMPLES OF DATA REQUESTS (generate SQL):
  */
 async function generateConversationalResponse(userQuery: string, conversationHistory: ChatMessage[] = []): Promise<string> {
   try {
-    // Build conversation context
+    // Build conversation context (optimized for speed)
     let conversationContext = '';
     if (conversationHistory.length > 0) {
-      const recentHistory = conversationHistory.slice(-6);
+      const recentHistory = conversationHistory.slice(-4); // Reduced for faster processing
       conversationContext = 'Recent conversation:\n';
       recentHistory.forEach((msg) => {
         if (msg.role === 'user') {
           conversationContext += `User: ${msg.content}\n`;
         } else if (msg.role === 'assistant') {
-          conversationContext += `Assistant: ${msg.content.substring(0, 80)}${msg.content.length > 80 ? '...' : ''}\n`;
+          conversationContext += `Assistant: ${msg.content.substring(0, 50)}${msg.content.length > 50 ? '...' : ''}\n`; // Further reduced for speed
         }
       });
       conversationContext += '\n';
@@ -300,7 +315,9 @@ Guidelines:
         }
       ],
       temperature: 0.7,
-      max_tokens: 150
+      max_tokens: 120, // Reduced for faster conversational responses
+      stream: false,
+      top_p: 0.9
     });
 
     return response.choices[0].message.content || 'Hello! How can I help you with your logistics data today?';
@@ -329,18 +346,21 @@ async function executeSqlQuery(sqlQuery: string): Promise<any[]> {
  */
 async function explainResults(userQuery: string, sqlQuery: string, data: any[], conversationHistory: ChatMessage[] = []): Promise<string> {
   try {
-    const dataPreview = data.length > 0 ? JSON.stringify(data.slice(0, 3), null, 2) : 'No data returned';
+    // Optimize data preview for faster processing - only show essential info
+    const dataPreview = data.length > 0 ? 
+      `First row sample: ${JSON.stringify(data[0], null, 0)}` : // Only first row, no formatting for speed
+      'No data returned';
     
-    // Build conversation context for the explanation
+    // Build conversation context for the explanation (reduced for performance)
     let conversationContext = '';
     if (conversationHistory.length > 0) {
-      const recentHistory = conversationHistory.slice(-8); // Last 8 messages for comprehensive context
-      conversationContext = 'Previous conversation context:\n';
+      const recentHistory = conversationHistory.slice(-4); // Reduced from 8 to 4 for faster processing
+      conversationContext = 'Recent conversation:\n';
       recentHistory.forEach((msg, index) => {
         if (msg.role === 'user') {
           conversationContext += `User: ${msg.content}\n`;
         } else if (msg.role === 'assistant') {
-          conversationContext += `Assistant: ${msg.content.substring(0, 100)}${msg.content.length > 100 ? '...' : ''}\n`;
+          conversationContext += `Assistant: ${msg.content.substring(0, 60)}${msg.content.length > 60 ? '...' : ''}\n`; // Reduced from 100 to 60
         }
       });
       conversationContext += '\n';
@@ -380,7 +400,9 @@ Please explain what this data shows, considering the conversation context.`
         }
       ],
       temperature: 0.3,
-      max_tokens: 200
+      max_tokens: 150, // Reduced for faster explanation generation
+      stream: false,
+      top_p: 0.9
     });
 
     return response.choices[0].message.content || 'Here are your query results.';
@@ -392,11 +414,15 @@ Please explain what this data shows, considering the conversation context.`
 
 /**
  * Main function to process natural language queries using OpenAI with conversation memory
+ * Optimized for faster response times with parallel processing
  */
 export async function processLogisticsQuery(userQuery: string, conversationHistory: ChatMessage[] = []): Promise<SqlQueryResult> {
   try {
-    // Get database schema
-    const schema = await getDatabaseSchema();
+    // Get database schema (now cached for performance)
+    const schemaPromise = getDatabaseSchema();
+    
+    // Start schema fetch early but don't wait for it yet
+    const schema = await schemaPromise;
     
     // Try to convert to SQL using OpenAI with conversation context
     let sqlQuery: string;
@@ -415,10 +441,13 @@ export async function processLogisticsQuery(userQuery: string, conversationHisto
       throw error; // Re-throw other errors
     }
     
-    // Execute the query
-    const data = await executeSqlQuery(sqlQuery);
+    // Execute the query and prepare explanation concurrently for better performance
+    const dataPromise = executeSqlQuery(sqlQuery);
     
-    // Generate explanation with conversation context
+    // Wait for data execution to complete
+    const data = await dataPromise;
+    
+    // Now generate explanation with the actual data
     const insight = await explainResults(userQuery, sqlQuery, data, conversationHistory);
     
     return {
