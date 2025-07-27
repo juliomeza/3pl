@@ -34,14 +34,23 @@ npm run typecheck
 ### AI Architecture (OpenAI)
 - **Implementation**: OpenAI GPT-4o for text-to-SQL and chat assistant features
 - `src/lib/ai/` - OpenAI integration and logistics assistant
-- `src/lib/ai/openai-client.ts` - OpenAI client configuration
+- `src/lib/ai/openai-client.ts` - OpenAI client configuration (optimized for performance)
 - `src/lib/ai/logistics-assistant.ts` - Main AI logic for text-to-SQL conversion
 - `src/app/actions.ts` - Server actions that bridge UI to AI functions
 
 **Critical Pattern**: 
 - **OpenAI integration** uses direct API calls for superior text-to-SQL performance
 - **Smart SQL generation** with ILIKE for partial matching and intelligent query building
+- **Performance optimizations**: Database schema caching (30 min TTL), reduced token limits, optimized conversation history
+- **Conversational Intelligence**: Distinguishes between data queries and casual conversation (greetings, introductions)
+- **Chat Memory**: Short-term conversation context with "New Chat" reset functionality
 - Environment variable: `OPENAI_API_KEY` required
+
+**AI Performance Features**:
+- **Schema Caching**: Database schema cached for 30 minutes to avoid repeated queries
+- **Smart Response Classification**: Detects conversational vs data queries automatically
+- **Context Management**: Maintains 4-message conversation history for natural follow-ups
+- **Optimized Token Usage**: Reduced max_tokens for faster response times while maintaining quality
 
 ### Authentication & Authorization
 - Firebase Auth with Google/Microsoft OAuth
@@ -82,8 +91,15 @@ npm run typecheck
 ### AI Development Strategy
 - **All AI features**: Implemented with OpenAI API for superior text-to-SQL performance
 - **Text-to-SQL**: Uses intelligent ILIKE patterns for partial matching
-- **Chat Assistant**: Conversational AI with business context understanding
+- **Chat Assistant**: Conversational AI with business context understanding and memory
+- **Performance-First**: Optimized for fast response times with caching and efficient token usage
 - **Architecture**: All AI integrations centralized in `src/lib/ai/`
+
+**AI Conversation Features**:
+- **Dual-Mode Processing**: Automatically detects data queries vs casual conversation
+- **Natural Language**: Handles greetings, introductions, and follow-up questions naturally
+- **Context Awareness**: Remembers conversation within chat session, understands "those", "them", etc.
+- **Memory Management**: Session-based memory with "New Chat" reset functionality
 
 **Role-Based AI Access**:
 - **Employee AI Assistant**: Access to all operational data, analytics, and management insights
@@ -108,7 +124,8 @@ Firebase config is hardcoded in `src/lib/firebase/config.ts` for the `synapse3pl
 - **Firebase Studio compatibility** - Project designed to work in both environments
 - **AI text-to-SQL** currently uses OpenAI for better SQL generation
 - **Role-based routing** handles client vs employee access automatically
-- **Database schema discovery** happens dynamically for AI queries
+- **Database schema discovery** happens dynamically for AI queries with 30-minute caching
+- **AI Performance**: Optimized for speed with schema caching, reduced tokens, and efficient conversation handling
 - **Code Language**: All code, comments, and variable names must be in English
 
 ## Integration Points
