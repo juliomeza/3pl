@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,14 @@ export default function ClientAssistantPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentData, setCurrentData] = useState<any>(null);
   const [currentQuery, setCurrentQuery] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Keep focus on input after sending message
+  useEffect(() => {
+    if (!isLoading && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isLoading]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -163,6 +171,7 @@ export default function ClientAssistantPage() {
         <CardFooter>
           <form onSubmit={handleSubmit} className="flex w-full gap-2">
             <Input
+              ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about your logistics data..."
