@@ -117,6 +117,48 @@ OPENAI_API_KEY=your_openai_api_key
 
 Firebase config is hardcoded in `src/lib/firebase/config.ts` for the `synapse3pl` project.
 
+## Testing Strategy
+
+### AI Chat Assistant Testing
+- **Real Integration Testing**: No mocks - direct OpenAI API and PostgreSQL testing
+- **Jest Configuration**: TypeScript support with ts-jest preset
+- **Test Categories**: Conversational detection, SQL generation, context handling, performance, edge cases
+- **33 Automated Test Cases**: Comprehensive coverage of all chat scenarios
+
+**Testing Files Structure**:
+- `__tests__/ai/chat-test-cases.ts` - All test case definitions (33 scenarios)
+- `__tests__/ai/chat-assistant.test.ts` - Jest automated test runner (CI/CD ready)
+- `__tests__/ai/manual-testing.ts` - Manual testing utilities for debugging
+
+**Testing Commands**:
+```bash
+# Run full AI chat test suite
+npm run test:chat
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run specific test category manually
+await runTestsByType('conversational')
+await runTestsByType('data-query')
+
+# Debug single test case
+await runSingleTest('data-001')
+```
+
+**Test Environment Setup**:
+- Environment variables loaded from `.env` file
+- Custom Jest configuration in `jest.config.js`
+- Real OpenAI API calls with actual database queries
+- Performance validation (< 15-20 seconds response time)
+
+**Testing Principles**:
+- **No Mocks Policy**: Real integration testing ensures production reliability
+- **Comprehensive Coverage**: Tests conversational vs data query detection
+- **SQL Validation**: Verifies correct ILIKE patterns, exact matching, and intelligent query building
+- **Context Testing**: Validates conversation memory and follow-up question handling
+- **Regression Prevention**: Critical business logic tests for customer matching, warehouse queries, etc.
+
 ## Critical Development Notes
 
 - **TypeScript errors are ignored in builds** (`ignoreBuildErrors: true`)
@@ -127,6 +169,7 @@ Firebase config is hardcoded in `src/lib/firebase/config.ts` for the `synapse3pl
 - **Database schema discovery** happens dynamically for AI queries with 30-minute caching
 - **AI Performance**: Optimized for speed with schema caching, reduced tokens, and efficient conversation handling
 - **Code Language**: All code, comments, and variable names must be in English
+- **Testing Required**: All AI features must be tested with real integration tests before deployment
 
 ## Integration Points
 
@@ -134,3 +177,25 @@ Firebase config is hardcoded in `src/lib/firebase/config.ts` for the `synapse3pl
 - **PostgreSQL** → AI flows → Natural language insights
 - **OpenAI API** → Server actions → Client components (text-to-SQL)
 - **shadcn/ui** → Custom styling → Consistent design system
+
+## Documentation Maintenance
+
+**IMPORTANT**: After implementing major changes or new features:
+1. **User confirms successful implementation** - User will indicate when new implementation is working successfully
+2. **Update this instruction file** - GitHub Copilot must update this `copilot-instructions.md` file to reflect:
+   - New architecture patterns implemented
+   - New file structures or important files added  
+   - New testing strategies or configurations
+   - New environment variables or setup requirements
+   - New integration points or workflows
+   - Updated development commands or procedures
+3. **Keep documentation current** - This ensures all future development follows the latest established patterns and configurations
+
+**Documentation Update Triggers**:
+- Major new features (AI capabilities, authentication changes, new app sections)
+- Architecture modifications (new patterns, file reorganization)
+- Testing strategy changes (new test types, configurations)
+- Environment or deployment changes
+- Integration of new third-party services or APIs
+
+This documentation maintenance ensures consistency across development sessions and preserves institutional knowledge about project patterns and decisions.

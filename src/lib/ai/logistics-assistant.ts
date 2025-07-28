@@ -1,5 +1,5 @@
 import { openai } from './openai-client';
-import { db } from '@/lib/db';
+import { db } from '../db';
 
 export interface SqlQueryResult {
   insight: string;
