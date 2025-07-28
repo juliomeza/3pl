@@ -26,6 +26,16 @@ export default function EmployeeAssistantPage() {
   const [isResizing, setIsResizing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new messages are added
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
 
   // Keep focus on input after sending message
   useEffect(() => {
@@ -156,9 +166,9 @@ export default function EmployeeAssistantPage() {
 
 
   return (
-    <div className="flex flex-col h-[calc(100vh-12rem)] gap-4">
+    <div className="flex flex-col h-[calc(100vh-8rem)] gap-4 overflow-hidden">
       {/* Header - Only New Chat Button */}
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-end flex-shrink-0">
         <Button 
           onClick={handleNewChat}
           variant="outline"
@@ -173,18 +183,18 @@ export default function EmployeeAssistantPage() {
       {/* Main Content - Side by Side Layout */}
       <div 
         ref={containerRef}
-        className="flex-1 flex gap-0 min-h-0 relative"
+        className="flex-1 flex gap-0 min-h-0 overflow-hidden"
       >
         {/* Data View Panel (Left) - Hidden on mobile */}
         <div 
-          className="hidden lg:flex flex-col min-h-0"
+          className="hidden lg:flex flex-col min-h-0 max-h-full"
           style={{ width: `${leftWidth}%` }}
         >
-          <Card className="flex-1 flex flex-col">
-            <CardHeader>
+          <Card className="flex-1 flex flex-col h-full">
+            <CardHeader className="flex-shrink-0">
               <CardTitle>Data View</CardTitle>
             </CardHeader>
-            <CardContent className="flex-1 overflow-auto p-6">
+            <CardContent className="flex-1 overflow-auto p-6 max-h-full custom-scrollbar">
               {renderData()}
             </CardContent>
           </Card>
@@ -200,11 +210,13 @@ export default function EmployeeAssistantPage() {
 
         {/* Chat Panel (Right) */}
         <div 
-          className="flex flex-col min-h-0"
+          className="flex flex-col min-h-0 max-h-full"
           style={{ width: `${100 - leftWidth}%` }}
         >
-          <Card className="flex-1 flex flex-col">
-            <CardContent className="flex-1 overflow-y-auto space-y-6 p-6">
+          <Card className="flex-1 flex flex-col h-full">
+            <CardContent 
+              className="flex-1 overflow-y-auto space-y-6 p-6 max-h-full custom-scrollbar"
+            >
               {messages.length === 0 && (
                 <div className="flex items-center justify-center h-full text-muted-foreground">
                   <p>Start a conversation by asking a question about your logistics data...</p>
@@ -243,8 +255,10 @@ export default function EmployeeAssistantPage() {
                   </div>
                 </div>
               )}
+              {/* Auto-scroll anchor */}
+              <div ref={messagesEndRef} />
             </CardContent>
-            <CardFooter className="p-4 border-t">
+            <CardFooter className="p-4 border-t flex-shrink-0">
               <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full">
                 <Input
                   ref={inputRef}
