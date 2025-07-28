@@ -79,8 +79,13 @@ function EmployeeLayout({
                     </div>
                     <DashboardHeader />
                 </header>
-                <main className="flex-1 flex flex-col overflow-y-auto">
-                    <div className="p-4 md:p-8">
+                <main className={cn(
+                    "flex-1 flex flex-col",
+                    pathname === '/employee/assistant' ? 'overflow-hidden' : 'overflow-y-auto'
+                )}>
+                    <div className={cn(
+                        pathname === '/employee/assistant' ? 'h-full p-4 md:p-8' : 'p-4 md:p-8'
+                    )}>
                         {children}
                     </div>
                 </main>

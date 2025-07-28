@@ -166,9 +166,12 @@ export default function EmployeeAssistantPage() {
 
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] gap-4 overflow-hidden">
+    <div 
+      className="flex flex-col gap-4 overflow-hidden"
+      style={{ height: 'calc(100vh - 144px)' }} // Altura fija reducida para eliminar scroll externo
+    >
       {/* Header - Only New Chat Button */}
-      <div className="flex items-center justify-end flex-shrink-0">
+      <div className="flex items-center justify-end flex-shrink-0 h-10">
         <Button 
           onClick={handleNewChat}
           variant="outline"
@@ -183,18 +186,21 @@ export default function EmployeeAssistantPage() {
       {/* Main Content - Side by Side Layout */}
       <div 
         ref={containerRef}
-        className="flex-1 flex gap-0 min-h-0 overflow-hidden"
+        className="flex gap-0 overflow-hidden"
+        style={{ height: 'calc(100% - 56px)' }} // Altura restante después del header
       >
         {/* Data View Panel (Left) - Hidden on mobile */}
         <div 
-          className="hidden lg:flex flex-col min-h-0 max-h-full"
-          style={{ width: `${leftWidth}%` }}
+          className="hidden lg:flex flex-col"
+          style={{ width: `${leftWidth}%`, height: '100%' }}
         >
-          <Card className="flex-1 flex flex-col h-full">
+          <Card className="flex flex-col h-full overflow-hidden">
             <CardHeader className="flex-shrink-0">
               <CardTitle>Data View</CardTitle>
             </CardHeader>
-            <CardContent className="flex-1 overflow-auto p-6 max-h-full custom-scrollbar">
+            <CardContent 
+              className="flex-1 overflow-auto p-6 custom-scrollbar"
+            >
               {renderData()}
             </CardContent>
           </Card>
@@ -210,12 +216,12 @@ export default function EmployeeAssistantPage() {
 
         {/* Chat Panel (Right) */}
         <div 
-          className="flex flex-col min-h-0 max-h-full"
-          style={{ width: `${100 - leftWidth}%` }}
+          className="flex flex-col"
+          style={{ width: `${100 - leftWidth}%`, height: '100%' }}
         >
-          <Card className="flex-1 flex flex-col h-full">
+          <Card className="flex flex-col h-full overflow-hidden">
             <CardContent 
-              className="flex-1 overflow-y-auto space-y-6 p-6 max-h-full custom-scrollbar"
+              className="flex-1 overflow-y-auto space-y-6 p-6 custom-scrollbar"
             >
               {messages.length === 0 && (
                 <div className="flex items-center justify-center h-full text-muted-foreground">
