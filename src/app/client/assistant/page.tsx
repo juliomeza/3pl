@@ -9,6 +9,7 @@ import { getAiInsightOpenAI } from '@/app/actions';
 import { Bot, User, Loader2, RotateCcw } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
 import { ChatMessage } from '@/lib/ai/logistics-assistant';
+import { DataVisualizer } from '@/components/ui/data-visualizer';
 
 type Message = {
     role: 'user' | 'assistant';
@@ -92,30 +93,8 @@ export default function ClientAssistantPage() {
       return <p className="text-muted-foreground">No data found for this query.</p>;
     }
     
-    // If it's an array of objects, render a table
-    if (Array.isArray(currentData) && currentData.length > 0 && typeof currentData[0] === 'object') {
-      return (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {Object.keys(currentData[0]).map(key => <TableHead key={key}>{key}</TableHead>)}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {currentData.map((row, index) => (
-              <TableRow key={index}>
-                {Object.values(row).map((value, cellIndex) => (
-                  <TableCell key={cellIndex}>{String(value)}</TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      );
-    }
-
-    // For other types, show as JSON
-    return <pre className="text-sm bg-muted p-2 rounded">{JSON.stringify(currentData, null, 2)}</pre>;
+    // Use the new DataVisualizer component
+    return <DataVisualizer data={currentData} />;
   };
 
   return (
