@@ -149,7 +149,7 @@ export default function ClientAssistantPage() {
         >
           <div className="flex flex-col h-full overflow-hidden">
             <div 
-              className="flex-1 overflow-auto p-6 custom-scrollbar"
+              className="flex-1 overflow-auto pt-2 px-6 pb-6 custom-scrollbar"
             >
               {renderData()}
             </div>
@@ -169,12 +169,15 @@ export default function ClientAssistantPage() {
           className="flex flex-col relative"
           style={{ width: `${100 - leftWidth}%`, height: '100%' }}
         >
+          {/* Fade overlay for New Chat button area */}
+          <div className="absolute top-0 right-0 w-32 h-16 bg-gradient-to-l from-background via-background/80 to-transparent z-5 pointer-events-none" />
+          
           {/* New Chat Button - Floating in top right */}
           <Button 
             onClick={handleNewChat}
             variant="outline"
             size="sm"
-            className="absolute top-4 right-4 z-10 flex items-center gap-2 shadow-md bg-background"
+            className="absolute top-2 right-4 z-10 flex items-center gap-2 shadow-md bg-background"
           >
             <RotateCcw className="w-4 h-4" />
             New Chat
@@ -182,7 +185,7 @@ export default function ClientAssistantPage() {
 
           <div className="flex flex-col h-full overflow-hidden">
             <div 
-              className="flex-1 overflow-y-auto space-y-6 p-6 custom-scrollbar"
+              className="flex-1 overflow-y-auto space-y-6 pt-12 px-6 pb-6 custom-scrollbar"
             >
               {messages.length === 0 && (
                 <div className="flex items-center justify-center h-full text-muted-foreground">
