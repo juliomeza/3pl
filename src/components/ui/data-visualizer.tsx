@@ -28,6 +28,7 @@ const COLORS = [
 
 export function DataVisualizer({ data }: DataVisualizerProps) {
   const [viewType, setViewType] = useState<ViewType>('table');
+  const [lastInteractedData, setLastInteractedData] = useState<any>(null);
 
   // Check if we have valid data for charts
   const hasValidData = data && Array.isArray(data) && data.length > 0;
@@ -49,9 +50,23 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
   // Smart chart type suggestion
   const getRecommendedChartType = (): ViewType => {
     if (!hasValidData || !data) return 'table';
+    
+    // If only one row and one column (single value), always recommend table
+    if (data.length === 1 && columns.length === 1) return 'table';
+    
+    // If only one row with multiple columns (single record), recommend table
+    if (data.length === 1) return 'table';
+    
+    // For multiple rows with exactly 2 columns and <= 10 rows, pie chart is good
     if (columns.length === 2 && data.length <= 10) return 'pie';
+    
+    // If has date/time columns, line chart is best
     if (hasDateColumn) return 'line';
-    if (columns.length <= 4 && data.length <= 20) return 'bar';
+    
+    // For moderate datasets with few columns, bar chart works well
+    if (columns.length <= 4 && data.length <= 20 && data.length > 1) return 'bar';
+    
+    // Default to table for everything else
     return 'table';
   };
 
@@ -70,6 +85,9 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
   const keyColumn = getKeyColumn();
   const valueColumn = getValueColumn();
   const recommendedType = getRecommendedChartType();
+
+  // Check if user has interacted with current dataset
+  const hasInteractedWithCurrentData = lastInteractedData === data;
 
   // Check if chart types should be disabled
   const canShowPieChart = hasValidData && columns.length >= 2 && isNumericColumn(valueColumn);
@@ -246,12 +264,15 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
         <Button
           variant={viewType === 'table' ? 'default' : 'outline'}
           size="sm"
-          onClick={() => setViewType('table')}
+          onClick={() => {
+            setViewType('table');
+            setLastInteractedData(data);
+          }}
           className="flex items-center gap-2"
         >
           <TableIcon className="w-4 h-4" />
           Table
-          {hasValidData && recommendedType === 'table' && (
+          {hasValidData && recommendedType === 'table' && !hasInteractedWithCurrentData && viewType !== 'table' && (
             <span className="text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full">
               Recommended
             </span>
@@ -261,12 +282,15 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
         <Button
           variant={viewType === 'bar' ? 'default' : 'outline'}
           size="sm"
-          onClick={() => setViewType('bar')}
+          onClick={() => {
+            setViewType('bar');
+            setLastInteractedData(data);
+          }}
           className="flex items-center gap-2"
         >
           <BarChart3 className="w-4 h-4" />
           Bar
-          {hasValidData && recommendedType === 'bar' && (
+          {hasValidData && recommendedType === 'bar' && !hasInteractedWithCurrentData && viewType !== 'bar' && (
             <span className="text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full">
               Recommended
             </span>
@@ -276,12 +300,15 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
         <Button
           variant={viewType === 'pie' ? 'default' : 'outline'}
           size="sm"
-          onClick={() => setViewType('pie')}
+          onClick={() => {
+            setViewType('pie');
+            setLastInteractedData(data);
+          }}
           className="flex items-center gap-2"
         >
           <PieChartIcon className="w-4 h-4" />
           Pie
-          {hasValidData && recommendedType === 'pie' && (
+          {hasValidData && recommendedType === 'pie' && !hasInteractedWithCurrentData && viewType !== 'pie' && (
             <span className="text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full">
               Recommended
             </span>
@@ -291,12 +318,15 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
         <Button
           variant={viewType === 'line' ? 'default' : 'outline'}
           size="sm"
-          onClick={() => setViewType('line')}
+          onClick={() => {
+            setViewType('line');
+            setLastInteractedData(data);
+          }}
           className="flex items-center gap-2"
         >
           <TrendingUp className="w-4 h-4" />
           Line
-          {hasValidData && recommendedType === 'line' && (
+          {hasValidData && recommendedType === 'line' && !hasInteractedWithCurrentData && viewType !== 'line' && (
             <span className="text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full">
               Recommended
             </span>
