@@ -36,7 +36,29 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
   
   const isNumericColumn = (key: string) => {
     if (!hasValidData || !data) return false;
-    return data.some(row => typeof row[key] === 'number' && !isNaN(row[key]));
+    return data.some(row => {
+      const value = row[key];
+      // Check if it's already a number
+      if (typeof value === 'number' && !isNaN(value)) return true;
+      // Check if it's a string that can be converted to a valid number
+      if (typeof value === 'string') {
+        const numValue = Number(value);
+        return !isNaN(numValue) && value.trim() !== '';
+      }
+      return false;
+    });
+  };
+
+  // Get all numeric columns
+  const getNumericColumns = () => {
+    if (!hasValidData) return [];
+    return columns.filter(col => isNumericColumn(col));
+  };
+
+  // Get all non-numeric columns that could be labels
+  const getLabelColumns = () => {
+    if (!hasValidData) return [];
+    return columns.filter(col => !isNumericColumn(col));
   };
 
   const hasDateColumn = hasValidData && columns.some(col => 
@@ -57,29 +79,64 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
     // If only one row with multiple columns (single record), recommend table
     if (data.length === 1) return 'table';
     
-    // For multiple rows with exactly 2 columns and <= 10 rows, pie chart is good
-    if (columns.length === 2 && data.length <= 10) return 'pie';
+    const numericColumns = getNumericColumns();
+    const labelColumns = getLabelColumns();
     
-    // If has date/time columns, line chart is best
-    if (hasDateColumn) return 'line';
+    // Need at least one numeric column for charts
+    if (numericColumns.length === 0) return 'table';
+    
+    // For multiple rows with exactly 2 columns (label + value) and <= 10 rows, pie chart is good
+    if (columns.length === 2 && data.length <= 10 && numericColumns.length === 1) return 'pie';
+    
+    // If has date/time columns and numeric data, line chart is best
+    if (hasDateColumn && numericColumns.length > 0) return 'line';
     
     // For moderate datasets with few columns, bar chart works well
-    if (columns.length <= 4 && data.length <= 20 && data.length > 1) return 'bar';
+    if (labelColumns.length >= 1 && numericColumns.length >= 1 && data.length <= 20 && data.length > 1) return 'bar';
     
     // Default to table for everything else
     return 'table';
   };
 
-  // Get the key column (usually the first non-numeric column)
+  // Get the key column (usually the first non-numeric column, prefer month_name over month)
   const getKeyColumn = () => {
     if (!hasValidData) return '';
-    return columns.find(col => !isNumericColumn(col)) || columns[0];
+    const labelColumns = getLabelColumns();
+    
+    // Prefer month_name, date_name, or similar readable columns (case-insensitive)
+    const preferredColumn = labelColumns.find(col => {
+      const lowerCol = col.toLowerCase();
+      return lowerCol.includes('name') || 
+             lowerCol.includes('label') ||
+             lowerCol.includes('description');
+    });
+    
+    if (preferredColumn) return preferredColumn;
+    
+    // Otherwise, return first non-numeric column or first column
+    return labelColumns[0] || columns[0];
   };
 
-  // Get the value column (usually the first numeric column)
+  // Get the value column (prefer count, total, amount, or first numeric column)
   const getValueColumn = () => {
     if (!hasValidData) return '';
-    return columns.find(col => isNumericColumn(col)) || columns[1];
+    const numericColumns = getNumericColumns();
+    
+    // Prefer count, total, amount, value, etc. (case-insensitive)
+    const preferredColumn = numericColumns.find(col => {
+      const lowerCol = col.toLowerCase();
+      return lowerCol === 'count' ||
+             lowerCol.includes('count') ||
+             lowerCol.includes('total') ||
+             lowerCol.includes('amount') ||
+             lowerCol.includes('value') ||
+             lowerCol.includes('sum');
+    });
+    
+    if (preferredColumn) return preferredColumn;
+    
+    // Otherwise, return first numeric column or second column
+    return numericColumns[0] || columns[1];
   };
 
   const keyColumn = getKeyColumn();
@@ -90,9 +147,9 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
   const hasInteractedWithCurrentData = lastInteractedData === data;
 
   // Check if chart types should be disabled
-  const canShowPieChart = hasValidData && columns.length >= 2 && isNumericColumn(valueColumn);
-  const canShowBarChart = hasValidData && columns.length >= 2 && isNumericColumn(valueColumn);
-  const canShowLineChart = hasValidData && columns.length >= 2 && isNumericColumn(valueColumn);
+  const canShowPieChart = hasValidData && getNumericColumns().length >= 1 && getLabelColumns().length >= 1;
+  const canShowBarChart = hasValidData && getNumericColumns().length >= 1 && getLabelColumns().length >= 1;
+  const canShowLineChart = hasValidData && getNumericColumns().length >= 1 && getLabelColumns().length >= 1;
 
   // Prepare data for charts
   const prepareChartData = () => {
@@ -101,12 +158,24 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
     return data.map(row => {
       const chartRow: any = {};
       columns.forEach(col => {
-        chartRow[col] = row[col];
-        // For display purposes, convert month numbers to names if needed
-        if (col === 'month' && typeof row[col] === 'number' && row['month_name']) {
-          chartRow[col] = row['month_name'];
+        let value = row[col];
+        
+        // Convert string numbers to actual numbers for numeric columns
+        if (isNumericColumn(col) && typeof value === 'string') {
+          const numValue = Number(value);
+          if (!isNaN(numValue)) {
+            value = numValue;
+          }
         }
+        
+        chartRow[col] = value;
       });
+      
+      // Special handling for month data: use month_name for display if available
+      if (keyColumn === 'month_name' || (keyColumn === 'month' && row['month_name'])) {
+        chartRow[keyColumn] = row['month_name'] || row[keyColumn];
+      }
+      
       return chartRow;
     });
   };
@@ -132,6 +201,17 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
 
     switch (viewType) {
       case 'bar':
+        // Validate we have numeric data for bar chart
+        const hasBarNumericData = chartData.some(item => Number(item[valueColumn]) > 0);
+        
+        if (!hasBarNumericData) {
+          return (
+            <div className="flex items-center justify-center h-64 text-muted-foreground">
+              <p>No valid numeric data for bar chart visualization.</p>
+            </div>
+          );
+        }
+
         return (
           <ResponsiveContainer width="100%" height={400}>
             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -164,10 +244,18 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
 
       case 'pie':
         const pieData = chartData.slice(0, 10).map((item, index) => ({
-          name: String(item[keyColumn]),
+          name: String(item[keyColumn] || ''),
           value: Number(item[valueColumn]) || 0,
           fill: COLORS[index % COLORS.length]
-        }));
+        })).filter(item => item.value > 0); // Filter out zero values
+
+        if (pieData.length === 0) {
+          return (
+            <div className="flex items-center justify-center h-64 text-muted-foreground">
+              <p>No valid data for pie chart visualization.</p>
+            </div>
+          );
+        }
 
         return (
           <ResponsiveContainer width="100%" height={400}>
@@ -199,6 +287,17 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
         );
 
       case 'line':
+        // Validate we have numeric data for line chart
+        const hasNumericData = chartData.some(item => Number(item[valueColumn]) > 0);
+        
+        if (!hasNumericData) {
+          return (
+            <div className="flex items-center justify-center h-64 text-muted-foreground">
+              <p>No valid numeric data for line chart visualization.</p>
+            </div>
+          );
+        }
+
         return (
           <ResponsiveContainer width="100%" height={400}>
             <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
