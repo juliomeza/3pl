@@ -52,6 +52,32 @@ npm run typecheck
 - **Context Management**: Maintains 4-message conversation history for natural follow-ups
 - **Optimized Token Usage**: Reduced max_tokens for faster response times while maintaining quality
 
+### Data Visualization Architecture (Recharts)
+- **Implementation**: Recharts v2.15.1 for interactive data visualization in AI chat interfaces
+- `src/components/ui/data-visualizer.tsx` - Core visualization component with 4 chart types
+- **Chart Types**: Table, Bar Chart, Pie Chart, Line Chart with smart recommendations
+- **Integration**: Embedded in both employee and client assistant interfaces
+
+**Critical Visualization Patterns**:
+- **Smart Chart Recommendations**: Automatic chart type suggestions based on data structure
+- **Always-Visible Controls**: Chart type buttons visible from initialization, not conditional
+- **Unified Color Palette**: Consistent `COLORS` array using primary brand colors (#0A183C theme)
+- **Responsive Design**: Adapts to different screen sizes and data volumes
+- **Data Handling**: Graceful handling of null/empty data with informative messages
+
+**Visualization Features**:
+- **Table View**: Default view for all data types with sortable columns
+- **Bar Chart**: Recommended for categorical data, handles up to 20 items with angle rotation
+- **Pie Chart**: Optimal for simple datasets (≤10 categories), auto-limits to prevent overcrowding
+- **Line Chart**: Ideal for time-series data, detects date/time columns automatically
+- **Smart Detection**: Analyzes data structure to recommend optimal visualization type
+- **Context Preservation**: Maintains chart state while switching between conversation topics
+
+**UI/UX Design Principles**:
+- **No Visual Boundaries**: Removed Card backgrounds and borders for seamless integration
+- **Simplified Controls**: Single-word button labels (Table/Bar/Pie/Line) for clean interface
+- **Performance Optimized**: Efficient rendering with ResponsiveContainer and proper data limits
+
 ### Authentication & Authorization
 - Firebase Auth with Google/Microsoft OAuth
 - Role-based routing: `client`, `employee`, `none` (pending)
@@ -81,6 +107,26 @@ npm run typecheck
 - **shadcn/ui components** in `src/components/ui/` - Use existing components, follow established patterns
 - **Server components by default** - Use `'use client'` only when needed
 - **Server actions** in `src/app/actions.ts` for AI integration
+
+### Chat Assistant UI Architecture
+- **Side-by-Side Layout**: Data visualization (left) + Chat interface (right)
+- **Resizable Panels**: Drag handle with 20%-80% constraints, 50% default split
+- **Fixed Height Strategy**: `calc(100vh - 144px)` prevents external page scrolling
+- **Internal Scrolling Only**: Custom scrollbar styling, auto-scroll to new messages
+- **Responsive Design**: Single chat panel on mobile, side-by-side on desktop (lg+)
+
+**Critical Layout Patterns**:
+- **Height Management**: Fixed container heights with `overflow-hidden` to prevent external scroll
+- **Scroll Optimization**: Custom `.custom-scrollbar` class with ChatGPT-style appearance
+- **Message Design**: User messages with gray background, assistant messages without background
+- **Auto-scroll Behavior**: `messagesEndRef` with smooth scrolling to latest messages
+- **Panel Resizing**: Mouse event handling with `useCallback` optimization and cursor management
+
+**Chat Interface Components**:
+- `src/app/employee/assistant/page.tsx` - Full operational data access
+- `src/app/client/assistant/page.tsx` - Client-restricted data access (identical UI)
+- **Shared Layout Logic**: Both interfaces use identical resizable panel system
+- **State Management**: `leftWidth`, `isResizing`, conversation history, and data visualization state
 
 ### Styling & Design
 - **Colors**: Primary `#0A183C` (dark blue), Background `#FAFBFD`, Accent `#F3F4F6`
@@ -171,6 +217,14 @@ await runSingleTest('data-001')
 - **Code Language**: All code, comments, and variable names must be in English
 - **Testing Required**: All AI features must be tested with real integration tests before deployment
 
+### Chat Scroll Implementation (SOLVED)
+- **Fixed Height Strategy**: Use `calc(100vh - 144px)` for main container to prevent external scroll
+- **Internal Scroll Only**: Chat messages scroll internally with custom scrollbar styling
+- **Layout Hierarchy**: Container → Header (fixed) → Panels (remaining height) → Content (scrollable)
+- **Critical Dimensions**: 144px accounts for layout padding, header, and browser chrome
+- **Responsive Behavior**: Maintains fixed height across all screen sizes and content lengths
+- **Auto-scroll**: Smooth scrolling to new messages with `messagesEndRef.scrollIntoView()`
+
 ## Integration Points
 
 - **Firebase Auth** → Firestore user profiles → Role-based app routing
@@ -197,5 +251,12 @@ await runSingleTest('data-001')
 - Testing strategy changes (new test types, configurations)
 - Environment or deployment changes
 - Integration of new third-party services or APIs
+
+**Recent Major Updates (July 2025)**:
+- **Data Visualization System**: Complete Recharts integration with 4 chart types and smart recommendations
+- **Chat UI Overhaul**: Side-by-side resizable layout with fixed height and internal scroll
+- **Unified Interfaces**: Employee and client assistants now share identical UI patterns
+- **Performance Optimizations**: Custom scrollbars, auto-scroll, and responsive design
+- **Scroll Solution**: Resolved external page scroll with precise height calculations
 
 This documentation maintenance ensures consistency across development sessions and preserves institutional knowledge about project patterns and decisions.
