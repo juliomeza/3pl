@@ -263,6 +263,15 @@ await runSingleTest('data-001')
 
 ## Pending Implementations
 
+**Data Visualization Enhancements**:
+- **Scatter Plot Chart Type**: Add scatter plot visualization to DataVisualizer component for correlation analysis between two numeric variables. Ideal for queries like "What's the relationship between shipment weight and shipping cost?" or "How does shipping distance relate to delivery time?". Implementation would require:
+  - New `ViewType` option: `'scatter'`
+  - Smart detection for exactly 2 numeric columns
+  - Recharts ScatterChart component integration
+  - Automatic recommendation when data has 2 numeric + 0-1 label columns
+  - XAxis and YAxis mapping for the two numeric variables
+  - Tooltip showing both X and Y values with labels
+
 **AI Chat Assistant Improvements**:
 - **Date/Time Context**: Add current date and year awareness to chat assistant. Currently the AI thinks it's 2024, but we're in 2025. Need to inject current date context into AI prompts to ensure accurate temporal references in data queries and responses.
 
