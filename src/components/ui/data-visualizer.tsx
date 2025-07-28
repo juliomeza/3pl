@@ -99,7 +99,15 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
     if (!hasValidData || !data) {
       return (
         <div className="flex items-center justify-center h-64 text-muted-foreground">
-          <p>No data to display. Query results will appear here when available.</p>
+          <p>The data table corresponding to your query will appear here.</p>
+        </div>
+      );
+    }
+
+    if (Array.isArray(data) && data.length === 0) {
+      return (
+        <div className="flex items-center justify-center h-64 text-muted-foreground">
+          <p>No data found for this query.</p>
         </div>
       );
     }
@@ -255,7 +263,6 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
           size="sm"
           onClick={() => setViewType('bar')}
           className="flex items-center gap-2"
-          disabled={!canShowBarChart}
         >
           <BarChart3 className="w-4 h-4" />
           Bar Chart
@@ -271,7 +278,6 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
           size="sm"
           onClick={() => setViewType('pie')}
           className="flex items-center gap-2"
-          disabled={!canShowPieChart}
         >
           <PieChartIcon className="w-4 h-4" />
           Pie Chart
@@ -287,7 +293,6 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
           size="sm"
           onClick={() => setViewType('line')}
           className="flex items-center gap-2"
-          disabled={!canShowLineChart}
         >
           <TrendingUp className="w-4 h-4" />
           Line Chart

@@ -129,15 +129,7 @@ export default function EmployeeAssistantPage() {
   };
 
   const renderData = () => {
-    if (currentData === null) {
-      return <p className="text-muted-foreground">The data table corresponding to your query will appear here.</p>;
-    }
-
-    if (Array.isArray(currentData) && currentData.length === 0) {
-      return <p className="text-muted-foreground">No data found for this query.</p>;
-    }
-    
-    // Use the new DataVisualizer component
+    // Always render DataVisualizer - it handles empty/null data internally
     return <DataVisualizer data={currentData} />;
   };
 
