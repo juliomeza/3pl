@@ -231,6 +231,16 @@ export default function ClientAssistantPage() {
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask a question about your logistics data..."
                   className="flex-1"
+                  style={{ 
+                    outline: 'none !important',
+                    boxShadow: 'none !important',
+                    border: '1px solid hsl(var(--border)) !important',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.outline = 'none';
+                    e.target.style.boxShadow = 'none';
+                    e.target.style.border = '1px solid hsl(var(--border))';
+                  }}
                   disabled={isLoading}
                 />
                 <Button type="submit" disabled={isLoading}>Ask</Button>
