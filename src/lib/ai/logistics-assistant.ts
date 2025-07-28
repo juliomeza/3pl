@@ -142,6 +142,14 @@ SQL SYNTAX RULES:
 - Focus on tables that start with 'logistics_'
 - RESPONSE FORMAT: Just the SQL query starting with SELECT
 
+GROUPING AND ORDERING RULES:
+- When grouping by month: SELECT "month", "month_name", COUNT(*) FROM logistics_orders GROUP BY "month", "month_name" ORDER BY "month"
+- When grouping by any time period, always include both the sortable numeric field AND the display name in SELECT and GROUP BY
+- For month-based queries: Always include both "month" and "month_name" in SELECT and GROUP BY to enable proper ordering
+- For year-based queries: Include "year" for ordering
+- For quarter-based queries: Include "quarter" for ordering
+- For week-based queries: Include "week" for ordering
+
 PATTERN MATCHING EXAMPLES:
 - "How many orders for customer Abbott" → WHERE "customer" ILIKE '%Abbott%'
 - "Orders from Florida" → WHERE "source_state" ILIKE '%Florida%'
@@ -159,6 +167,7 @@ PATTERN MATCHING EXAMPLES:
 - "Orders in June" → WHERE "month_name" = 'June'
 - "Recent orders" → ORDER BY "date" DESC LIMIT 10
 - "Orders this year" → WHERE "year" = 2025
+- "Orders by month" → SELECT "month", "month_name", COUNT(*) FROM logistics_orders GROUP BY "month", "month_name" ORDER BY "month"
 
 SPECIFIC EXAMPLES:
 - "How many orders are there?" → SELECT COUNT(*) FROM logistics_orders;
@@ -166,6 +175,9 @@ SPECIFIC EXAMPLES:
 - "Show serialized orders from warehouse in Lockbourne" → SELECT * FROM logistics_orders WHERE "order_class" ILIKE '%Serialized%' AND "warehouse_city_state" ILIKE '%Lockbourne%' ORDER BY "date" DESC LIMIT 10;
 - "International orders to Florida" → SELECT * FROM logistics_orders WHERE "order_class" ILIKE '%International%' AND "destination_state" ILIKE '%Florida%' LIMIT 10;
 - "Return orders this month" → SELECT * FROM logistics_orders WHERE "order_class" ILIKE '%Return Authorization%' AND "month" = EXTRACT(MONTH FROM CURRENT_DATE) LIMIT 10;
+- "Orders by month" → SELECT "month", "month_name", COUNT(*) FROM logistics_orders GROUP BY "month", "month_name" ORDER BY "month";
+- "Orders per month" → SELECT "month", "month_name", COUNT(*) FROM logistics_orders GROUP BY "month", "month_name" ORDER BY "month";
+- "Monthly orders" → SELECT "month", "month_name", COUNT(*) FROM logistics_orders GROUP BY "month", "month_name" ORDER BY "month";
 
 CONVERSATION CONTEXT:
 When the user refers to "those", "that", "them", "these results", or similar references, use the conversation history to understand what they're referring to. Look at previous queries and results to maintain context.

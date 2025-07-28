@@ -316,6 +316,80 @@ export const chatTestCases: ChatTestCase[] = [
       shouldContain: ['month_name', '=', "'June'"],
       shouldStartWith: 'SELECT'
     }
+  },
+
+  // ===== MONTHLY AGGREGATION QUERIES =====
+  {
+    id: 'data-020',
+    description: 'Orders by month aggregation',
+    userQuery: 'orders by month',
+    expectedType: 'data-query',
+    expectedSQL: {
+      shouldContain: [
+        'SELECT', '"month"', '"month_name"', 'COUNT(*)',
+        'GROUP BY', '"month"', '"month_name"',
+        'ORDER BY', '"month"'
+      ],
+      shouldStartWith: 'SELECT'
+    },
+    expectedData: {
+      shouldHaveResults: true,
+      minimumRows: 1
+    }
+  },
+  {
+    id: 'data-021',
+    description: 'Orders per month aggregation',
+    userQuery: 'orders per month',
+    expectedType: 'data-query',
+    expectedSQL: {
+      shouldContain: [
+        'SELECT', '"month"', '"month_name"', 'COUNT(*)',
+        'GROUP BY', '"month"', '"month_name"',
+        'ORDER BY', '"month"'
+      ],
+      shouldStartWith: 'SELECT'
+    },
+    expectedData: {
+      shouldHaveResults: true,
+      minimumRows: 1
+    }
+  },
+  {
+    id: 'data-022',
+    description: 'Monthly orders aggregation',
+    userQuery: 'monthly orders',
+    expectedType: 'data-query',
+    expectedSQL: {
+      shouldContain: [
+        'SELECT', '"month"', '"month_name"', 'COUNT(*)',
+        'GROUP BY', '"month"', '"month_name"',
+        'ORDER BY', '"month"'
+      ],
+      shouldStartWith: 'SELECT'
+    },
+    expectedData: {
+      shouldHaveResults: true,
+      minimumRows: 1
+    }
+  },
+  {
+    id: 'data-023',
+    description: 'How many orders by month',
+    userQuery: 'how many orders by month?',
+    expectedType: 'data-query',
+    expectedSQL: {
+      shouldContain: [
+        'SELECT', '"month"', '"month_name"', 'COUNT(*)',
+        'GROUP BY', '"month"', '"month_name"',
+        'ORDER BY', '"month"'
+      ],
+      shouldStartWith: 'SELECT'
+    },
+    expectedData: {
+      shouldHaveResults: true,
+      minimumRows: 1
+    }
   }
 ];
 
