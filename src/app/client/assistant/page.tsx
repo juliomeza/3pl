@@ -134,27 +134,13 @@ export default function ClientAssistantPage() {
 
   return (
     <div 
-      className="flex flex-col gap-4 overflow-hidden"
-      style={{ height: 'calc(100vh - 144px)' }} // Altura fija reducida para eliminar scroll externo
+      className="flex flex-col overflow-hidden"
+      style={{ height: 'calc(100vh - 144px)' }} // Usando valor original que funcionaba
     >
-      {/* Header - Only New Chat Button */}
-      <div className="flex items-center justify-end flex-shrink-0 h-10">
-        <Button 
-          onClick={handleNewChat}
-          variant="outline"
-          size="sm"
-          className="flex items-center gap-2"
-        >
-          <RotateCcw className="w-4 h-4" />
-          New Chat
-        </Button>
-      </div>
-
       {/* Main Content - Side by Side Layout */}
       <div 
         ref={containerRef}
-        className="flex gap-0 overflow-hidden"
-        style={{ height: 'calc(100% - 56px)' }} // Altura restante después del header
+        className="flex gap-0 overflow-hidden h-full"
       >
         {/* Data View Panel (Left) - Hidden on mobile */}
         <div 
@@ -180,9 +166,20 @@ export default function ClientAssistantPage() {
 
         {/* Chat Panel (Right) */}
         <div 
-          className="flex flex-col"
+          className="flex flex-col relative"
           style={{ width: `${100 - leftWidth}%`, height: '100%' }}
         >
+          {/* New Chat Button - Floating in top right */}
+          <Button 
+            onClick={handleNewChat}
+            variant="outline"
+            size="sm"
+            className="absolute top-4 right-4 z-10 flex items-center gap-2 shadow-md bg-background"
+          >
+            <RotateCcw className="w-4 h-4" />
+            New Chat
+          </Button>
+
           <div className="flex flex-col h-full overflow-hidden">
             <div 
               className="flex-1 overflow-y-auto space-y-6 p-6 custom-scrollbar"

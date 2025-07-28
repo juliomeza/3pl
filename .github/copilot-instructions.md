@@ -121,6 +121,7 @@ npm run typecheck
 - **Message Design**: User messages with gray background, assistant messages without background
 - **Auto-scroll Behavior**: `messagesEndRef` with smooth scrolling to latest messages
 - **Panel Resizing**: Mouse event handling with `useCallback` optimization and cursor management
+- **Floating Controls**: New Chat button positioned absolutely (top-4 right-4 z-10) within chat panel
 
 **Chat Interface Components**:
 - `src/app/employee/assistant/page.tsx` - Full operational data access
@@ -218,10 +219,11 @@ await runSingleTest('data-001')
 - **Testing Required**: All AI features must be tested with real integration tests before deployment
 
 ### Chat Scroll Implementation (SOLVED)
-- **Fixed Height Strategy**: Use `calc(100vh - 144px)` for main container to prevent external scroll
+- **Fixed Height Strategy**: Use `calc(100vh - 144px)` for main container to prevent external scroll (proven working value)
 - **Internal Scroll Only**: Chat messages scroll internally with custom scrollbar styling
-- **Layout Hierarchy**: Container → Header (fixed) → Panels (remaining height) → Content (scrollable)
-- **Critical Dimensions**: 144px accounts for layout padding, header, and browser chrome
+- **Layout Hierarchy**: Container → Panels (full height) → Content (scrollable)
+- **Critical Dimensions**: 144px accounts for layout padding and browser chrome (value confirmed through testing)
+- **Floating Controls**: New Chat button positioned absolutely within chat area (top-4 right-4 z-10)
 - **Responsive Behavior**: Maintains fixed height across all screen sizes and content lengths
 - **Auto-scroll**: Smooth scrolling to new messages with `messagesEndRef.scrollIntoView()`
 
