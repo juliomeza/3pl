@@ -1,12 +1,12 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { getAiInsightOpenAI } from '@/app/actions';
-import { Bot, User, Loader2, RotateCcw } from 'lucide-react';
+import { Bot, User, Loader2, RotateCcw, GripVertical } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
 import { ChatMessage } from '@/lib/ai/logistics-assistant';
 
@@ -22,8 +22,10 @@ export default function EmployeeAssistantPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [currentData, setCurrentData] = useState<any>(null);
-  const [currentQuery, setCurrentQuery] = useState<string | null>(null);
+  const [leftWidth, setLeftWidth] = useState(50); // Percentage for left panel
+  const [isResizing, setIsResizing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Keep focus on input after sending message
   useEffect(() => {
@@ -31,6 +33,43 @@ export default function EmployeeAssistantPage() {
       inputRef.current.focus();
     }
   }, [isLoading]);
+
+  // Handle mouse resize functionality
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+  }, []);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isResizing || !containerRef.current) return;
+    
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const newLeftWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
+    
+    // Constrain between 20% and 80%
+    const constrainedWidth = Math.min(Math.max(newLeftWidth, 20), 80);
+    setLeftWidth(constrainedWidth);
+  }, [isResizing]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizing, handleMouseMove, handleMouseUp]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -40,7 +79,6 @@ export default function EmployeeAssistantPage() {
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
     setCurrentData(null);
-    setCurrentQuery(null);
     setInput('');
 
     try {
@@ -64,9 +102,6 @@ export default function EmployeeAssistantPage() {
         if(result.data) {
           setCurrentData(result.data);
         }
-        if (result.query) {
-          setCurrentQuery(result.query);
-        }
       }
     } catch (error) {
       const errorMessage: Message = { role: 'assistant', content: 'Sorry, I encountered an error.' };
@@ -79,7 +114,6 @@ export default function EmployeeAssistantPage() {
   const handleNewChat = () => {
     setMessages([]);
     setCurrentData(null);
-    setCurrentQuery(null);
     setInput('');
   };
 
@@ -123,84 +157,107 @@ export default function EmployeeAssistantPage() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-12rem)] gap-4">
-      <div className="flex-1 flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold font-headline">AI Logistics Assistant</h1>
-          <Button 
-            onClick={handleNewChat}
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            <RotateCcw className="w-4 h-4" />
-            New Chat
-          </Button>
+      {/* Header - Only New Chat Button */}
+      <div className="flex items-center justify-end">
+        <Button 
+          onClick={handleNewChat}
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-2"
+        >
+          <RotateCcw className="w-4 h-4" />
+          New Chat
+        </Button>
+      </div>
+
+      {/* Main Content - Side by Side Layout */}
+      <div 
+        ref={containerRef}
+        className="flex-1 flex gap-0 min-h-0 relative"
+      >
+        {/* Data View Panel (Left) - Hidden on mobile */}
+        <div 
+          className="hidden lg:flex flex-col min-h-0"
+          style={{ width: `${leftWidth}%` }}
+        >
+          <Card className="flex-1 flex flex-col">
+            <CardHeader>
+              <CardTitle>Data View</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-auto p-6">
+              {renderData()}
+            </CardContent>
+          </Card>
         </div>
-        <Card className="flex-1 flex flex-col">
-          <CardHeader>
-            <CardTitle>Conversation</CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto space-y-4 p-6">
-            {messages.length === 0 && (
-              <div className="flex items-center justify-center h-full text-muted-foreground">
-                <p>Start a conversation by asking a question about your logistics data...</p>
-              </div>
-            )}
-            {messages.map((message, index) => (
-              <div key={index} className={`flex items-start gap-3 text-sm ${message.role === 'user' ? 'justify-end' : ''}`}>
-                {message.role === 'assistant' && <Bot className="w-5 h-5 text-primary flex-shrink-0 mt-1" />}
-                <div className={`p-3 rounded-lg max-w-[85%] ${message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                  {message.content.split('\n').map((line, i) => <p key={i}>{line}</p>)}
+
+        {/* Resize Handle */}
+        <div 
+          className="hidden lg:flex items-center justify-center w-2 bg-border hover:bg-border/80 cursor-col-resize group transition-colors"
+          onMouseDown={handleMouseDown}
+        >
+          <GripVertical className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+        </div>
+
+        {/* Chat Panel (Right) */}
+        <div 
+          className="flex flex-col min-h-0"
+          style={{ width: `${100 - leftWidth}%` }}
+        >
+          <Card className="flex-1 flex flex-col">
+            <CardContent className="flex-1 overflow-y-auto space-y-6 p-6">
+              {messages.length === 0 && (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                  <p>Start a conversation by asking a question about your logistics data...</p>
                 </div>
-                {message.role === 'user' && <User className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-1" />}
-              </div>
-            ))}
-            {isLoading && (
-                <div className="flex items-start gap-3 text-sm">
-                  <Bot className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
-                  <div className="p-3 rounded-lg max-w-[85%] bg-muted flex items-center space-x-2">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Thinking...</span>
+              )}
+              {messages.map((message, index) => (
+                <div key={index} className="group">
+                  {message.role === 'user' ? (
+                    // User message - gray background, right aligned
+                    <div className="flex justify-end">
+                      <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl px-4 py-3 max-w-[80%]">
+                        <p className="text-sm">{message.content}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    // Assistant message - no background, left aligned without icon
+                    <div className="flex items-start">
+                      <div className="flex-1 min-w-0">
+                        <div className="prose prose-sm max-w-none">
+                          {message.content.split('\n').map((line, i) => (
+                            <p key={i} className="text-sm leading-relaxed mb-2 last:mb-0">
+                              {line}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex items-start">
+                  <div className="flex items-center space-x-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="text-sm text-muted-foreground">Thinking...</span>
                   </div>
                 </div>
               )}
-          </CardContent>
-          <CardFooter className="p-4 border-t">
-            <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full">
-              <Input
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask a question about your logistics data..."
-                className="flex-1"
-                disabled={isLoading}
-              />
-              <Button type="submit" disabled={isLoading}>Ask</Button>
-            </form>
-          </CardFooter>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-[40%]">
-        <div className="flex flex-col gap-4">
-            <h2 className="text-2xl font-bold font-headline">SQL Query</h2>
-            <Card className="flex-1 overflow-auto">
-                <CardContent className="p-6">
-                {currentQuery ? (
-                    <pre className="text-sm bg-muted p-4 rounded-md overflow-x-auto"><code>{currentQuery}</code></pre>
-                ) : (
-                    <p className="text-muted-foreground">The SQL query will appear here.</p>
-                )}
-                </CardContent>
-            </Card>
-        </div>
-        <div className="flex flex-col gap-4">
-            <h2 className="text-2xl font-bold font-headline">Data View</h2>
-            <Card className="flex-1 overflow-auto">
-                <CardContent className="p-6">
-                 {renderData()}
-                </CardContent>
-            </Card>
+            </CardContent>
+            <CardFooter className="p-4 border-t">
+              <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full">
+                <Input
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Ask a question about your logistics data..."
+                  className="flex-1"
+                  disabled={isLoading}
+                />
+                <Button type="submit" disabled={isLoading}>Ask</Button>
+              </form>
+            </CardFooter>
+          </Card>
         </div>
       </div>
     </div>
