@@ -188,11 +188,6 @@ export default function EmployeeAssistantPage() {
             <div 
               className="flex-1 overflow-y-auto space-y-6 pt-12 px-6 pb-6 custom-scrollbar"
             >
-              {messages.length === 0 && (
-                <div className="flex items-center justify-center h-full text-muted-foreground">
-                  <p>Start a conversation by asking a question about your logistics data...</p>
-                </div>
-              )}
               {messages.map((message, index) => (
                 <div key={index} className="group">
                   {message.role === 'user' ? (

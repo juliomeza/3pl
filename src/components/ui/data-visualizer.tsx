@@ -99,7 +99,7 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
     if (!hasValidData || !data) {
       return (
         <div className="flex items-center justify-center h-64 text-muted-foreground">
-          <p>The data table corresponding to your query will appear here.</p>
+          <p className="text-center">Your data visualizations will appear here once you start asking questions about your logistics data.</p>
         </div>
       );
     }
