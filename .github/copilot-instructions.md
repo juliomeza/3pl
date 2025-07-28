@@ -261,4 +261,9 @@ await runSingleTest('data-001')
 - **Performance Optimizations**: Custom scrollbars, auto-scroll, and responsive design
 - **Scroll Solution**: Resolved external page scroll with precise height calculations
 
+## Pending Implementations
+
+**AI Chat Assistant Improvements**:
+- **Date/Time Context**: Add current date and year awareness to chat assistant. Currently the AI thinks it's 2024, but we're in 2025. Need to inject current date context into AI prompts to ensure accurate temporal references in data queries and responses.
+
 This documentation maintenance ensures consistency across development sessions and preserves institutional knowledge about project patterns and decisions.

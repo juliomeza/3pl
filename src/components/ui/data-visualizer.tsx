@@ -12,18 +12,18 @@ interface DataVisualizerProps {
   data: any[] | null;
 }
 
-// Color palette for charts
+// Color palette for charts - Soft Pastel Palette
 const COLORS = [
-  '#0A183C', // Primary dark blue
-  '#1E40AF', // Blue
-  '#3B82F6', // Light blue
-  '#60A5FA', // Lighter blue
-  '#93C5FD', // Very light blue
-  '#DBEAFE', // Lightest blue
-  '#F3F4F6', // Gray accent
-  '#6B7280', // Medium gray
-  '#9CA3AF', // Light gray
-  '#D1D5DB'  // Very light gray
+  '#0A183C', // Primary dark blue (mantener como base)
+  '#cdb4db', // Soft lavender
+  '#ffc8dd', // Soft pink
+  '#ffafcc', // Light pink
+  '#bde0fe', // Light blue
+  '#a2d2ff', // Soft blue
+  '#E8F4FD', // Very light blue complement
+  '#F3E8FF', // Very light purple complement
+  '#FFF0F3', // Very light pink complement
+  '#6C757D'  // Gray accent
 ];
 
 export function DataVisualizer({ data }: DataVisualizerProps) {
@@ -137,7 +137,7 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
               />
               <Bar 
                 dataKey={valueColumn} 
-                fill="#0A183C"
+                fill={COLORS[1]} // Using the soft lavender color
                 radius={[4, 4, 0, 0]}
               />
             </BarChart>
@@ -240,9 +240,9 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       {/* View Type Controls - Always visible */}
-      <div className="flex flex-wrap gap-2 p-2 bg-gray-50 dark:bg-gray-900 rounded-lg">
+      <div className="flex flex-wrap gap-3 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
         <Button
           variant={viewType === 'table' ? 'default' : 'outline'}
           size="sm"
@@ -305,7 +305,7 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
       </div>
 
       {/* Chart/Table Display */}
-      <div className="min-h-[400px]">
+      <div className="min-h-[400px] pt-4">
         {renderChart()}
       </div>
 
