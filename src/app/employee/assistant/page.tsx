@@ -3,7 +3,6 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { getAiInsightOpenAI } from '@/app/actions';
 import { Bot, User, Loader2, RotateCcw, GripVertical } from 'lucide-react';
@@ -163,13 +162,13 @@ export default function EmployeeAssistantPage() {
           className="hidden lg:flex flex-col"
           style={{ width: `${leftWidth}%`, height: '100%' }}
         >
-          <Card className="flex flex-col h-full overflow-hidden">
-            <CardContent 
+          <div className="flex flex-col h-full overflow-hidden">
+            <div 
               className="flex-1 overflow-auto p-6 custom-scrollbar"
             >
               {renderData()}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Resize Handle */}
@@ -185,8 +184,8 @@ export default function EmployeeAssistantPage() {
           className="flex flex-col"
           style={{ width: `${100 - leftWidth}%`, height: '100%' }}
         >
-          <Card className="flex flex-col h-full overflow-hidden">
-            <CardContent 
+          <div className="flex flex-col h-full overflow-hidden">
+            <div 
               className="flex-1 overflow-y-auto space-y-6 p-6 custom-scrollbar"
             >
               {messages.length === 0 && (
@@ -229,8 +228,8 @@ export default function EmployeeAssistantPage() {
               )}
               {/* Auto-scroll anchor */}
               <div ref={messagesEndRef} />
-            </CardContent>
-            <CardFooter className="p-4 border-t flex-shrink-0">
+            </div>
+            <div className="p-4 flex-shrink-0">
               <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full">
                 <Input
                   ref={inputRef}
@@ -242,8 +241,8 @@ export default function EmployeeAssistantPage() {
                 />
                 <Button type="submit" disabled={isLoading}>Ask</Button>
               </form>
-            </CardFooter>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     </div>

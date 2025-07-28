@@ -265,7 +265,7 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
           className="flex items-center gap-2"
         >
           <BarChart3 className="w-4 h-4" />
-          Bar Chart
+          Bar
           {hasValidData && recommendedType === 'bar' && (
             <span className="text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full">
               Recommended
@@ -280,7 +280,7 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
           className="flex items-center gap-2"
         >
           <PieChartIcon className="w-4 h-4" />
-          Pie Chart
+          Pie
           {hasValidData && recommendedType === 'pie' && (
             <span className="text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full">
               Recommended
@@ -295,7 +295,7 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
           className="flex items-center gap-2"
         >
           <TrendingUp className="w-4 h-4" />
-          Line Chart
+          Line
           {hasValidData && recommendedType === 'line' && (
             <span className="text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full">
               Recommended
