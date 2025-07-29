@@ -151,14 +151,14 @@ export function SharedAiAssistant({ getAiInsight }: SharedAiAssistantProps) {
       {/* Main Container with Fixed Height */}
       <div 
         ref={containerRef}
-        className="flex h-[calc(100vh-144px)] bg-white rounded-lg border overflow-hidden"
+        className="flex h-[calc(100vh-144px)] bg-transparent overflow-hidden"
       >
         {/* Left Panel - Data Visualization (Desktop only) */}
         <div 
-          className="hidden lg:flex flex-col bg-gray-50"
+          className="hidden lg:flex flex-col bg-transparent"
           style={{ width: `${leftWidth}%` }}
         >
-          <div className="p-4 border-b bg-white">
+          <div className="p-4 bg-transparent">
             <div className="flex flex-wrap gap-2">
               <Button
                 variant={viewType === 'table' ? 'default' : 'outline'}
@@ -216,7 +216,7 @@ export function SharedAiAssistant({ getAiInsight }: SharedAiAssistantProps) {
 
         {/* Right Panel - Chat Interface */}
         <div 
-          className="flex flex-col bg-white w-full lg:w-auto relative"
+          className="flex flex-col bg-transparent w-full lg:w-auto relative"
           style={{ width: `${100 - leftWidth}%` }}
         >
           {/* Fixed New Chat Button */}
@@ -231,7 +231,7 @@ export function SharedAiAssistant({ getAiInsight }: SharedAiAssistantProps) {
           </Button>
 
           {/* Fade out overlay for New Chat button area */}
-          <div className="absolute top-0 right-0 w-40 h-16 bg-gradient-to-l from-white via-white/80 to-transparent pointer-events-none z-20"></div>
+          <div className="absolute top-0 right-0 w-40 h-16 bg-gradient-to-l from-[#FAFBFD] via-[#FAFBFD]/80 to-transparent pointer-events-none z-20"></div>
 
           {/* Chat Messages */}
           <div className="flex-1 overflow-y-auto p-4 pt-16 space-y-4 custom-scrollbar">
@@ -245,24 +245,15 @@ export function SharedAiAssistant({ getAiInsight }: SharedAiAssistantProps) {
             
             {messages.map((message, index) => (
               <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`flex max-w-[80%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'} gap-2`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    message.role === 'user' ? 'bg-blue-500' : 'bg-gray-500'
-                  }`}>
-                    {message.role === 'user' ? (
-                      <User className="w-4 h-4 text-white" />
-                    ) : (
-                      <Bot className="w-4 h-4 text-white" />
-                    )}
-                  </div>
-                  <div className={`px-4 py-2 rounded-lg ${
+                <div className={`${message.role === 'user' ? 'max-w-[80%]' : 'w-full'}`}>
+                  <div className={`${
                     message.role === 'user' 
-                      ? 'bg-gray-100 text-gray-900' 
-                      : 'bg-white text-gray-900 border'
+                      ? 'px-4 py-2 rounded-lg bg-gray-100 text-gray-900' 
+                      : 'text-gray-900'
                   }`}>
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                     {message.query && (
-                      <div className="mt-2 text-xs text-gray-500 font-mono bg-gray-50 p-2 rounded border">
+                      <div className="mt-2 text-xs text-gray-500 font-mono bg-gray-50 p-2 rounded">
                         SQL: {message.query}
                       </div>
                     )}
@@ -273,14 +264,11 @@ export function SharedAiAssistant({ getAiInsight }: SharedAiAssistantProps) {
 
             {isLoading && (
               <div className="flex justify-start">
-                <div className="flex gap-2 max-w-[80%]">
-                  <div className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center">
-                    <Bot className="w-4 h-4 text-white" />
-                  </div>
-                  <div className="bg-white text-gray-900 border px-4 py-2 rounded-lg">
+                <div className="w-full">
+                  <div className="text-gray-900">
                     <div className="flex items-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span className="text-sm">Analyzing your request...</span>
+                      <span className="text-sm leading-relaxed">Analyzing your request...</span>
                     </div>
                   </div>
                 </div>
@@ -291,8 +279,8 @@ export function SharedAiAssistant({ getAiInsight }: SharedAiAssistantProps) {
           </div>
 
           {/* Data Visualization (Mobile) */}
-          <div className="lg:hidden border-t">
-            <div className="p-4 bg-gray-50">
+          <div className="lg:hidden">
+            <div className="p-4 bg-transparent">
               <div className="flex flex-wrap gap-2 mb-3">
                 <Button
                   variant={viewType === 'table' ? 'default' : 'outline'}
@@ -341,7 +329,7 @@ export function SharedAiAssistant({ getAiInsight }: SharedAiAssistantProps) {
           </div>
 
           {/* Chat Input */}
-          <div className="p-4 border-t bg-gray-50">
+          <div className="p-4 bg-transparent">
             <form onSubmit={handleSubmit} className="flex gap-2">
               <Input
                 ref={inputRef}
@@ -349,7 +337,7 @@ export function SharedAiAssistant({ getAiInsight }: SharedAiAssistantProps) {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask about your logistics data..."
                 disabled={isLoading}
-                className="flex-1"
+                className="flex-1 focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-gray-300 focus-visible:outline-none"
                 autoFocus
               />
               <Button type="submit" disabled={isLoading || !input.trim()}>
