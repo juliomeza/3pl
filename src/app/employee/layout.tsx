@@ -27,21 +27,41 @@ function EmployeeSidebarContent() {
       <SidebarHeader className="p-4">
         {/* Logo y nombre cuando está expandido */}
         {!isCollapsed && (
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 font-headline text-xl font-semibold text-foreground">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-foreground">
+          <div className="relative flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-2 font-headline text-xl font-semibold text-foreground flex-1 min-w-0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-foreground flex-shrink-0">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
               </svg>
-              <span>Reliable 3PL</span>
+              <span className="truncate pr-10">Reliable 3PL</span>
             </Link>
-            <SidebarTrigger className="h-8 w-8 hover:bg-gray-100" />
+            {/* Fixed position collapse button - positioned at the very edge */}
+            <button 
+              onClick={() => {
+                const trigger = document.querySelector('[data-sidebar="trigger"]') as HTMLElement;
+                trigger?.click();
+              }}
+              className="absolute -right-12 top-1/2 transform -translate-y-1/2 h-12 w-12 hover:bg-gray-100 rounded-md z-10 flex items-center justify-center"
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className="w-6 h-6"
+              >
+                <path d="M11 19L4 12L11 5M21 19L14 12L21 5"/>
+              </svg>
+            </button>
           </div>
         )}
         
         {/* Solo logo cuando está colapsado */}
         {isCollapsed && (
           <div className="flex flex-col items-center w-full">
-            <SidebarTrigger className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 group h-auto w-auto relative">
+            <div className="relative group cursor-pointer">
               {/* Logo de Reliable 3PL visible por defecto */}
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
@@ -51,11 +71,16 @@ function EmployeeSidebarContent() {
                 strokeWidth="2" 
                 strokeLinecap="round" 
                 strokeLinejoin="round" 
-                className="w-8 h-8 text-foreground group-hover:opacity-0 transition-opacity duration-200"
+                className="w-8 h-8 text-foreground transition-opacity duration-200 group-hover:opacity-20"
+                onClick={() => {
+                  // Trigger sidebar expand
+                  const trigger = document.querySelector('[data-sidebar="trigger"]') as HTMLElement;
+                  trigger?.click();
+                }}
               >
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
               </svg>
-              {/* Icono de expand que aparece en hover */}
+              {/* Icono de expand que aparece en hover sobre el logo */}
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
                 viewBox="0 0 24 24" 
@@ -64,11 +89,11 @@ function EmployeeSidebarContent() {
                 strokeWidth="2" 
                 strokeLinecap="round" 
                 strokeLinejoin="round" 
-                className="w-8 h-8 absolute inset-0 m-auto opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                className="w-6 h-6 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
               >
-                <path d="M21 12H3M3 12L7 8M3 12L7 16"/>
+                <path d="M3 12H21M21 12L17 8M21 12L17 16"/>
               </svg>
-            </SidebarTrigger>
+            </div>
           </div>
         )}
       </SidebarHeader>
