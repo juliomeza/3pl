@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Bot, User, Loader2, RotateCcw, GripVertical } from 'lucide-react';
+import { Bot, User, Loader2, RotateCcw, GripVertical, TableIcon, BarChart3, PieChart as PieChartIcon, TrendingUp } from 'lucide-react';
 import { ChatMessage } from '@/lib/ai/logistics-assistant';
 import { DataVisualizer } from '@/components/ui/data-visualizer';
 
@@ -14,8 +14,9 @@ type Message = {
   query?: string | null;
 };
 
+type ViewType = 'table' | 'bar' | 'pie' | 'line';
+
 interface SharedAiAssistantProps {
-  title: string;
   getAiInsight: (query: string, conversationHistory: ChatMessage[]) => Promise<{
     insight: string;
     query: string | null;
@@ -24,13 +25,14 @@ interface SharedAiAssistantProps {
   }>;
 }
 
-export function SharedAiAssistant({ title, getAiInsight }: SharedAiAssistantProps) {
+export function SharedAiAssistant({ getAiInsight }: SharedAiAssistantProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [currentData, setCurrentData] = useState<any>(null);
   const [leftWidth, setLeftWidth] = useState(50); // Percentage for left panel
   const [isResizing, setIsResizing] = useState(false);
+  const [viewType, setViewType] = useState<ViewType>('table');
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -146,10 +148,6 @@ export function SharedAiAssistant({ title, getAiInsight }: SharedAiAssistantProp
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{title}</h1>
-      </div>
-
       {/* Main Container with Fixed Height */}
       <div 
         ref={containerRef}
@@ -161,10 +159,50 @@ export function SharedAiAssistant({ title, getAiInsight }: SharedAiAssistantProp
           style={{ width: `${leftWidth}%` }}
         >
           <div className="p-4 border-b bg-white">
-            <h2 className="font-semibold text-gray-900">Data Visualization</h2>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={viewType === 'table' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewType('table')}
+                className="flex items-center gap-1 text-xs"
+              >
+                <TableIcon className="w-3 h-3" />
+                Table
+              </Button>
+
+              <Button
+                variant={viewType === 'bar' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewType('bar')}
+                className="flex items-center gap-1 text-xs"
+              >
+                <BarChart3 className="w-3 h-3" />
+                Bar
+              </Button>
+
+              <Button
+                variant={viewType === 'pie' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewType('pie')}
+                className="flex items-center gap-1 text-xs"
+              >
+                <PieChartIcon className="w-3 h-3" />
+                Pie
+              </Button>
+
+              <Button
+                variant={viewType === 'line' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewType('line')}
+                className="flex items-center gap-1 text-xs"
+              >
+                <TrendingUp className="w-3 h-3" />
+                Line
+              </Button>
+            </div>
           </div>
           <div className="flex-1 p-4 overflow-auto custom-scrollbar">
-            <DataVisualizer data={currentData} />
+            <DataVisualizer data={currentData} viewType={viewType} />
           </div>
         </div>
 
@@ -178,25 +216,25 @@ export function SharedAiAssistant({ title, getAiInsight }: SharedAiAssistantProp
 
         {/* Right Panel - Chat Interface */}
         <div 
-          className="flex flex-col bg-white w-full lg:w-auto"
+          className="flex flex-col bg-white w-full lg:w-auto relative"
           style={{ width: `${100 - leftWidth}%` }}
         >
-          {/* Chat Header */}
-          <div className="flex items-center justify-between p-4 border-b bg-gray-50 relative">
-            <h2 className="font-semibold text-gray-900">AI Assistant</h2>
-            <Button
-              onClick={clearChat}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2 absolute top-4 right-4 z-10"
-            >
-              <RotateCcw className="w-4 h-4" />
-              New Chat
-            </Button>
-          </div>
+          {/* Fixed New Chat Button */}
+          <Button
+            onClick={clearChat}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2 absolute top-4 right-4 z-30"
+          >
+            <RotateCcw className="w-4 h-4" />
+            New Chat
+          </Button>
+
+          {/* Fade out overlay for New Chat button area */}
+          <div className="absolute top-0 right-0 w-40 h-16 bg-gradient-to-l from-white via-white/80 to-transparent pointer-events-none z-20"></div>
 
           {/* Chat Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-4 pt-16 space-y-4 custom-scrollbar">
             {messages.length === 0 && (
               <div className="text-center text-gray-500 py-8">
                 <Bot className="w-8 h-8 mx-auto mb-2 text-gray-400" />
@@ -255,9 +293,49 @@ export function SharedAiAssistant({ title, getAiInsight }: SharedAiAssistantProp
           {/* Data Visualization (Mobile) */}
           <div className="lg:hidden border-t">
             <div className="p-4 bg-gray-50">
-              <h3 className="font-semibold text-gray-900 mb-2">Data Visualization</h3>
+              <div className="flex flex-wrap gap-2 mb-3">
+                <Button
+                  variant={viewType === 'table' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewType('table')}
+                  className="flex items-center gap-1 text-xs"
+                >
+                  <TableIcon className="w-3 h-3" />
+                  Table
+                </Button>
+
+                <Button
+                  variant={viewType === 'bar' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewType('bar')}
+                  className="flex items-center gap-1 text-xs"
+                >
+                  <BarChart3 className="w-3 h-3" />
+                  Bar
+                </Button>
+
+                <Button
+                  variant={viewType === 'pie' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewType('pie')}
+                  className="flex items-center gap-1 text-xs"
+                >
+                  <PieChartIcon className="w-3 h-3" />
+                  Pie
+                </Button>
+
+                <Button
+                  variant={viewType === 'line' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewType('line')}
+                  className="flex items-center gap-1 text-xs"
+                >
+                  <TrendingUp className="w-3 h-3" />
+                  Line
+                </Button>
+              </div>
               <div className="max-h-96 overflow-auto">
-                <DataVisualizer data={currentData} />
+                <DataVisualizer data={currentData} viewType={viewType} />
               </div>
             </div>
           </div>

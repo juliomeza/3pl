@@ -10,6 +10,7 @@ type ViewType = 'table' | 'bar' | 'pie' | 'line';
 
 interface DataVisualizerProps {
   data: any[] | null;
+  viewType?: ViewType;
 }
 
 // Color palette for charts - Soft Pastel Palette
@@ -26,9 +27,11 @@ const COLORS = [
   '#6C757D'  // Gray accent
 ];
 
-export function DataVisualizer({ data }: DataVisualizerProps) {
-  const [viewType, setViewType] = useState<ViewType>('table');
+export function DataVisualizer({ data, viewType: externalViewType }: DataVisualizerProps) {
   const [lastInteractedData, setLastInteractedData] = useState<any>(null);
+
+  // Use external viewType if provided, otherwise default to 'table'
+  const viewType = externalViewType || 'table';
 
   // Check if we have valid data for charts
   const hasValidData = data && Array.isArray(data) && data.length > 0;
@@ -357,90 +360,15 @@ export function DataVisualizer({ data }: DataVisualizerProps) {
   };
 
   return (
-    <div className="space-y-8">
-      {/* View Type Controls - Always visible */}
-      <div className="flex flex-wrap gap-3 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-        <Button
-          variant={viewType === 'table' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => {
-            setViewType('table');
-            setLastInteractedData(data);
-          }}
-          className="flex items-center gap-2"
-        >
-          <TableIcon className="w-4 h-4" />
-          Table
-          {hasValidData && recommendedType === 'table' && !hasInteractedWithCurrentData && viewType !== 'table' && (
-            <span className="text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full">
-              Recommended
-            </span>
-          )}
-        </Button>
-
-        <Button
-          variant={viewType === 'bar' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => {
-            setViewType('bar');
-            setLastInteractedData(data);
-          }}
-          className="flex items-center gap-2"
-        >
-          <BarChart3 className="w-4 h-4" />
-          Bar
-          {hasValidData && recommendedType === 'bar' && !hasInteractedWithCurrentData && viewType !== 'bar' && (
-            <span className="text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full">
-              Recommended
-            </span>
-          )}
-        </Button>
-
-        <Button
-          variant={viewType === 'pie' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => {
-            setViewType('pie');
-            setLastInteractedData(data);
-          }}
-          className="flex items-center gap-2"
-        >
-          <PieChartIcon className="w-4 h-4" />
-          Pie
-          {hasValidData && recommendedType === 'pie' && !hasInteractedWithCurrentData && viewType !== 'pie' && (
-            <span className="text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full">
-              Recommended
-            </span>
-          )}
-        </Button>
-
-        <Button
-          variant={viewType === 'line' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => {
-            setViewType('line');
-            setLastInteractedData(data);
-          }}
-          className="flex items-center gap-2"
-        >
-          <TrendingUp className="w-4 h-4" />
-          Line
-          {hasValidData && recommendedType === 'line' && !hasInteractedWithCurrentData && viewType !== 'line' && (
-            <span className="text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full">
-              Recommended
-            </span>
-          )}
-        </Button>
-      </div>
-
+    <div>
       {/* Chart/Table Display */}
-      <div className="min-h-[400px] pt-4">
+      <div className="min-h-[400px]">
         {renderChart()}
       </div>
 
       {/* Data Summary - Only show when there's data */}
       {hasValidData && data && (
-        <div className="text-xs text-muted-foreground border-t pt-2">
+        <div className="text-xs text-muted-foreground border-t pt-2 mt-4">
           Showing {data.length} rows × {columns.length} columns
           {viewType !== 'table' && data.length > 20 && (
             <span className="ml-2 text-amber-600">

@@ -40,7 +40,6 @@ export default function ClientAssistantPage() {
 
   return (
     <SharedAiAssistant 
-      title="Client AI Assistant"
       getAiInsight={getClientAiInsight}
     />
   );
