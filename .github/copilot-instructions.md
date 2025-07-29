@@ -441,6 +441,9 @@ await runSingleTest('data-001')
 
 ## Pending Implementations
 
+**Database Schema Enhancements**:
+- **Day of Week Column**: Add new column to transform/display day of the week (Monday, Tuesday, Wednesday, etc.) for date-based analytics and weekly pattern analysis. This will enable queries like "What day of the week has the most shipments?" or "Show me order patterns by day of week".
+
 **Data Visualization Enhancements**:
 - **Scatter Plot Chart Type**: Add scatter plot visualization to DataVisualizer component for correlation analysis between two numeric variables. Ideal for queries like "What's the relationship between shipment weight and shipping cost?" or "How does shipping distance relate to delivery time?". Implementation would require:
   - New `ViewType` option: `'scatter'`
