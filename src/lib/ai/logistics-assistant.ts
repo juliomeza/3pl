@@ -15,6 +15,11 @@ export interface ChatMessage {
   data?: any;
 }
 
+export interface QueryOptions {
+  role: 'employee' | 'client';
+  ownerId?: number; // Required for client role
+}
+
 // Cache for database schema - refreshes every 30 minutes
 let schemaCache: { schema: string; timestamp: number } | null = null;
 const SCHEMA_CACHE_TTL = 30 * 60 * 1000; // 30 minutes (schema changes are rare)
@@ -68,13 +73,10 @@ async function getDatabaseSchema(): Promise<string> {
 /**
  * Convert natural language to SQL query using OpenAI with conversation context
  */
-async function convertToSql(userQuery: string, schema: string, conversationHistory: ChatMessage[] = []): Promise<string> {
+async function convertToSql(userQuery: string, schema: string, conversationHistory: ChatMessage[] = [], options: QueryOptions): Promise<string> {
   try {
-    // Build messages array with conversation context
-    const messages: any[] = [
-      {
-        role: "system",
-        content: `You are a PostgreSQL expert specializing in logistics data analysis. Convert natural language questions to PostgreSQL queries.
+    // Build system prompt based on role
+    let systemPrompt = `You are a PostgreSQL expert specializing in logistics data analysis. Convert natural language questions to PostgreSQL queries.
 
 IMPORTANT: Only generate SQL queries for actual data requests. Do NOT generate queries for:
 - Personal introductions ("my name is...", "I'm...", "hello")
@@ -85,9 +87,31 @@ IMPORTANT: Only generate SQL queries for actual data requests. Do NOT generate q
 For non-data requests, respond with "NO_SQL_NEEDED" and the system will handle it conversationally.
 
 Database Schema:
-${schema}
+${schema}`;
 
-CRITICAL RULES for logistics_orders table:
+    // Add role-specific security filtering
+    if (options.role === 'client') {
+      if (!options.ownerId) {
+        throw new Error('ownerId is required for client role');
+      }
+      systemPrompt += `
+
+CRITICAL SECURITY REQUIREMENT FOR CLIENT ROLE:
+- ALL queries MUST include: WHERE owner_id = ${options.ownerId}
+- This ensures the client only sees their own data
+- NEVER allow queries without this filter when role is 'client'
+- Example: SELECT * FROM logistics_orders WHERE owner_id = ${options.ownerId} AND customer ILIKE '%Abbott%'`;
+    }
+
+    systemPrompt += `
+
+CRITICAL RULES for logistics_orders table:`;
+
+    // Build messages array with conversation context
+    const messages: any[] = [
+      {
+        role: "system",
+        content: systemPrompt + `
 - customer: Use ILIKE for partial matching (e.g., "Abbott" should match "Abbott Nutrition")
 - warehouse: Use exact match for warehouse numbers (e.g., "warehouse 10" → warehouse = '10')
 - warehouse_city_state: Use ILIKE for city/state/location searches (e.g., "Lockbourne", "Boca Raton FL")
@@ -428,7 +452,7 @@ Please explain what this data shows, considering the conversation context.`
  * Main function to process natural language queries using OpenAI with conversation memory
  * Optimized for faster response times with parallel processing
  */
-export async function processLogisticsQuery(userQuery: string, conversationHistory: ChatMessage[] = []): Promise<SqlQueryResult> {
+export async function processLogisticsQuery(userQuery: string, conversationHistory: ChatMessage[] = [], options: QueryOptions = { role: 'employee' }): Promise<SqlQueryResult> {
   try {
     // Get database schema (now cached for performance)
     const schemaPromise = getDatabaseSchema();
@@ -439,7 +463,7 @@ export async function processLogisticsQuery(userQuery: string, conversationHisto
     // Try to convert to SQL using OpenAI with conversation context
     let sqlQuery: string;
     try {
-      sqlQuery = await convertToSql(userQuery, schema, conversationHistory);
+      sqlQuery = await convertToSql(userQuery, schema, conversationHistory, options);
     } catch (error: any) {
       // Check if this is a conversational response
       if (error.message === 'CONVERSATIONAL_RESPONSE') {
