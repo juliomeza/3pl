@@ -416,6 +416,11 @@ await runSingleTest('data-001')
 - Integration of new third-party services or APIs
 
 **Recent Major Updates (July 29, 2025)**:
+- **Column Name Formatting (IMPLEMENTED)**: Automatic transformation of database column names for better UX
+  - Added `formatColumnName()` function to convert snake_case to readable format (e.g., "day_of_week" → "Day Of Week")
+  - Applied to table headers for cleaner presentation of data
+  - Enhanced chart tooltips with formatted column names for better user experience
+  - Consistent formatting across all visualization types (Table, Bar, Pie, Line charts)
 - **Day vs Day of Week Intelligence (IMPLEMENTED)**: Complete AI logic for distinguishing between "day" (numeric 1-31) and "day of week" (Monday-Sunday)
   - Added `day_of_week` column support in AI assistant with exact matching for weekday names
   - Implemented smart GROUPING AND ORDERING rules with proper weekday sequence (Monday=1, Sunday=7)
