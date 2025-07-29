@@ -138,6 +138,76 @@ npm run typecheck
 - **Shared Layout Logic**: Both interfaces use identical resizable panel system
 - **State Management**: `leftWidth`, `isResizing`, conversation history, and data visualization state
 
+### ChatGPT-Style Sidebar Implementation (FINALIZED - DO NOT REGRESS)
+**CRITICAL**: This sidebar implementation was perfected over multiple sessions and must be preserved exactly as implemented.
+
+**Client Sidebar Architecture (`src/app/client/layout.tsx`)**:
+- **Dynamic Logo Display**: Shows client's logo + name when expanded, client logo only when collapsed
+- **Multi-line Name Support**: Client names display in full (removed `truncate`) across multiple lines if needed
+- **Logo Hover Expand**: When collapsed, clicking client logo or hover shows expand arrow and triggers sidebar expansion
+- **Custom Collapse Button**: Positioned absolutely at `-right-4` with `PanelLeftClose` icon in subtle gray (`text-gray-400 hover:text-gray-600`)
+
+**Employee Sidebar Architecture (`src/app/employee/layout.tsx`)**:
+- **Company Logo Display**: Shows "Reliable 3PL" logo + name when expanded, company logo only when collapsed  
+- **Logo Hover Expand**: When collapsed, clicking company logo or hover shows expand arrow and triggers sidebar expansion
+- **Custom Collapse Button**: Positioned absolutely at `-right-12` with `PanelLeftClose` icon in subtle gray (`text-gray-400 hover:text-gray-600`)
+
+**Critical Sidebar Patterns (NEVER MODIFY)**:
+1. **Custom Button Implementation**: Replaced default `SidebarTrigger` with custom HTML button elements for precise control
+2. **Layout-Specific Positioning**: Client uses `-right-4`, Employee uses `-right-12` for optimal button placement
+3. **Subtle Button Styling**: Gray buttons (`text-gray-400`) that don't compete visually with logo/text content
+4. **Logo Interaction**: When collapsed, logo acts as expand button with hover overlay arrow effect
+5. **Multi-line Text Support**: `items-start` alignment allows client names to wrap naturally without truncation
+6. **Icon Consistency**: All collapse buttons use `PanelLeftClose` from Lucide React for semantic correctness
+
+**Collapse/Expand Button Implementation**:
+```tsx
+<button 
+  onClick={() => {
+    const trigger = document.querySelector('[data-sidebar="trigger"]') as HTMLElement;
+    trigger?.click();
+  }}
+  className="absolute -right-4 top-1/2 transform -translate-y-1/2 h-12 w-12 hover:bg-gray-100 rounded-md z-10 flex items-center justify-center"
+>
+  <PanelLeftClose className="w-6 h-6 text-gray-400 hover:text-gray-600" />
+</button>
+```
+
+**Logo Hover Expand Implementation (Collapsed State)**:
+```tsx
+<div className="relative group cursor-pointer">
+  <Image /* or SVG for company logo */
+    className="transition-opacity duration-200 group-hover:opacity-20"
+    onClick={() => {
+      const trigger = document.querySelector('[data-sidebar="trigger"]') as HTMLElement;
+      trigger?.click();
+    }}
+  />
+  {/* Expand arrow overlay */}
+  <svg className="w-6 h-6 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+    <path d="M3 12H21M21 12L17 8M21 12L17 16"/>
+  </svg>
+</div>
+```
+
+**Key Visual Hierarchy**:
+- **Logo + Name**: Standard foreground color, prominent display
+- **Collapse Button**: Subtle gray (`text-gray-400`), positioned edge of sidebar
+- **Hover States**: Smooth transitions with opacity changes and color shifts
+- **No Text Truncation**: Full client names displayed across multiple lines
+
+**Responsive Behavior**:
+- **Desktop**: Full sidebar with collapse/expand functionality
+- **Mobile**: Hamburger menu in header (`SidebarTrigger` in `md:hidden` div)
+- **Consistent Positioning**: Button positions work across different screen sizes
+
+**DO NOT REGRESS WARNING**: 
+- This implementation took multiple sessions to perfect
+- Positioning values (`-right-4`, `-right-12`) are specific to each layout
+- Custom button approach is required for proper icon sizing and control
+- Gray color scheme maintains visual hierarchy
+- Logo hover behavior provides intuitive expand functionality
+
 ### ChatGPT-Style UI Implementation (CRITICAL - DO NOT MODIFY)
 **IMPORTANT**: These UI patterns were refined over multiple sessions and must be preserved exactly as implemented.
 
@@ -346,6 +416,13 @@ await runSingleTest('data-001')
 - Integration of new third-party services or APIs
 
 **Recent Major Updates (July 29, 2025)**:
+- **ChatGPT-Style Sidebar Implementation**: Complete sidebar redesign with collapse/expand functionality
+  - Custom collapse buttons using `PanelLeftClose` icon with subtle gray styling (`text-gray-400 hover:text-gray-600`)
+  - Logo-as-button functionality when collapsed with hover expand arrow overlay
+  - Layout-specific positioning: Client (`-right-4`), Employee (`-right-12`) for optimal button placement
+  - Multi-line client name support without truncation for full name display
+  - Custom button implementation replacing `SidebarTrigger` for better control and sizing
+  - Hover states with smooth opacity transitions and visual hierarchy
 - **ChatGPT-Style UI Transformation**: Complete redesign of chat interface to match ChatGPT appearance
   - Removed all titles, headers, and visual borders for unified canvas effect
   - Implemented user message bubbles (max-w-[80%]) vs assistant full-width responses (w-full)

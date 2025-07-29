@@ -42,18 +42,7 @@ function EmployeeSidebarContent() {
               }}
               className="absolute -right-12 top-1/2 transform -translate-y-1/2 h-12 w-12 hover:bg-gray-100 rounded-md z-10 flex items-center justify-center"
             >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                className="w-6 h-6"
-              >
-                <path d="M11 19L4 12L11 5M21 19L14 12L21 5"/>
-              </svg>
+              <PanelLeftClose className="w-6 h-6 text-gray-400 hover:text-gray-600" />
             </button>
           </div>
         )}

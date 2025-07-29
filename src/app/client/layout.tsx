@@ -32,7 +32,7 @@ function ClientSidebarContent() {
         {/* Logo y nombre cuando está expandido */}
         {!isCollapsed && (
           <div className="relative flex items-center justify-between">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div className="flex items-start gap-2 flex-1 min-w-0">
               {clientInfoLoading ? (
                 <>
                   <Skeleton className="w-8 h-8 rounded-full" />
@@ -51,7 +51,7 @@ function ClientSidebarContent() {
                       data-ai-hint="logo"
                     />
                   )}
-                  <span className="font-semibold text-md truncate pr-10">{clientInfo.name}</span>
+                  <span className="font-semibold text-md pr-10">{clientInfo.name}</span>
                 </>
               )}
             </div>
@@ -63,18 +63,7 @@ function ClientSidebarContent() {
               }}
               className="absolute -right-4 top-1/2 transform -translate-y-1/2 h-12 w-12 hover:bg-gray-100 rounded-md z-10 flex items-center justify-center"
             >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                className="w-6 h-6"
-              >
-                <path d="M11 19L4 12L11 5M21 19L14 12L21 5"/>
-              </svg>
+              <PanelLeftClose className="w-6 h-6 text-gray-400 hover:text-gray-600" />
             </button>
           </div>
         )}
