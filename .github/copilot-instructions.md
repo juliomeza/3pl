@@ -416,6 +416,14 @@ await runSingleTest('data-001')
 - Integration of new third-party services or APIs
 
 **Recent Major Updates (July 29, 2025)**:
+- **Day vs Day of Week Intelligence (IMPLEMENTED)**: Complete AI logic for distinguishing between "day" (numeric 1-31) and "day of week" (Monday-Sunday)
+  - Added `day_of_week` column support in AI assistant with exact matching for weekday names
+  - Implemented smart GROUPING AND ORDERING rules with proper weekday sequence (Monday=1, Sunday=7)
+  - Created comprehensive CRITICAL DISTINCTION section with clear examples for AI pattern matching
+  - Added 8 automated test cases (data-024 to data-031) covering all day vs day of week scenarios
+  - AI now correctly handles: "orders by day" → uses `day` column, "orders by day of week" → uses `day_of_week` column
+  - Supports weekend/weekday filtering: "weekend orders" → Saturday/Sunday, "weekday orders" → Monday-Friday
+  - Perfect SQL generation for queries like "what day of the week has most orders" with proper ordering
 - **ChatGPT-Style Sidebar Implementation**: Complete sidebar redesign with collapse/expand functionality
   - Custom collapse buttons using `PanelLeftClose` icon with subtle gray styling (`text-gray-400 hover:text-gray-600`)
   - Logo-as-button functionality when collapsed with hover expand arrow overlay
@@ -440,9 +448,6 @@ await runSingleTest('data-001')
 - **Shared Component Architecture**: Zero-duplication AI assistant UI with role-specific backend logic injection
 
 ## Pending Implementations
-
-**Database Schema Enhancements**:
-- **Day of Week Column**: Add new column to transform/display day of the week (Monday, Tuesday, Wednesday, etc.) for date-based analytics and weekly pattern analysis. This will enable queries like "What day of the week has the most shipments?" or "Show me order patterns by day of week".
 
 **Data Visualization Enhancements**:
 - **Scatter Plot Chart Type**: Add scatter plot visualization to DataVisualizer component for correlation analysis between two numeric variables. Ideal for queries like "What's the relationship between shipment weight and shipping cost?" or "How does shipping distance relate to delivery time?". Implementation would require:

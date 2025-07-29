@@ -390,6 +390,149 @@ export const chatTestCases: ChatTestCase[] = [
       shouldHaveResults: true,
       minimumRows: 1
     }
+  },
+
+  // ===== DAY vs DAY OF WEEK QUERIES =====
+  {
+    id: 'data-024',
+    description: 'Orders by day of week (should use day_of_week column)',
+    userQuery: 'orders by day of week',
+    expectedType: 'data-query',
+    expectedSQL: {
+      shouldContain: [
+        'SELECT', '"day_of_week"', 'COUNT(*)',
+        'GROUP BY', '"day_of_week"',
+        'ORDER BY', 'CASE', '"day_of_week"', 'Monday', 'Tuesday'
+      ],
+      shouldNotContain: ['"day"'],
+      shouldStartWith: 'SELECT'
+    },
+    expectedData: {
+      shouldHaveResults: true,
+      minimumRows: 1
+    }
+  },
+  {
+    id: 'data-025',
+    description: 'Orders by day of the week (should use day_of_week column)',
+    userQuery: 'how many orders by day of the week?',
+    expectedType: 'data-query',
+    expectedSQL: {
+      shouldContain: [
+        'SELECT', '"day_of_week"', 'COUNT(*)',
+        'GROUP BY', '"day_of_week"',
+        'ORDER BY', 'CASE', '"day_of_week"'
+      ],
+      shouldNotContain: ['"day"'],
+      shouldStartWith: 'SELECT'
+    },
+    expectedData: {
+      shouldHaveResults: true,
+      minimumRows: 1
+    }
+  },
+  {
+    id: 'data-026',
+    description: 'Orders by day (should use day column for numeric day of month)',
+    userQuery: 'orders by day',
+    expectedType: 'data-query',
+    expectedSQL: {
+      shouldContain: [
+        'SELECT', '"day"', 'COUNT(*)',
+        'GROUP BY', '"day"',
+        'ORDER BY', '"day"'
+      ],
+      shouldNotContain: ['"day_of_week"'],
+      shouldStartWith: 'SELECT'
+    },
+    expectedData: {
+      shouldHaveResults: true,
+      minimumRows: 1
+    }
+  },
+  {
+    id: 'data-027',
+    description: 'Orders on Monday (should use day_of_week)',
+    userQuery: 'orders on Monday',
+    expectedType: 'data-query',
+    expectedSQL: {
+      shouldContain: [
+        'SELECT', 'FROM logistics_orders',
+        'WHERE', '"day_of_week"', '=', "'Monday'"
+      ],
+      shouldNotContain: ['"day" ='],
+      shouldStartWith: 'SELECT'
+    },
+    expectedData: {
+      shouldHaveResults: true,
+      minimumRows: 1
+    }
+  },
+  {
+    id: 'data-028',
+    description: 'Orders on day 15 (should use day column)',
+    userQuery: 'orders on day 15',
+    expectedType: 'data-query',
+    expectedSQL: {
+      shouldContain: [
+        'SELECT', 'FROM logistics_orders',
+        'WHERE', '"day"', '=', '15'
+      ],
+      shouldNotContain: ['"day_of_week"'],
+      shouldStartWith: 'SELECT'
+    },
+    expectedData: {
+      shouldHaveResults: true,
+      minimumRows: 1
+    }
+  },
+  {
+    id: 'data-029',
+    description: 'What day of the week has most orders',
+    userQuery: 'what day of the week has most orders?',
+    expectedType: 'data-query',
+    expectedSQL: {
+      shouldContain: [
+        'SELECT', '"day_of_week"', 'COUNT(*)',
+        'GROUP BY', '"day_of_week"',
+        'ORDER BY', 'COUNT(*)', 'DESC', 'LIMIT 1'
+      ],
+      shouldNotContain: ['"day"'],
+      shouldStartWith: 'SELECT'
+    },
+    expectedData: {
+      shouldHaveResults: true,
+      minimumRows: 1,
+      maximumRows: 1
+    }
+  },
+  {
+    id: 'data-030',
+    description: 'Weekend orders (should use day_of_week)',
+    userQuery: 'weekend orders',
+    expectedType: 'data-query',
+    expectedSQL: {
+      shouldContain: [
+        'SELECT', 'FROM logistics_orders',
+        'WHERE', '"day_of_week"', 'IN', 'Saturday', 'Sunday'
+      ],
+      shouldNotContain: ['"day" IN'],
+      shouldStartWith: 'SELECT'
+    }
+  },
+  {
+    id: 'data-031',
+    description: 'Weekday orders (should use day_of_week)',
+    userQuery: 'weekday orders',
+    expectedType: 'data-query',
+    expectedSQL: {
+      shouldContain: [
+        'SELECT', 'FROM logistics_orders',
+        'WHERE', '"day_of_week"', 'IN', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'
+      ],
+      shouldNotContain: ['"day" IN'],
+      shouldStartWith: 'SELECT'
+    }
   }
 ];
 

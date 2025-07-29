@@ -131,6 +131,7 @@ CRITICAL RULES for logistics_orders table:`;
 - destination_state: Use for "to state", "shipping to", "destination"
 - source_state: Use for "from state", "origin state", "source"
 - month_name: Use exact match for month names
+- day_of_week: Use exact match for day names (Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday)
 - year, month, quarter, week, day: Use numeric comparisons
 
 COLUMN SELECTION INTELLIGENCE:
@@ -168,11 +169,13 @@ SQL SYNTAX RULES:
 
 GROUPING AND ORDERING RULES:
 - When grouping by month: SELECT "month", "month_name", COUNT(*) FROM logistics_orders GROUP BY "month", "month_name" ORDER BY "month"
+- When grouping by day of week: SELECT "day_of_week", COUNT(*) FROM logistics_orders GROUP BY "day_of_week" ORDER BY CASE "day_of_week" WHEN 'Monday' THEN 1 WHEN 'Tuesday' THEN 2 WHEN 'Wednesday' THEN 3 WHEN 'Thursday' THEN 4 WHEN 'Friday' THEN 5 WHEN 'Saturday' THEN 6 WHEN 'Sunday' THEN 7 END
 - When grouping by any time period, always include both the sortable numeric field AND the display name in SELECT and GROUP BY
 - For month-based queries: Always include both "month" and "month_name" in SELECT and GROUP BY to enable proper ordering
 - For year-based queries: Include "year" for ordering
 - For quarter-based queries: Include "quarter" for ordering
 - For week-based queries: Include "week" for ordering
+- For day-of-week queries: Use "day_of_week" and order by weekday sequence (Monday=1, Sunday=7)
 
 PATTERN MATCHING EXAMPLES:
 - "How many orders for customer Abbott" → WHERE "customer" ILIKE '%Abbott%'
@@ -189,9 +192,14 @@ PATTERN MATCHING EXAMPLES:
 - "International shipments" → WHERE "order_class" ILIKE '%International%'
 - "LTL orders" → WHERE "order_class" ILIKE '%LTL%'
 - "Orders in June" → WHERE "month_name" = 'June'
+- "Orders on Monday" → WHERE "day_of_week" = 'Monday'
+- "Orders on weekends" → WHERE "day_of_week" IN ('Saturday', 'Sunday')
+- "Orders on weekdays" → WHERE "day_of_week" IN ('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')
 - "Recent orders" → ORDER BY "date" DESC LIMIT 10
 - "Orders this year" → WHERE "year" = 2025
 - "Orders by month" → SELECT "month", "month_name", COUNT(*) FROM logistics_orders GROUP BY "month", "month_name" ORDER BY "month"
+- "Orders by day of week" → SELECT "day_of_week", COUNT(*) FROM logistics_orders GROUP BY "day_of_week" ORDER BY CASE "day_of_week" WHEN 'Monday' THEN 1 WHEN 'Tuesday' THEN 2 WHEN 'Wednesday' THEN 3 WHEN 'Thursday' THEN 4 WHEN 'Friday' THEN 5 WHEN 'Saturday' THEN 6 WHEN 'Sunday' THEN 7 END
+- "Orders by day" → SELECT "day", COUNT(*) FROM logistics_orders GROUP BY "day" ORDER BY "day"
 
 SPECIFIC EXAMPLES:
 - "How many orders are there?" → SELECT COUNT(*) FROM logistics_orders;
@@ -202,6 +210,24 @@ SPECIFIC EXAMPLES:
 - "Orders by month" → SELECT "month", "month_name", COUNT(*) FROM logistics_orders GROUP BY "month", "month_name" ORDER BY "month";
 - "Orders per month" → SELECT "month", "month_name", COUNT(*) FROM logistics_orders GROUP BY "month", "month_name" ORDER BY "month";
 - "Monthly orders" → SELECT "month", "month_name", COUNT(*) FROM logistics_orders GROUP BY "month", "month_name" ORDER BY "month";
+- "Orders by day of week" → SELECT "day_of_week", COUNT(*) FROM logistics_orders GROUP BY "day_of_week" ORDER BY CASE "day_of_week" WHEN 'Monday' THEN 1 WHEN 'Tuesday' THEN 2 WHEN 'Wednesday' THEN 3 WHEN 'Thursday' THEN 4 WHEN 'Friday' THEN 5 WHEN 'Saturday' THEN 6 WHEN 'Sunday' THEN 7 END;
+- "Orders by day" → SELECT "day", COUNT(*) FROM logistics_orders GROUP BY "day" ORDER BY "day";
+- "How many orders by day of the week" → SELECT "day_of_week", COUNT(*) FROM logistics_orders GROUP BY "day_of_week" ORDER BY CASE "day_of_week" WHEN 'Monday' THEN 1 WHEN 'Tuesday' THEN 2 WHEN 'Wednesday' THEN 3 WHEN 'Thursday' THEN 4 WHEN 'Friday' THEN 5 WHEN 'Saturday' THEN 6 WHEN 'Sunday' THEN 7 END;
+- "How many orders by day" → SELECT "day", COUNT(*) FROM logistics_orders GROUP BY "day" ORDER BY "day";
+- "Orders on Monday" → SELECT * FROM logistics_orders WHERE "day_of_week" = 'Monday' LIMIT 100;
+- "Orders on day 15" → SELECT * FROM logistics_orders WHERE "day" = 15 LIMIT 100;
+- "What day of the week has most orders" → SELECT "day_of_week", COUNT(*) FROM logistics_orders GROUP BY "day_of_week" ORDER BY COUNT(*) DESC LIMIT 1;
+
+CRITICAL DISTINCTION - DAY vs DAY OF WEEK:
+- "day" = numeric day of month (1, 2, 3, ..., 31) → use "day" column
+- "day of week" = weekday name (Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday) → use "day_of_week" column
+- "orders by day" → SELECT "day", COUNT(*) FROM logistics_orders GROUP BY "day" ORDER BY "day"
+- "orders by day of week" → SELECT "day_of_week", COUNT(*) FROM logistics_orders GROUP BY "day_of_week" ORDER BY weekday sequence
+- "orders by day of the week" → SELECT "day_of_week", COUNT(*) FROM logistics_orders GROUP BY "day_of_week" ORDER BY weekday sequence
+- "Monday orders" → WHERE "day_of_week" = 'Monday'
+- "day 15 orders" → WHERE "day" = 15
+- "weekday orders" → WHERE "day_of_week" IN ('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')
+- "weekend orders" → WHERE "day_of_week" IN ('Saturday', 'Sunday')
 
 CONVERSATION CONTEXT:
 When the user refers to "those", "that", "them", "these results", or similar references, use the conversation history to understand what they're referring to. Look at previous queries and results to maintain context.
