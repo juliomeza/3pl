@@ -188,7 +188,7 @@ export function DataVisualizer({ data, viewType: externalViewType }: DataVisuali
   const renderChart = () => {
     if (!hasValidData || !data) {
       return (
-        <div className="flex items-center justify-center h-64 text-muted-foreground">
+        <div className="flex items-center justify-center h-full text-muted-foreground">
           <p className="text-center">Your data visualizations will appear here once you start asking questions about your logistics data.</p>
         </div>
       );
@@ -196,7 +196,7 @@ export function DataVisualizer({ data, viewType: externalViewType }: DataVisuali
 
     if (Array.isArray(data) && data.length === 0) {
       return (
-        <div className="flex items-center justify-center h-64 text-muted-foreground">
+        <div className="flex items-center justify-center h-full text-muted-foreground">
           <p>No data found for this query.</p>
         </div>
       );
@@ -209,14 +209,14 @@ export function DataVisualizer({ data, viewType: externalViewType }: DataVisuali
         
         if (!hasBarNumericData) {
           return (
-            <div className="flex items-center justify-center h-64 text-muted-foreground">
+            <div className="flex items-center justify-center h-full text-muted-foreground">
               <p>No valid numeric data for bar chart visualization.</p>
             </div>
           );
         }
 
         return (
-          <ResponsiveContainer width="100%" height={400}>
+          <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
               <XAxis 
@@ -254,14 +254,14 @@ export function DataVisualizer({ data, viewType: externalViewType }: DataVisuali
 
         if (pieData.length === 0) {
           return (
-            <div className="flex items-center justify-center h-64 text-muted-foreground">
+            <div className="flex items-center justify-center h-full text-muted-foreground">
               <p>No valid data for pie chart visualization.</p>
             </div>
           );
         }
 
         return (
-          <ResponsiveContainer width="100%" height={400}>
+          <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={pieData}
@@ -295,14 +295,14 @@ export function DataVisualizer({ data, viewType: externalViewType }: DataVisuali
         
         if (!hasNumericData) {
           return (
-            <div className="flex items-center justify-center h-64 text-muted-foreground">
+            <div className="flex items-center justify-center h-full text-muted-foreground">
               <p>No valid numeric data for line chart visualization.</p>
             </div>
           );
         }
 
         return (
-          <ResponsiveContainer width="100%" height={400}>
+          <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
               <XAxis 
@@ -360,9 +360,9 @@ export function DataVisualizer({ data, viewType: externalViewType }: DataVisuali
   };
 
   return (
-    <div>
+    <div className="h-full flex flex-col">
       {/* Chart/Table Display */}
-      <div className="min-h-[400px]">
+      <div className="flex-1 min-h-0">
         {renderChart()}
       </div>
 
