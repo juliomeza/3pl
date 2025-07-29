@@ -1,9 +1,9 @@
 
 'use client';
 
-import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, SidebarFooter } from '@/components/ui/sidebar';
+import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, SidebarFooter, useSidebar } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
-import { Bot, Home, PlusCircle, BarChart3 } from 'lucide-react';
+import { Bot, Home, PlusCircle, BarChart3, PanelLeftClose } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -19,6 +19,131 @@ const menuItems = [
   { href: '/client/reports', label: 'Reports', icon: BarChart3 },
   { href: '/client/assistant', label: 'AI Assistant', icon: Bot },
 ];
+
+function ClientSidebarContent() {
+  const { state } = useSidebar();
+  const { clientInfo, clientInfoLoading } = useAuth();
+  const pathname = usePathname();
+  const isCollapsed = state === 'collapsed';
+
+  return (
+    <>
+      <SidebarHeader className="p-4">
+        {/* Logo y nombre cuando está expandido */}
+        {!isCollapsed && (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {clientInfoLoading ? (
+                <>
+                  <Skeleton className="w-8 h-8 rounded-full" />
+                  <Skeleton className="w-24 h-4" />
+                </>
+              ) : clientInfo && (
+                <>
+                  {clientInfo.logo_url && (
+                    <Image
+                      src={clientInfo.logo_url}
+                      alt={`${clientInfo.name} logo`}
+                      width={32}
+                      height={32}
+                      style={{ width: '32px', height: 'auto' }}
+                      className="rounded-full object-contain"
+                      data-ai-hint="logo"
+                    />
+                  )}
+                  <span className="font-semibold text-md">{clientInfo.name}</span>
+                </>
+              )}
+            </div>
+            <SidebarTrigger className="h-8 w-8 hover:bg-gray-100" />
+          </div>
+        )}
+        
+        {/* Solo logo cuando está colapsado */}
+        {isCollapsed && (
+          <div className="flex flex-col items-center w-full">
+            {clientInfoLoading ? (
+              <Skeleton className="w-8 h-8 rounded-full" />
+            ) : clientInfo && clientInfo.logo_url ? (
+              <div className="relative group cursor-pointer">
+                <Image
+                  src={clientInfo.logo_url}
+                  alt={`${clientInfo.name} logo`}
+                  width={32}
+                  height={32}
+                  style={{ width: '32px', height: 'auto' }}
+                  className="rounded-full object-contain transition-opacity duration-200 group-hover:opacity-20"
+                  onClick={() => {
+                    // Trigger sidebar expand
+                    const trigger = document.querySelector('[data-sidebar="trigger"]') as HTMLElement;
+                    trigger?.click();
+                  }}
+                />
+                {/* Icono de expand que aparece en hover sobre el logo */}
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  className="w-6 h-6 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
+                >
+                  <path d="M3 12H21M21 12L17 8M21 12L17 16"/>
+                </svg>
+              </div>
+            ) : (
+              <SidebarTrigger className="h-8 w-8 hover:bg-gray-100">
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  className="w-4 h-4"
+                >
+                  <path d="M3 12H21M21 12L17 8M21 12L17 16"/>
+                </svg>
+              </SidebarTrigger>
+            )}
+          </div>
+        )}
+      </SidebarHeader>
+      
+      <SidebarContent>
+        <SidebarMenu>
+          {menuItems.map((item) => {
+            const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+            return (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
+                  <Link href={item.href} className={isCollapsed ? "justify-center" : ""}>
+                    <item.icon className="flex-shrink-0" />
+                    {!isCollapsed && <span>{item.label}</span>}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+        </SidebarMenu>
+      </SidebarContent>
+      
+      <SidebarFooter>
+        <div className={`flex items-center h-14 p-2 ${isCollapsed ? 'justify-center' : 'justify-start gap-2'}`}>
+          <Link href="/" className={`flex items-center font-headline text-md font-semibold text-foreground ${isCollapsed ? 'gap-0' : 'gap-2'}`}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`text-foreground ${isCollapsed ? 'w-6 h-6' : 'w-5 h-5'}`}>
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+            </svg>
+            {!isCollapsed && <span>Reliable 3PL</span>}
+          </Link>
+        </div>
+      </SidebarFooter>
+    </>
+  );
+}
 
 function ClientLayout({
   children,
@@ -47,53 +172,7 @@ function ClientLayout({
     <SidebarProvider>
         <div className="flex min-h-screen bg-background w-full">
             <Sidebar>
-                <SidebarHeader className="p-4">
-                     {clientInfoLoading ? (
-                        <div className="flex items-center gap-2">
-                            <Skeleton className="w-8 h-8 rounded-full" />
-                            <Skeleton className="w-24 h-4" />
-                        </div>
-                     ) : clientInfo && (
-                        <div className="flex items-center gap-2">
-                            {clientInfo.logo_url && (
-                                <Image
-                                    src={clientInfo.logo_url}
-                                    alt={`${clientInfo.name} logo`}
-                                    width={32}
-                                    height={32}
-                                    className="rounded-full object-contain"
-                                    data-ai-hint="logo"
-                                />
-                            )}
-                            <span className="font-semibold text-md group-data-[state=collapsed]/sidebar-wrapper:hidden">{clientInfo.name}</span>
-                        </div>
-                     )}
-                </SidebarHeader>
-                <SidebarContent>
-                    <SidebarMenu>
-                        {menuItems.map((item) => {
-                            const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
-                            return (
-                                <SidebarMenuItem key={item.href}>
-                                    <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
-                                        <Link href={item.href}>
-                                            <item.icon />
-                                            <span className="group-data-[state=collapsed]/sidebar-wrapper:hidden">{item.label}</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            );
-                        })}
-                    </SidebarMenu>
-                </SidebarContent>
-                 <SidebarFooter>
-                    <div className="flex items-center justify-start gap-2 h-14 p-2">
-                        <Link href="/" className="flex items-center gap-2 font-headline text-md font-semibold text-foreground">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-foreground"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
-                            <span className="group-data-[state=collapsed]/sidebar-wrapper:hidden">Reliable 3PL</span>
-                        </Link>
-                    </div>
-                </SidebarFooter>
+                <ClientSidebarContent />
             </Sidebar>
             <div className="flex-1 flex flex-col">
                  <header className={cn(
