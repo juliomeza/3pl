@@ -138,6 +138,48 @@ npm run typecheck
 - **Shared Layout Logic**: Both interfaces use identical resizable panel system
 - **State Management**: `leftWidth`, `isResizing`, conversation history, and data visualization state
 
+### ChatGPT-Style UI Implementation (CRITICAL - DO NOT MODIFY)
+**IMPORTANT**: These UI patterns were refined over multiple sessions and must be preserved exactly as implemented.
+
+**Message Layout & Design**:
+- **No Message Icons**: All message icons removed for clean ChatGPT-like appearance
+- **No Chat Headers**: All header sections eliminated for seamless flow
+- **User Message Bubbles**: `max-w-[80%]` width with `bg-gray-100` background and `rounded-lg`
+- **Assistant Message Expansion**: `w-full` width (spans entire chat area), no background
+- **Message Text**: `text-sm leading-relaxed` for optimal readability matching ChatGPT spacing
+- **No Visual Borders**: All card backgrounds and borders removed for unified canvas effect
+
+**Title & Section Management**:
+- **No Section Titles**: "AI Assistant" and "Data Visualization" titles completely removed
+- **Visualization Controls in Header**: Chart type buttons moved to resizable panel headers
+- **Clean Navigation**: Only essential controls visible, no redundant labeling
+
+**Scroll & Layout Behavior**:
+- **Fixed Height Container**: `calc(100vh - 144px)` prevents external page scrolling
+- **Internal Scrolling Only**: Custom `.custom-scrollbar` class with ChatGPT-style appearance
+- **Auto-scroll to Latest**: `messagesEndRef` with smooth scrolling behavior
+- **Fade-out Effect**: New Chat button has gradient overlay for seamless integration
+
+**Input Field Styling**:
+- **No Focus Borders**: `focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-gray-300 focus-visible:outline-none`
+- **Clean Input**: Removes all focus rings and outline borders for minimal appearance
+
+**SQL Query Display**:
+- **Discrete Technical Info**: `text-[10px] text-gray-600 font-mono` (smaller than normal text)
+- **Bordered Container**: `bg-slate-50 border border-slate-200 p-3 rounded-lg mt-3`
+- **Simple Format**: "SQL: {query}" without icons or complex headers
+- **Purpose**: Technical reference for developers, minimal visual impact for end users
+
+**Data Visualization Responsiveness**:
+- **Full Height Charts**: All charts use `height="100%"` instead of fixed `height={400}`
+- **Responsive Container**: `h-full flex flex-col` with `flex-1 min-h-0` for chart area
+- **Adaptive to Screen Size**: Charts expand/contract based on available vertical space
+- **Consistent with Chat**: Both visualization and chat areas are equally responsive
+
+**Loading State Consistency**:
+- **Full Width Loading**: Loading messages use `w-full` to match assistant response width
+- **Consistent Styling**: `text-sm leading-relaxed` applied to loading text
+
 ### Styling & Design
 - **Colors**: Primary `#0A183C` (dark blue), Background `#FAFBFD`, Accent `#F3F4F6`
 - **Fonts**: Headlines use `Space Grotesk`, body text uses `Inter`
@@ -172,6 +214,30 @@ npm run typecheck
 - **Security Implementation**: Client assistant automatically filters all queries by authenticated user's `owner_id`
 - **Firebase Integration**: `use-client-info.ts` hook retrieves owner_id from user profile through client document
 - **Server Actions**: Separate functions `getAiInsightOpenAI()` (employee) and `getAiInsightOpenAIClient()` (client with filtering)
+
+## Critical File Implementations (DO NOT REGRESS)
+
+### Chat UI Components (FINALIZED AFTER 4+ HOURS OF REFINEMENT)
+**`src/components/ai/shared-ai-assistant.tsx`** - Main chat interface with ChatGPT-style design:
+- **Message width logic**: User messages `max-w-[80%]`, assistant messages `w-full`
+- **No titles or headers**: Completely removed for clean appearance
+- **Input styling**: `focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-gray-300 focus-visible:outline-none`
+- **SQL query styling**: `text-[10px] text-gray-600 font-mono bg-slate-50 border border-slate-200 p-3 rounded-lg mt-3`
+- **Message text**: `text-sm leading-relaxed` for proper line spacing
+- **Loading state**: `w-full` width to match assistant responses
+
+**`src/components/ui/data-visualizer.tsx`** - Responsive data visualization:
+- **Container structure**: `h-full flex flex-col` with `flex-1 min-h-0` for chart area
+- **Chart responsiveness**: ALL charts use `height="100%"` instead of fixed heights
+- **Error states**: All error messages use `h-full` instead of `h-64`
+- **Adaptive charts**: ResponsiveContainer ensures charts scale with available space
+
+### UI Architecture Patterns (NEVER MODIFY THESE)
+1. **Side-by-side layout**: Data visualization (left) + Chat (right) with resizable handle
+2. **Fixed height strategy**: `calc(100vh - 144px)` prevents external scrolling
+3. **Chart type buttons**: Located in visualization panel header, NOT inside DataVisualizer component
+4. **New Chat button**: Positioned absolutely `top-4 right-4 z-10` with fade gradient
+5. **Scroll behavior**: Internal scrolling only with custom scrollbar styling
 
 ## Environment Setup
 
@@ -227,6 +293,12 @@ await runSingleTest('data-001')
 
 ## Critical Development Notes
 
+**CHAT UI - DO NOT REGRESS WARNING**: 
+- The ChatGPT-style UI implementation took 4+ hours of refinement across multiple sessions
+- All ChatGPT-style patterns documented above are FINAL and must never be reverted
+- If chat UI needs modification, consult the "ChatGPT-Style UI Implementation" section first
+- Any changes to message layout, input styling, or visualization responsiveness require explicit user approval
+
 - **TypeScript errors are ignored in builds** (`ignoreBuildErrors: true`)
 - **Development server runs on port 9002** (not 3000)
 - **Firebase Studio compatibility** - Project designed to work in both environments
@@ -273,12 +345,20 @@ await runSingleTest('data-001')
 - Environment or deployment changes
 - Integration of new third-party services or APIs
 
-**Recent Major Updates (July 2025)**:
-- **Data Visualization System**: Complete Recharts integration with 4 chart types and smart recommendations
-- **Chat UI Overhaul**: Side-by-side resizable layout with fixed height and internal scroll
-- **Unified Interfaces**: Employee and client assistants now share identical UI patterns
+**Recent Major Updates (July 29, 2025)**:
+- **ChatGPT-Style UI Transformation**: Complete redesign of chat interface to match ChatGPT appearance
+  - Removed all titles, headers, and visual borders for unified canvas effect
+  - Implemented user message bubbles (max-w-[80%]) vs assistant full-width responses (w-full)
+  - Added leading-relaxed spacing for better readability
+  - Eliminated message icons and card backgrounds
+  - Created discrete SQL query display with proper technical formatting
+- **Responsive Data Visualization**: Charts now adapt to screen height dynamically
+  - Changed all charts from fixed height={400} to height="100%" 
+  - Implemented h-full flex flex-col container structure
+  - Error states and empty states now use full available height
+- **Input Field Refinements**: Removed all focus borders and rings for clean appearance
+- **Chart Type Controls**: Moved visualization buttons to panel headers for better organization
 - **Performance Optimizations**: Custom scrollbars, auto-scroll, and responsive design
-- **Scroll Solution**: Resolved external page scroll with precise height calculations
 - **Client AI Assistant Security**: Implemented complete owner_id-based filtering for client data isolation
 - **Shared Component Architecture**: Zero-duplication AI assistant UI with role-specific backend logic injection
 
