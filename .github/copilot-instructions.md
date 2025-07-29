@@ -96,10 +96,17 @@ npm run typecheck
 - Schema: Tables prefixed with `logistics_` (orders, shipments, etc.)
 - AI queries specifically target tables starting with `logistics_`
 
+**Critical Data Structure - logistics_orders Table**:
+- **`project_name`**: Project subdivision within a customer (most customers have 1 project, some have multiple)
+- **`owner_id`**: Customer/client ID (equivalent to "owner" in source MS SQL database)
+- **`project_id`**: Project subdivision ID within the customer
+- **Client Hierarchy**: Customer → Project → Orders (enables client-specific data filtering)
+
 **Data Access Patterns**:
 - **Employee queries**: Can access all `logistics_*` tables (operational data, analytics, management)
-- **Client queries**: Should be restricted to client-specific data (their orders, shipments, etc.)
-- **Security consideration**: Implement data filtering based on user role and client ID
+- **Client queries**: Must be filtered by `owner_id` and optionally `project_id` for client-specific data
+- **Multi-project clients**: Some customers have multiple projects requiring project-level distinction
+- **Security filtering**: Client AI assistant must filter all queries by authenticated user's `owner_id`
 
 ## Key Conventions
 
@@ -138,9 +145,17 @@ npm run typecheck
 ### AI Development Strategy
 - **All AI features**: Implemented with OpenAI API for superior text-to-SQL performance
 - **Text-to-SQL**: Uses intelligent ILIKE patterns for partial matching
+- **Client Data Filtering**: All client AI queries must include `WHERE owner_id = [authenticated_user_owner_id]`
+- **Project Context**: AI should understand project_name as subdivision of customer for multi-project scenarios
 - **Chat Assistant**: Conversational AI with business context understanding and memory
 - **Performance-First**: Optimized for fast response times with caching and efficient token usage
 - **Architecture**: All AI integrations centralized in `src/lib/ai/`
+
+**AI Data Context Instructions**:
+- **Customer vs Project distinction**: AI must understand that some customers have multiple projects
+- **owner_id filtering**: Critical for client AI assistant data security
+- **project_name context**: Use for clarifying project-specific queries when customer has multiple projects
+- **Data hierarchy**: Customer (owner_id) → Project (project_id, project_name) → Orders/Shipments
 
 **AI Conversation Features**:
 - **Dual-Mode Processing**: Automatically detects data queries vs casual conversation
@@ -150,9 +165,9 @@ npm run typecheck
 
 **Role-Based AI Access**:
 - **Employee AI Assistant**: Access to all operational data, analytics, and management insights
-- **Client AI Assistant**: Restricted to client-specific data queries and insights
+- **Client AI Assistant**: Restricted to client-specific data queries filtered by `owner_id` and optionally `project_id`
 - **Shared UI pattern**: Both assistants use similar interface (`src/app/{role}/assistant/page.tsx`)
-- **Different backend logic**: May require role-based query filtering in AI functions
+- **Different backend logic**: Client assistant requires owner_id filtering in all AI functions
 
 ## Environment Setup
 
@@ -263,6 +278,12 @@ await runSingleTest('data-001')
 
 ## Pending Implementations
 
+**Client AI Assistant Data Filtering**:
+- **Owner-based filtering**: Implement `owner_id` filtering in client AI assistant queries for data security
+- **Project context awareness**: Add project_name understanding for multi-project customer scenarios
+- **Firebase integration**: Connect owner_id from Firebase user profile to database filtering
+- **Security validation**: Ensure all client queries are properly filtered by authenticated user's owner_id
+
 **Data Visualization Enhancements**:
 - **Scatter Plot Chart Type**: Add scatter plot visualization to DataVisualizer component for correlation analysis between two numeric variables. Ideal for queries like "What's the relationship between shipment weight and shipping cost?" or "How does shipping distance relate to delivery time?". Implementation would require:
   - New `ViewType` option: `'scatter'`
@@ -274,5 +295,6 @@ await runSingleTest('data-001')
 
 **AI Chat Assistant Improvements**:
 - **Date/Time Context**: Add current date and year awareness to chat assistant. Currently the AI thinks it's 2024, but we're in 2025. Need to inject current date context into AI prompts to ensure accurate temporal references in data queries and responses.
+- **Client Data Security**: Implement owner_id-based filtering for client AI assistant to ensure data isolation between customers
 
 This documentation maintenance ensures consistency across development sessions and preserves institutional knowledge about project patterns and decisions.
