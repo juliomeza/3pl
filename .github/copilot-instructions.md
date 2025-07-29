@@ -35,8 +35,10 @@ npm run typecheck
 - **Implementation**: OpenAI GPT-4o for text-to-SQL and chat assistant features
 - `src/lib/ai/` - OpenAI integration and logistics assistant
 - `src/lib/ai/openai-client.ts` - OpenAI client configuration (optimized for performance)
-- `src/lib/ai/logistics-assistant.ts` - Main AI logic for text-to-SQL conversion
-- `src/app/actions.ts` - Server actions that bridge UI to AI functions
+- `src/lib/ai/logistics-assistant.ts` - Main AI logic for text-to-SQL conversion with role-based filtering
+- `src/components/ai/shared-ai-assistant.tsx` - Shared UI component for both employee and client assistants
+- `src/hooks/use-client-info.ts` - Hook to fetch owner_id from Firebase user profile
+- `src/app/actions.ts` - Server actions that bridge UI to AI functions (employee + client versions)
 
 **Critical Pattern**: 
 - **OpenAI integration** uses direct API calls for superior text-to-SQL performance
@@ -145,16 +147,16 @@ npm run typecheck
 ### AI Development Strategy
 - **All AI features**: Implemented with OpenAI API for superior text-to-SQL performance
 - **Text-to-SQL**: Uses intelligent ILIKE patterns for partial matching
-- **Client Data Filtering**: All client AI queries must include `WHERE owner_id = [authenticated_user_owner_id]`
-- **Project Context**: AI should understand project_name as subdivision of customer for multi-project scenarios
+- **Client Data Filtering**: All client AI queries automatically include `WHERE owner_id = [authenticated_user_owner_id]`
+- **Project Context**: AI understands project_name as subdivision of customer for multi-project scenarios
 - **Chat Assistant**: Conversational AI with business context understanding and memory
 - **Performance-First**: Optimized for fast response times with caching and efficient token usage
 - **Architecture**: All AI integrations centralized in `src/lib/ai/`
 
 **AI Data Context Instructions**:
-- **Customer vs Project distinction**: AI must understand that some customers have multiple projects
-- **owner_id filtering**: Critical for client AI assistant data security
-- **project_name context**: Use for clarifying project-specific queries when customer has multiple projects
+- **Customer vs Project distinction**: AI understands that some customers have multiple projects
+- **owner_id filtering**: Implemented for client AI assistant data security with automatic filtering
+- **project_name context**: Used for clarifying project-specific queries when customer has multiple projects
 - **Data hierarchy**: Customer (owner_id) → Project (project_id, project_name) → Orders/Shipments
 
 **AI Conversation Features**:
@@ -163,11 +165,13 @@ npm run typecheck
 - **Context Awareness**: Remembers conversation within chat session, understands "those", "them", etc.
 - **Memory Management**: Session-based memory with "New Chat" reset functionality
 
-**Role-Based AI Access**:
+**Role-Based AI Access** (IMPLEMENTED):
 - **Employee AI Assistant**: Access to all operational data, analytics, and management insights
 - **Client AI Assistant**: Restricted to client-specific data queries filtered by `owner_id` and optionally `project_id`
-- **Shared UI pattern**: Both assistants use similar interface (`src/app/{role}/assistant/page.tsx`)
-- **Different backend logic**: Client assistant requires owner_id filtering in all AI functions
+- **Shared UI Component**: Both assistants use `src/components/ai/shared-ai-assistant.tsx` with role-specific logic injection
+- **Security Implementation**: Client assistant automatically filters all queries by authenticated user's `owner_id`
+- **Firebase Integration**: `use-client-info.ts` hook retrieves owner_id from user profile through client document
+- **Server Actions**: Separate functions `getAiInsightOpenAI()` (employee) and `getAiInsightOpenAIClient()` (client with filtering)
 
 ## Environment Setup
 
@@ -275,14 +279,10 @@ await runSingleTest('data-001')
 - **Unified Interfaces**: Employee and client assistants now share identical UI patterns
 - **Performance Optimizations**: Custom scrollbars, auto-scroll, and responsive design
 - **Scroll Solution**: Resolved external page scroll with precise height calculations
+- **Client AI Assistant Security**: Implemented complete owner_id-based filtering for client data isolation
+- **Shared Component Architecture**: Zero-duplication AI assistant UI with role-specific backend logic injection
 
 ## Pending Implementations
-
-**Client AI Assistant Data Filtering**:
-- **Owner-based filtering**: Implement `owner_id` filtering in client AI assistant queries for data security
-- **Project context awareness**: Add project_name understanding for multi-project customer scenarios
-- **Firebase integration**: Connect owner_id from Firebase user profile to database filtering
-- **Security validation**: Ensure all client queries are properly filtered by authenticated user's owner_id
 
 **Data Visualization Enhancements**:
 - **Scatter Plot Chart Type**: Add scatter plot visualization to DataVisualizer component for correlation analysis between two numeric variables. Ideal for queries like "What's the relationship between shipment weight and shipping cost?" or "How does shipping distance relate to delivery time?". Implementation would require:
@@ -294,7 +294,6 @@ await runSingleTest('data-001')
   - Tooltip showing both X and Y values with labels
 
 **AI Chat Assistant Improvements**:
-- **Date/Time Context**: Add current date and year awareness to chat assistant. Currently the AI thinks it's 2024, but we're in 2025. Need to inject current date context into AI prompts to ensure accurate temporal references in data queries and responses.
-- **Client Data Security**: Implement owner_id-based filtering for client AI assistant to ensure data isolation between customers
+- **Date/Time Context**: Add current date and year awareness to chat assistant. Currently the AI thinks it's 2024, but we're in 2025. Need to inject current date context (July 29, 2025) into AI prompts to ensure accurate temporal references in data queries and responses.
 
 This documentation maintenance ensures consistency across development sessions and preserves institutional knowledge about project patterns and decisions.
