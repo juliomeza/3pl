@@ -116,85 +116,77 @@ function ClientDashboardPage() {
       <div className="space-y-8">
           {/* Quick Status Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Active Shipments</p>
-                    <p className="text-2xl font-bold">24</p>
-                    <p className="text-xs text-green-600 flex items-center mt-1">
-                      <ArrowUpRight className="w-3 h-3 mr-1" />
-                      +12% from last month
-                    </p>
-                  </div>
-                  <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Truck className="h-6 w-6 text-blue-600" />
-                  </div>
+            <div className="p-6 border border-border rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Active Shipments</p>
+                  <p className="text-2xl font-bold">24</p>
+                  <p className="text-xs text-green-600 flex items-center mt-1">
+                    <ArrowUpRight className="w-3 h-3 mr-1" />
+                    +12% from last month
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Truck className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
+            </div>
 
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Pending Orders</p>
-                    <p className="text-2xl font-bold">8</p>
-                    <p className="text-xs text-red-600 flex items-center mt-1">
-                      <ArrowDownRight className="w-3 h-3 mr-1" />
-                      -5% from last month
-                    </p>
-                  </div>
-                  <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <Package className="h-6 w-6 text-orange-600" />
-                  </div>
+            <div className="p-6 border border-border rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Pending Orders</p>
+                  <p className="text-2xl font-bold">8</p>
+                  <p className="text-xs text-red-600 flex items-center mt-1">
+                    <ArrowDownRight className="w-3 h-3 mr-1" />
+                    -5% from last month
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <Package className="h-6 w-6 text-orange-600" />
+                </div>
+              </div>
+            </div>
 
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">This Month's Volume</p>
-                    <p className="text-2xl font-bold">73</p>
-                    <p className="text-xs text-green-600 flex items-center mt-1">
-                      <ArrowUpRight className="w-3 h-3 mr-1" />
-                      +18% vs last month
-                    </p>
-                  </div>
-                  <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="h-6 w-6 text-green-600" />
-                  </div>
+            <div className="p-6 border border-border rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">This Month's Volume</p>
+                  <p className="text-2xl font-bold">73</p>
+                  <p className="text-xs text-green-600 flex items-center mt-1">
+                    <ArrowUpRight className="w-3 h-3 mr-1" />
+                    +18% vs last month
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="h-6 w-6 text-green-600" />
+                </div>
+              </div>
+            </div>
 
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Avg. Delivery Time</p>
-                    <p className="text-2xl font-bold">3.2</p>
-                    <p className="text-xs text-muted-foreground">days</p>
-                  </div>
-                  <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Clock className="h-6 w-6 text-purple-600" />
-                  </div>
+            <div className="p-6 border border-border rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Avg. Delivery Time</p>
+                  <p className="text-2xl font-bold">3.2</p>
+                  <p className="text-xs text-muted-foreground">days</p>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <Clock className="h-6 w-6 text-purple-600" />
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Active Shipments Collapsible Section */}
-          <Card>
+          <div className="border border-border rounded-lg">
             <Collapsible open={activeShipmentsOpen} onOpenChange={setActiveShipmentsOpen}>
               <CollapsibleTrigger asChild>
-                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                <div className="cursor-pointer hover:bg-muted/50 transition-colors p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Truck className="h-5 w-5 text-blue-600" />
-                      <CardTitle>Active Shipments in Transit</CardTitle>
+                      <h3 className="text-lg font-semibold">Active Shipments in Transit</h3>
                       <Badge variant="secondary">{mockActiveShipments.length}</Badge>
                     </div>
                     {activeShipmentsOpen ? (
@@ -203,10 +195,10 @@ function ClientDashboardPage() {
                       <ChevronRight className="h-4 w-4" />
                     )}
                   </div>
-                </CardHeader>
+                </div>
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <CardContent className="pt-0">
+                <div className="pt-0 px-6 pb-6">
                   <div className="space-y-4">
                     {mockActiveShipments.map((shipment, index) => (
                       <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition-colors">
@@ -242,72 +234,72 @@ function ClientDashboardPage() {
                       </div>
                     ))}
                   </div>
-                </CardContent>
+                </div>
               </CollapsibleContent>
             </Collapsible>
-          </Card>
+          </div>
 
           {/* Data Visualization Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Shipment Trends */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
+            <div className="border border-border rounded-lg">
+              <div className="p-6 pb-2">
+                <h3 className="text-lg font-semibold flex items-center space-x-2">
                   <TrendingUp className="h-5 w-5 text-blue-600" />
                   <span>Shipment Trends</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                </h3>
+              </div>
+              <div className="px-6 pb-6">
                 <div className="h-80">
                   <DataVisualizer data={mockShipmentTrends} viewType="line" />
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* Delivery Performance */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
+            <div className="border border-border rounded-lg">
+              <div className="p-6 pb-2">
+                <h3 className="text-lg font-semibold flex items-center space-x-2">
                   <Clock className="h-5 w-5 text-green-600" />
                   <span>Delivery Performance</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                </h3>
+              </div>
+              <div className="px-6 pb-6">
                 <div className="h-80">
                   <DataVisualizer data={mockDeliveryPerformance} viewType="bar" />
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* Cost Analysis */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
+            <div className="border border-border rounded-lg">
+              <div className="p-6 pb-2">
+                <h3 className="text-lg font-semibold flex items-center space-x-2">
                   <DollarSign className="h-5 w-5 text-purple-600" />
                   <span>Cost Analysis by Service Type</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                </h3>
+              </div>
+              <div className="px-6 pb-6">
                 <div className="h-80">
                   <DataVisualizer data={mockCostAnalysis} viewType="pie" />
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* Top Destinations */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
+            <div className="border border-border rounded-lg">
+              <div className="p-6 pb-2">
+                <h3 className="text-lg font-semibold flex items-center space-x-2">
                   <MapPin className="h-5 w-5 text-orange-600" />
                   <span>Top Shipping Destinations</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                </h3>
+              </div>
+              <div className="px-6 pb-6">
                 <div className="h-80">
                   <DataVisualizer data={mockTopDestinations} viewType="table" />
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
       </div>
   );
