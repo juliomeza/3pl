@@ -30,6 +30,19 @@ const COLORS = [
 export function DataVisualizer({ data, viewType: externalViewType }: DataVisualizerProps) {
   const [lastInteractedData, setLastInteractedData] = useState<any>(null);
 
+  // Function to transform column names from snake_case to readable format
+  const formatColumnName = (columnName: string): string => {
+    return columnName
+      .split('_') // Split by underscores
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize first letter of each word
+      .join(' '); // Join with spaces
+  };
+
+  // Custom tooltip formatter for charts
+  const formatTooltipLabel = (label: any, name: string) => {
+    return `${formatColumnName(name)}: ${label}`;
+  };
+
   // Use external viewType if provided, otherwise default to 'table'
   const viewType = externalViewType || 'table';
 
@@ -235,6 +248,8 @@ export function DataVisualizer({ data, viewType: externalViewType }: DataVisuali
                   borderRadius: '8px',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}
+                formatter={(value, name) => [value, formatColumnName(String(name))]}
+                labelFormatter={(label) => `${formatColumnName(keyColumn)}: ${label}`}
               />
               <Bar 
                 dataKey={valueColumn} 
@@ -284,6 +299,7 @@ export function DataVisualizer({ data, viewType: externalViewType }: DataVisuali
                   borderRadius: '8px',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}
+                formatter={(value, name) => [value, formatColumnName(String(name))]}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -318,6 +334,8 @@ export function DataVisualizer({ data, viewType: externalViewType }: DataVisuali
                   borderRadius: '8px',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}
+                formatter={(value, name) => [value, formatColumnName(String(name))]}
+                labelFormatter={(label) => `${formatColumnName(keyColumn)}: ${label}`}
               />
               <Line 
                 type="monotone" 
@@ -338,7 +356,7 @@ export function DataVisualizer({ data, viewType: externalViewType }: DataVisuali
               <TableRow>
                 {columns.map(key => (
                   <TableHead key={key} className="font-semibold">
-                    {key}
+                    {formatColumnName(key)}
                   </TableHead>
                 ))}
               </TableRow>
