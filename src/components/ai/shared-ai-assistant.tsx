@@ -253,7 +253,7 @@ export function SharedAiAssistant({ getAiInsight }: SharedAiAssistantProps) {
                   }`}>
                     <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                     {message.query && (
-                      <div className="mt-2 text-xs text-gray-500 font-mono bg-gray-50 p-2 rounded">
+                      <div className="mt-3 text-[10px] text-gray-600 font-mono bg-slate-50 border border-slate-200 p-3 rounded-lg">
                         SQL: {message.query}
                       </div>
                     )}
