@@ -53,7 +53,7 @@ function ClientDashboardPage() {
   
   // Fetch real data
   const { activeOrders, loading: ordersLoading, error: ordersError } = useActiveOrders(clientInfo?.owner_id || null);
-  const { data: shipmentTrends, loading: trendsLoading, error: trendsError } = useShipmentTrends(clientInfo?.owner_id || null, 'last7months');
+  const { data: shipmentTrends, loading: trendsLoading, error: trendsError } = useShipmentTrends(clientInfo?.owner_id || null, 'last6months');
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -270,7 +270,7 @@ function ClientDashboardPage() {
               <div className="p-6 pb-2">
                 <h3 className="text-lg font-semibold flex items-center space-x-2">
                   <TrendingUp className="h-5 w-5 text-blue-600" />
-                  <span>Shipment Trends (Last 7 Months)</span>
+                  <span>Shipment Trends (Last 6 Months)</span>
                 </h3>
               </div>
               <div className="px-6 pb-6">
