@@ -161,7 +161,7 @@ export async function getDashboardMetrics(ownerId: number): Promise<{
 }
 
 // Get shipment trends data for charts
-export async function getShipmentTrends(ownerId: number, period: 'last30days' | 'thisMonth' | 'thisYear' | 'last6months' = 'last6months'): Promise<any[]> {
+export async function getShipmentTrends(ownerId: number, period: 'last30days' | 'thisMonth' | 'thisYear' | 'last7months' = 'last7months'): Promise<any[]> {
   try {
     const { startDate, endDate } = getDateRange(period);
     
