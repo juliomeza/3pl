@@ -2,12 +2,10 @@
 'use client';
 
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, SidebarFooter, useSidebar } from '@/components/ui/sidebar';
-import { cn } from '@/lib/utils';
 import { Bot, Home, PlusCircle, BarChart3, PanelLeftClose } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import withAuth from '@/components/with-auth';
 import { useAuth } from '@/context/auth-context';
@@ -159,23 +157,8 @@ function ClientLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
   const { clientInfo, clientInfoLoading } = useAuth();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const mainElement = document.querySelector('main');
-      if (mainElement) {
-        setIsScrolled(mainElement.scrollTop > 10);
-      }
-    };
-    
-    const mainElement = document.querySelector('main');
-    mainElement?.addEventListener('scroll', handleScroll);
-    
-    return () => mainElement?.removeEventListener('scroll', handleScroll);
-  }, []);
   
   return (
     <SidebarProvider>
@@ -183,18 +166,15 @@ function ClientLayout({
             <Sidebar>
                 <ClientSidebarContent />
             </Sidebar>
-            <div className="flex-1 flex flex-col">
-                 <header className={cn(
-                    "sticky top-0 z-40 flex items-center justify-between p-4 md:justify-end transition-all duration-300",
-                    isScrolled && "bg-background/80 backdrop-blur-lg border-b"
-                  )}>
+            <div className="flex-1 flex flex-col h-screen">
+                <header className="flex-shrink-0 flex items-center justify-between p-4 md:justify-end bg-background">
                     <div className="md:hidden">
                         <SidebarTrigger />
                     </div>
                     <DashboardHeader />
                 </header>
-                <main className="flex-1 flex flex-col overflow-y-auto">
-                    <div className="p-4 md:p-8">
+                <main className={pathname === '/client/assistant' ? 'flex-1 overflow-hidden' : 'flex-1 overflow-y-auto custom-scrollbar'}>
+                    <div className={pathname === '/client/assistant' ? 'h-full p-4 md:p-8' : 'p-4 md:p-8'}>
                         {children}
                     </div>
                 </main>
