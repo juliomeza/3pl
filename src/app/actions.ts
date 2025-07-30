@@ -2,6 +2,7 @@
 'use server';
 
 import { processLogisticsQuery, ChatMessage, QueryOptions } from '@/lib/ai/logistics-assistant';
+import { db } from '@/lib/db';
 
 // OpenAI-powered logistics assistant for employees (full access)
 export async function getAiInsightOpenAI(query: string, conversationHistory: ChatMessage[] = []) {
@@ -56,5 +57,37 @@ export async function getAiInsightOpenAIClient(query: string, ownerId: number, c
       data: null,
       error: 'Server error'
     };
+  }
+}
+
+// Get active orders for client dashboard
+export async function getActiveOrders(ownerId: number): Promise<any[]> {
+  try {
+    const result = await db.query(
+      `SELECT 
+        order_number,
+        shipment_number,
+        customer,
+        recipient_name,
+        recipient_city,
+        recipient_state,
+        delivery_status,
+        order_fulfillment_date,
+        estimated_delivery_date,
+        order_created_date,
+        carrier,
+        service_type,
+        tracking_numbers
+      FROM operations_active_orders 
+      WHERE owner_id = $1 
+      AND delivery_status NOT IN ('delivered', 'cancelled')
+      ORDER BY estimated_delivery_date ASC NULLS LAST, order_created_date DESC`,
+      [ownerId]
+    );
+    
+    return result.rows;
+  } catch (error) {
+    console.error('Error fetching active orders:', error);
+    return [];
   }
 }

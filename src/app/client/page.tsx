@@ -3,8 +3,8 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/context/auth-context';
+import { useActiveOrders } from '@/hooks/use-active-orders';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -57,59 +57,55 @@ const mockTopDestinations = [
   { destination: 'Dallas, TX', shipment_count: 12, percentage: 9.7 }
 ];
 
-// Mock active shipments data
-const mockActiveShipments = [
-  {
-    order_number: 'ORD-2025-001',
-    customer_name: 'Acme Corp',
-    status: 'In Transit',
-    pickup_date: '2025-07-25',
-    estimated_delivery: '2025-07-30',
-    destination: 'Los Angeles, CA'
-  },
-  {
-    order_number: 'ORD-2025-002', 
-    customer_name: 'Tech Solutions Inc',
-    status: 'Picked Up',
-    pickup_date: '2025-07-28',
-    estimated_delivery: '2025-08-01',
-    destination: 'Houston, TX'
-  },
-  {
-    order_number: 'ORD-2025-003',
-    customer_name: 'Global Trading Co',
-    status: 'Processing',
-    pickup_date: '2025-07-29',
-    estimated_delivery: '2025-08-02',
-    destination: 'Chicago, IL'
-  },
-  {
-    order_number: 'ORD-2025-004',
-    customer_name: 'Manufacturing Plus',
-    status: 'Ready for Pickup',
-    pickup_date: '2025-07-30',
-    estimated_delivery: '2025-08-03',
-    destination: 'Phoenix, AZ'
-  }
-];
-
 function ClientDashboardPage() {
   const { user, clientInfo, clientInfoLoading } = useAuth();
   const [activeShipmentsOpen, setActiveShipmentsOpen] = useState(false);
+  
+  // Fetch real active orders data
+  const { activeOrders, loading: ordersLoading, error: ordersError } = useActiveOrders(
+    clientInfo?.owner_id || null
+  );
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'In Transit':
+    switch (status.toLowerCase()) {
+      case 'in_transit':
+      case 'in transit':
         return 'bg-blue-100 text-blue-800';
-      case 'Picked Up':
+      case 'picked_up':
+      case 'picked up':
         return 'bg-green-100 text-green-800';
-      case 'Processing':
+      case 'processing':
         return 'bg-yellow-100 text-yellow-800';
-      case 'Ready for Pickup':
+      case 'ready_for_pickup':
+      case 'ready for pickup':
         return 'bg-purple-100 text-purple-800';
+      case 'pending':
+        return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const formatDate = (dateString: string | null | undefined): string => {
+    if (!dateString) return 'Not set';
+    
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch {
+      return 'Invalid date';
+    }
+  };
+
+  const formatDestination = (city?: string, state?: string): string => {
+    if (city && state) return `${city}, ${state}`;
+    if (city) return city;
+    if (state) return state;
+    return 'Not specified';
   };
 
   return (
@@ -178,7 +174,7 @@ function ClientDashboardPage() {
             </div>
           </div>
 
-          {/* Active Shipments Collapsible Section */}
+          {/* Active Orders Collapsible Section */}
           <div className="border border-border rounded-lg">
             <Collapsible open={activeShipmentsOpen} onOpenChange={setActiveShipmentsOpen}>
               <CollapsibleTrigger asChild>
@@ -186,8 +182,12 @@ function ClientDashboardPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Truck className="h-5 w-5 text-blue-600" />
-                      <h3 className="text-lg font-semibold">Active Shipments in Transit</h3>
-                      <Badge variant="secondary">{mockActiveShipments.length}</Badge>
+                      <h3 className="text-lg font-semibold">Active Orders</h3>
+                      {ordersLoading ? (
+                        <Skeleton className="h-5 w-6" />
+                      ) : (
+                        <Badge variant="secondary">{activeOrders.length}</Badge>
+                      )}
                     </div>
                     {activeShipmentsOpen ? (
                       <ChevronDown className="h-4 w-4" />
@@ -199,41 +199,76 @@ function ClientDashboardPage() {
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <div className="pt-0 px-6 pb-6">
-                  <div className="space-y-4">
-                    {mockActiveShipments.map((shipment, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition-colors">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3">
-                            <div>
-                              <p className="font-semibold">{shipment.order_number}</p>
-                              <p className="text-sm text-muted-foreground">{shipment.customer_name}</p>
+                  {ordersLoading ? (
+                    <div className="space-y-4">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3">
+                              <div>
+                                <Skeleton className="h-4 w-24 mb-2" />
+                                <Skeleton className="h-3 w-32" />
+                              </div>
+                              <Skeleton className="h-6 w-16" />
                             </div>
-                            <Badge className={getStatusColor(shipment.status)}>
-                              {shipment.status}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center space-x-4 mt-2 text-sm text-muted-foreground">
-                            <div className="flex items-center space-x-1">
-                              <Calendar className="h-3 w-3" />
-                              <span>Pickup: {shipment.pickup_date}</span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <Clock className="h-3 w-3" />
-                              <span>ETA: {shipment.estimated_delivery}</span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <MapPin className="h-3 w-3" />
-                              <span>{shipment.destination}</span>
+                            <div className="flex items-center space-x-4 mt-2">
+                              <Skeleton className="h-3 w-20" />
+                              <Skeleton className="h-3 w-20" />
+                              <Skeleton className="h-3 w-24" />
                             </div>
                           </div>
+                          <Skeleton className="h-8 w-24" />
                         </div>
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4 mr-2" />
-                          View Details
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : ordersError ? (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">Error loading active orders: {ordersError}</p>
+                    </div>
+                  ) : activeOrders.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Truck className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground">No active orders found</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {activeOrders.map((order, index) => (
+                        <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition-colors">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3">
+                              <div>
+                                <p className="font-semibold">{order.order_number}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  Customer: {order.recipient_name || 'Not specified'}
+                                </p>
+                              </div>
+                              <Badge className={getStatusColor(order.delivery_status)}>
+                                {order.delivery_status.replace('_', ' ')}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center space-x-4 mt-2 text-sm text-muted-foreground">
+                              <div className="flex items-center space-x-1">
+                                <Calendar className="h-3 w-3" />
+                                <span>Pickup: {formatDate(order.order_fulfillment_date)}</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <Clock className="h-3 w-3" />
+                                <span>ETA: {formatDate(order.estimated_delivery_date)}</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <MapPin className="h-3 w-3" />
+                                <span>{formatDestination(order.recipient_city, order.recipient_state)}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <Button variant="ghost" size="sm">
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </CollapsibleContent>
             </Collapsible>
