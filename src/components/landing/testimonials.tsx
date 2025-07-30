@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 
 const testimonialsData = [
     { name: 'Patricia Morales', handle: 'DirectShop • Mexico', avatar: 'PM', content: "We are now saving 1-2 man-days each month. Due to improved order reconciliation, we are now saving time, and we have a better understanding of our logistics thanks to dashboards." },
-    { name: 'Guy Solan', handle: 'Thetis Commerce • UK', avatar: 'GS', content: "Without Synapse3PL I would've lost loads of money on inefficient logistics." },
+    { name: 'Guy Solan', handle: 'Thetis Commerce • UK', avatar: 'GS', content: "Without Reliable 3PL I would've lost loads of money on inefficient logistics." },
     { name: 'Facu Montanaro', handle: 'Kundo Studio • Argentina', avatar: 'FM', content: "It has completely transformed how I manage my day-to-day logistics tasks." },
     { name: 'Richard Poelderl', handle: 'Conduct.bln • Germany', avatar: 'RP', content: "I prefer to have one tool for logistics, similar to what Deel is for HR." },
     { name: 'Lucas Grey', handle: '@ImLucasGrey', avatar: 'LG', content: "This is so ingenious and good!" },

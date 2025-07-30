@@ -323,7 +323,7 @@ npm run typecheck
 
 ### Chat UI Components (FINALIZED AFTER 4+ HOURS OF REFINEMENT)
 **`src/components/ai/shared-ai-assistant.tsx`** - Main chat interface with ChatGPT-style design:
-- **Message width logic**: User messages `max-w-[80%]`, assistant messages `w-full`
+- **Message width logic**: User messages `max-w-[80%]` a, assistant messages `w-full`
 - **No titles or headers**: Completely removed for clean appearance
 - **Input styling**: `focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-gray-300 focus-visible:outline-none`
 - **SQL query styling**: `text-[10px] text-gray-600 font-mono bg-slate-50 border border-slate-200 p-3 rounded-lg mt-3`
