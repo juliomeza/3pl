@@ -4,7 +4,8 @@
 import { useState } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useActiveOrders } from '@/hooks/use-active-orders';
-import { useShipmentTrends, useTopDestinations } from '@/hooks/use-dashboard-charts';
+import { useShipmentTrends, useTopDestinations, useDeliveryPerformance } from '@/hooks/use-dashboard-charts';
+import { useDashboardMetrics } from '@/hooks/use-dashboard-metrics';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,13 +26,6 @@ import {
   Eye,
 } from 'lucide-react';
 
-// Mock data for visualization - will be replaced with real data later
-const mockDeliveryPerformance = [
-  { status: 'On Time', count: 89 },
-  { status: 'Delayed', count: 12 },
-  { status: 'Early', count: 25 }
-];
-
 const mockCostAnalysis = [
   { service_type: 'Express', total_cost: 12500 },
   { service_type: 'Standard', total_cost: 8900 },
@@ -47,6 +41,9 @@ function ClientDashboardPage() {
   const { activeOrders, loading: ordersLoading, error: ordersError } = useActiveOrders(clientInfo?.owner_id || null);
   const { data: shipmentTrends, loading: trendsLoading, error: trendsError } = useShipmentTrends(clientInfo?.owner_id || null, 'last6months');
   const { data: topDestinations, loading: destinationsLoading, error: destinationsError } = useTopDestinations(clientInfo?.owner_id || null);
+  const { data: deliveryPerformance, loading: performanceLoading, error: performanceError } = useDeliveryPerformance(clientInfo?.owner_id || null);
+  const { metrics, loading: metricsLoading, error: metricsError } = useDashboardMetrics(clientInfo?.owner_id || null);
+
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -98,14 +95,13 @@ function ClientDashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Active Shipments</p>
-                  <p className="text-2xl font-bold">24</p>
-                  <p className="text-xs text-green-600 flex items-center mt-1">
-                    <ArrowUpRight className="w-3 h-3 mr-1" />
-                    +12% from last month
-                  </p>
-                </div>
-                <div className="h-12 w-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <Truck className="h-6 w-6 text-gray-800" />
+                  {metricsLoading ? <Skeleton className="h-8 w-12" /> : <p className="text-2xl font-bold">{metrics.activeShipments}</p>}
+                  {metricsLoading ? <Skeleton className="h-4 w-24 mt-1" /> : (
+                    <p className="text-xs text-green-600 flex items-center mt-1">
+                      <ArrowUpRight className="w-3 h-3 mr-1" />
+                      +12% from last month
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -114,14 +110,13 @@ function ClientDashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Pending Orders</p>
-                  <p className="text-2xl font-bold">8</p>
-                  <p className="text-xs text-red-600 flex items-center mt-1">
-                    <ArrowDownRight className="w-3 h-3 mr-1" />
-                    -5% from last month
-                  </p>
-                </div>
-                <div className="h-12 w-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <Package className="h-6 w-6 text-gray-800" />
+                  {metricsLoading ? <Skeleton className="h-8 w-12" /> : <p className="text-2xl font-bold">{metrics.pendingOrders}</p>}
+                  {metricsLoading ? <Skeleton className="h-4 w-24 mt-1" /> : (
+                    <p className="text-xs text-red-600 flex items-center mt-1">
+                      <ArrowDownRight className="w-3 h-3 mr-1" />
+                      -5% from last month
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -130,14 +125,13 @@ function ClientDashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">This Month's Volume</p>
-                  <p className="text-2xl font-bold">73</p>
-                  <p className="text-xs text-green-600 flex items-center mt-1">
-                    <ArrowUpRight className="w-3 h-3 mr-1" />
-                    +18% vs last month
-                  </p>
-                </div>
-                <div className="h-12 w-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="h-6 w-6 text-gray-800" />
+                  {metricsLoading ? <Skeleton className="h-8 w-12" /> : <p className="text-2xl font-bold">{metrics.thisMonthVolume}</p>}
+                  {metricsLoading ? <Skeleton className="h-4 w-24 mt-1" /> : (
+                    <p className="text-xs text-green-600 flex items-center mt-1">
+                      <ArrowUpRight className="w-3 h-3 mr-1" />
+                      +18% vs last month
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -146,11 +140,8 @@ function ClientDashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Avg. Delivery Time</p>
-                  <p className="text-2xl font-bold">3.2</p>
+                  {metricsLoading ? <Skeleton className="h-8 w-12" /> : <p className="text-2xl font-bold">{metrics.averageDeliveryTime}</p>}
                   <p className="text-xs text-muted-foreground">days</p>
-                </div>
-                <div className="h-12 w-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <Clock className="h-6 w-6 text-gray-800" />
                 </div>
               </div>
             </div>
@@ -293,7 +284,17 @@ function ClientDashboardPage() {
               </div>
               <div className="px-6 pb-6">
                 <div className="h-80">
-                  <DataVisualizer data={mockDeliveryPerformance} viewType="bar" />
+                   {performanceLoading ? (
+                    <div className="flex items-center justify-center h-full">
+                      <Skeleton className="w-full h-full" />
+                    </div>
+                  ) : performanceError ? (
+                    <div className="flex items-center justify-center h-full text-red-600">
+                      Error: {performanceError}
+                    </div>
+                  ) : (
+                    <DataVisualizer data={deliveryPerformance} viewType="bar" />
+                  )}
                 </div>
               </div>
             </div>
