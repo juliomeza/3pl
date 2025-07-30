@@ -221,7 +221,6 @@ export async function getTopDestinations(ownerId: number, period: 'last90days' =
     const query = `
       WITH DestinationCounts AS (
         SELECT
-          recipient_city,
           recipient_state,
           COUNT(*) AS shipment_count
         FROM
@@ -230,8 +229,8 @@ export async function getTopDestinations(ownerId: number, period: 'last90days' =
           owner_id = $1
           AND DATE(order_created_date) BETWEEN $2 AND $3
           AND order_type = 'Outbound'
+          AND recipient_state IS NOT NULL
         GROUP BY
-          recipient_city,
           recipient_state
       ), TotalShipments AS (
         SELECT COUNT(*) AS total_count 
@@ -241,7 +240,7 @@ export async function getTopDestinations(ownerId: number, period: 'last90days' =
         AND order_type = 'Outbound'
       )
       SELECT
-        COALESCE(dc.recipient_city, 'N/A') || ', ' || COALESCE(dc.recipient_state, 'N/A') AS destination,
+        dc.recipient_state AS destination,
         dc.shipment_count,
         CASE
           WHEN ts.total_count > 0 THEN ROUND((dc.shipment_count * 100.0 / ts.total_count), 2)
@@ -266,4 +265,3 @@ export async function getTopDestinations(ownerId: number, period: 'last90days' =
     return [];
   }
 }
-
