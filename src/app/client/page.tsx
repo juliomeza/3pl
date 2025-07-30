@@ -32,6 +32,12 @@ const mockCostAnalysis = [
   { service_type: 'Overnight', total_cost: 3200 }
 ];
 
+const mockDeliveryPerformance = [
+    { status: 'On Time', count: 850 },
+    { status: 'Early', count: 230 },
+    { status: 'Delayed', count: 75 },
+];
+
 function ClientDashboardPage() {
   const { clientInfo } = useAuth();
   const [activeShipmentsOpen, setActiveShipmentsOpen] = useState(false);
@@ -289,17 +295,7 @@ function ClientDashboardPage() {
               </div>
               <div className="px-6 pb-6">
                 <div className="h-80">
-                   {performanceLoading ? (
-                    <div className="flex items-center justify-center h-full">
-                      <Skeleton className="w-full h-full" />
-                    </div>
-                  ) : performanceError ? (
-                    <div className="flex items-center justify-center h-full text-red-600">
-                      Error: {performanceError}
-                    </div>
-                  ) : (
-                    <DataVisualizer data={deliveryPerformance} viewType="bar" />
-                  )}
+                   <DataVisualizer data={mockDeliveryPerformance} viewType="bar" />
                 </div>
               </div>
             </div>
