@@ -318,6 +318,53 @@ npm run typecheck
 4. **New Chat button**: Positioned absolutely `top-4 right-4 z-10` with fade gradient
 5. **Scroll behavior**: Internal scrolling only with custom scrollbar styling
 
+### Fixed Sidebar Layout Implementation (CRITICAL - AUGUST 2025)
+**IMPORTANT**: This layout pattern solves sidebar movement issues during page scrolling and must be preserved exactly as implemented.
+
+**Problem Solved**: Sidebar components were moving when scrolling dashboard content, breaking the visual hierarchy and user experience.
+
+**Client Layout Architecture (`src/app/client/layout.tsx`)**:
+- **Fixed Height Container**: `h-screen` on main container div prevents external page scrolling
+- **Conditional Overflow Management**: 
+  - AI Assistant pages: `overflow-hidden` to maintain existing scroll behavior
+  - Dashboard pages: `overflow-y-auto custom-scrollbar` for normal scrolling with custom styling
+- **Header Structure**: `flex-shrink-0` header with no border (clean visual separation)
+- **Sidebar Isolation**: Sidebar remains completely fixed regardless of content scroll
+
+**Critical Implementation Pattern**:
+```tsx
+<div className="flex-1 flex flex-col h-screen">
+  <header className="flex-shrink-0 flex items-center justify-between p-4 md:justify-end bg-background">
+    {/* Header content - no border-b for clean appearance */}
+  </header>
+  <main className={pathname === '/client/assistant' ? 'flex-1 overflow-hidden' : 'flex-1 overflow-y-auto custom-scrollbar'}>
+    <div className={pathname === '/client/assistant' ? 'h-full p-4 md:p-8' : 'p-4 md:p-8'}>
+      {children}
+    </div>
+  </main>
+</div>
+```
+
+**Key Design Decisions**:
+1. **Path-Based Overflow Control**: Different overflow behavior for AI Assistant vs Dashboard pages
+2. **No Header Border**: Removed `border-b` class for seamless visual integration
+3. **Custom Scrollbar**: Applied `.custom-scrollbar` class for consistent styling across app
+4. **Preserved AI Assistant Behavior**: Existing AI Assistant scroll patterns remain unchanged
+
+**Fixed Elements**:
+- **Sidebar**: Completely static, never moves during content scroll
+- **Header**: Fixed at top, no scroll-based visual changes
+- **Footer in Sidebar**: "Reliable 3PL" branding stays in position
+- **Collapse/Expand Buttons**: Maintain positioning regardless of content scroll
+
+**Visual Benefits**:
+- **Professional Appearance**: Sidebar behaves like modern desktop applications
+- **Consistent UX**: Same behavior pattern as Employee layout
+- **Clean Integration**: No visual boundaries or distracting scroll effects
+- **Preserved AI Features**: Existing AI Assistant functionality completely unaffected
+
+**DO NOT REGRESS**: This implementation required careful coordination between layout heights, overflow properties, and conditional rendering. Any changes to sidebar scroll behavior must preserve these patterns.
+
 ## Environment Setup
 
 Required environment variables:
