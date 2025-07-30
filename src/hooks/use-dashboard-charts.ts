@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { getShipmentTrends, getDeliveryPerformance } from '@/app/actions';
 
 export interface TrendDataPoint {
-  date: string;
-  orders: number;
+  month_name: string;
+  shipment_count: number;
 }
 
 export interface PerformanceDataPoint {
@@ -11,7 +11,7 @@ export interface PerformanceDataPoint {
   count: number;
 }
 
-export function useShipmentTrends(ownerId: number | null, period: 'last30days' | 'thisMonth' | 'thisYear' = 'last30days') {
+export function useShipmentTrends(ownerId: number | null, period: 'last30days' | 'thisMonth' | 'thisYear' | 'last6months' = 'last6months') {
   const [data, setData] = useState<TrendDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

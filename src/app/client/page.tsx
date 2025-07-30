@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useActiveOrders } from '@/hooks/use-active-orders';
+import { useShipmentTrends } from '@/hooks/use-dashboard-charts';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,8 @@ import {
   Package, 
   Clock, 
   TrendingUp, 
-  TrendingDown, 
+  ArrowUpRight,
+  ArrowDownRight,
   Truck, 
   MapPin, 
   DollarSign,
@@ -21,21 +23,9 @@ import {
   ChevronDown,
   ChevronRight,
   Eye,
-  ArrowUpRight,
-  ArrowDownRight
 } from 'lucide-react';
 
 // Mock data for visualization - will be replaced with real data later
-const mockShipmentTrends = [
-  { month_name: 'January', shipment_count: 45 },
-  { month_name: 'February', shipment_count: 52 },
-  { month_name: 'March', shipment_count: 48 },
-  { month_name: 'April', shipment_count: 61 },
-  { month_name: 'May', shipment_count: 55 },
-  { month_name: 'June', shipment_count: 67 },
-  { month_name: 'July', shipment_count: 73 }
-];
-
 const mockDeliveryPerformance = [
   { status: 'On Time', count: 89 },
   { status: 'Delayed', count: 12 },
@@ -58,13 +48,12 @@ const mockTopDestinations = [
 ];
 
 function ClientDashboardPage() {
-  const { user, clientInfo, clientInfoLoading } = useAuth();
+  const { clientInfo } = useAuth();
   const [activeShipmentsOpen, setActiveShipmentsOpen] = useState(false);
   
-  // Fetch real active orders data
-  const { activeOrders, loading: ordersLoading, error: ordersError } = useActiveOrders(
-    clientInfo?.owner_id || null
-  );
+  // Fetch real data
+  const { activeOrders, loading: ordersLoading, error: ordersError } = useActiveOrders(clientInfo?.owner_id || null);
+  const { data: shipmentTrends, loading: trendsLoading, error: trendsError } = useShipmentTrends(clientInfo?.owner_id || null, 'last6months');
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -281,12 +270,22 @@ function ClientDashboardPage() {
               <div className="p-6 pb-2">
                 <h3 className="text-lg font-semibold flex items-center space-x-2">
                   <TrendingUp className="h-5 w-5 text-blue-600" />
-                  <span>Shipment Trends</span>
+                  <span>Shipment Trends (Last 6 Months)</span>
                 </h3>
               </div>
               <div className="px-6 pb-6">
                 <div className="h-80">
-                  <DataVisualizer data={mockShipmentTrends} viewType="line" />
+                  {trendsLoading ? (
+                    <div className="flex items-center justify-center h-full">
+                      <Skeleton className="w-full h-full" />
+                    </div>
+                  ) : trendsError ? (
+                    <div className="flex items-center justify-center h-full text-red-600">
+                      Error: {trendsError}
+                    </div>
+                  ) : (
+                    <DataVisualizer data={shipmentTrends} viewType="line" />
+                  )}
                 </div>
               </div>
             </div>

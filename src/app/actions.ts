@@ -161,25 +161,26 @@ export async function getDashboardMetrics(ownerId: number): Promise<{
 }
 
 // Get shipment trends data for charts
-export async function getShipmentTrends(ownerId: number, period: 'last30days' | 'thisMonth' | 'thisYear' = 'last30days'): Promise<any[]> {
+export async function getShipmentTrends(ownerId: number, period: 'last30days' | 'thisMonth' | 'thisYear' | 'last6months' = 'last6months'): Promise<any[]> {
   try {
     const { startDate, endDate } = getDateRange(period);
     
     const result = await db.query(
       `SELECT 
-        DATE(order_created_date) as date,
-        COUNT(*) as orders
+        TO_CHAR(DATE(order_created_date), 'YYYY-MM') as month,
+        TO_CHAR(DATE(order_created_date), 'Mon') as month_name,
+        COUNT(*) as shipment_count
        FROM operations_active_orders 
        WHERE owner_id = $1 
        AND DATE(order_created_date) BETWEEN $2 AND $3
-       GROUP BY DATE(order_created_date)
-       ORDER BY date ASC`,
+       GROUP BY month, month_name
+       ORDER BY month ASC`,
       [ownerId, startDate, endDate]
     );
 
     return result.rows.map(row => ({
-      date: row.date,
-      orders: parseInt(row.orders)
+      month_name: row.month_name,
+      shipment_count: parseInt(row.shipment_count)
     }));
   } catch (error) {
     console.error('Error fetching shipment trends:', error);

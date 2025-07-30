@@ -28,7 +28,7 @@ export function getCurrentDateContext(): DateContext {
 /**
  * Get date range for common time periods
  */
-export function getDateRange(period: 'last30days' | 'thisMonth' | 'thisYear' | 'lastMonth' | 'lastYear' | 'today'): { startDate: string; endDate: string } {
+export function getDateRange(period: 'last30days' | 'thisMonth' | 'thisYear' | 'lastMonth' | 'lastYear' | 'today' | 'last6months'): { startDate: string; endDate: string } {
   const { today, currentYear, currentMonth } = getCurrentDateContext();
   const now = new Date();
 
@@ -41,6 +41,16 @@ export function getDateRange(period: 'last30days' | 'thisMonth' | 'thisYear' | '
       thirtyDaysAgo.setDate(now.getDate() - 30);
       return {
         startDate: thirtyDaysAgo.toISOString().split('T')[0],
+        endDate: today
+      };
+    }
+    
+    case 'last6months': {
+      const sixMonthsAgo = new Date(now);
+      sixMonthsAgo.setMonth(now.getMonth() - 5);
+      sixMonthsAgo.setDate(1); // Start from the beginning of that month
+      return {
+        startDate: sixMonthsAgo.toISOString().split('T')[0],
         endDate: today
       };
     }
