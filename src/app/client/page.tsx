@@ -104,8 +104,8 @@ function ClientDashboardPage() {
                     +12% from last month
                   </p>
                 </div>
-                <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Truck className="h-6 w-6 text-blue-600" />
+                <div className="h-12 w-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <Truck className="h-6 w-6 text-gray-800" />
                 </div>
               </div>
             </div>
@@ -120,8 +120,8 @@ function ClientDashboardPage() {
                     -5% from last month
                   </p>
                 </div>
-                <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <Package className="h-6 w-6 text-orange-600" />
+                <div className="h-12 w-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <Package className="h-6 w-6 text-gray-800" />
                 </div>
               </div>
             </div>
@@ -136,8 +136,8 @@ function ClientDashboardPage() {
                     +18% vs last month
                   </p>
                 </div>
-                <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="h-6 w-6 text-green-600" />
+                <div className="h-12 w-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="h-6 w-6 text-gray-800" />
                 </div>
               </div>
             </div>
@@ -149,8 +149,8 @@ function ClientDashboardPage() {
                   <p className="text-2xl font-bold">3.2</p>
                   <p className="text-xs text-muted-foreground">days</p>
                 </div>
-                <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Clock className="h-6 w-6 text-purple-600" />
+                <div className="h-12 w-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <Clock className="h-6 w-6 text-gray-800" />
                 </div>
               </div>
             </div>
