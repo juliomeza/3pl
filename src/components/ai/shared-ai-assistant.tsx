@@ -237,9 +237,6 @@ export function SharedAiAssistant({ getAiInsight }: SharedAiAssistantProps) {
           <div className="flex-1 overflow-y-auto p-4 pt-16 space-y-4 custom-scrollbar">
             {messages.length === 0 && (
               <div className="text-center text-gray-500 py-8">
-                <Bot className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                <p>Ask me about your logistics data!</p>
-                <p className="text-sm mt-1">Try: "How many orders this month?" or "Show recent shipments"</p>
               </div>
             )}
             
