@@ -265,6 +265,31 @@ npm run typecheck
 - **Icons**: Exclusively `lucide-react` for consistency
 - **Components**: Built with Radix UI primitives + Tailwind CSS
 
+### Date Context and Temporal Queries (IMPLEMENTED)
+
+**Current Date Awareness**:
+- **AI Assistant**: Integrated current date context (July 30, 2025) into OpenAI prompts for accurate temporal query processing
+- **Date Context Injection**: `getCurrentDateContext()` function provides current year (2025), month (7), day (30) to AI
+- **Smart Temporal Processing**: AI correctly interprets "this year", "this month", "last 30 days", "today" using actual current date
+- **SQL Generation Examples**:
+  - "orders this year" → `WHERE "year" = 2025`
+  - "orders this month" → `WHERE EXTRACT(YEAR FROM date) = 2025 AND EXTRACT(MONTH FROM date) = 7`
+  - "orders last 30 days" → `WHERE DATE(date) >= '2025-06-30' AND DATE(date) <= '2025-07-30'`
+  - "orders today" → `WHERE DATE(date) = '2025-07-30'`
+
+**Date Utilities Architecture**:
+- **`src/lib/date-utils.ts`**: Centralized date handling for both AI and Dashboard components
+- **`getCurrentDateContext()`**: Returns formatted current date information
+- **`getDateRange(period)`**: Calculates start/end dates for common periods (last30days, thisMonth, thisYear, etc.)
+- **`getSqlDateFilter(column, period)`**: Generates PostgreSQL date filter clauses
+- **`formatDisplayDate(dateString)`**: Formats dates for UI display
+
+**Dashboard Date Integration**:
+- **Server Actions**: `getDashboardMetrics()`, `getShipmentTrends()`, `getDeliveryPerformance()` with date filtering
+- **Custom Hooks**: `useDashboardMetrics()`, `useShipmentTrends()`, `useDeliveryPerformance()` for React components
+- **Configurable Periods**: Support for last30days, thisMonth, thisYear, lastMonth, lastYear, today
+- **Real-time Context**: All dashboard queries use current date context for accurate "this month" calculations
+
 ### AI Development Strategy
 - **All AI features**: Implemented with OpenAI API for superior text-to-SQL performance
 - **Text-to-SQL**: Uses intelligent ILIKE patterns for partial matching
@@ -402,6 +427,9 @@ await runTestsByType('data-query')
 
 # Debug single test case
 await runSingleTest('data-001')
+
+# Test date context functionality
+npm run test:chat -- --testNamePattern="date-"
 ```
 
 **Test Environment Setup**:
@@ -415,6 +443,7 @@ await runSingleTest('data-001')
 - **Comprehensive Coverage**: Tests conversational vs data query detection
 - **SQL Validation**: Verifies correct ILIKE patterns, exact matching, and intelligent query building
 - **Context Testing**: Validates conversation memory and follow-up question handling
+- **Date Context Validation**: 4 test cases verify AI correctly interprets temporal queries with current date (2025)
 - **Regression Prevention**: Critical business logic tests for customer matching, warehouse queries, etc.
 
 ## Critical Development Notes
@@ -472,6 +501,16 @@ await runSingleTest('data-001')
 - Integration of new third-party services or APIs
 
 **Recent Major Updates (July 30, 2025)**:
+- **Date Context Implementation (IMPLEMENTED)**: Complete current date awareness across AI Assistant and Dashboard
+  - Added `src/lib/date-utils.ts` with comprehensive date utilities for consistent date handling
+  - **AI Assistant Date Context**: Integrated current date (2025-07-30) into AI prompts for accurate temporal queries
+  - **Smart Temporal Query Processing**: AI now correctly interprets "this year" (2025), "this month" (July), "last 30 days", and "today"
+  - **Dashboard Date Infrastructure**: Created server actions with date filtering for client dashboard metrics
+  - **Date Range Utilities**: Functions for common periods (last30days, thisMonth, thisYear, lastMonth, lastYear, today)
+  - **SQL Date Filtering**: Helper functions for PostgreSQL date queries with proper formatting
+  - **Test Coverage**: Added 4 automated test cases (date-001 to date-004) validating AI date context functionality
+  - **Table Separation**: AI Assistant uses `logistics_orders.date`, Dashboard uses `operations_active_orders` with different date columns
+  - **Performance**: Date context adds minimal overhead with efficient caching and optimized queries
 - **Column Name Formatting (IMPLEMENTED)**: Automatic transformation of database column names for better UX
   - Added `formatColumnName()` function to convert snake_case to readable format (e.g., "day_of_week" → "Day Of Week")
   - Applied to table headers for cleaner presentation of data
@@ -519,6 +558,18 @@ await runSingleTest('data-001')
 
 ## Pending Implementations
 
+**Client Dashboard Real Data Integration**:
+- **Status Cards Metrics**: Replace mock data in the 4 status cards with real database queries using `useDashboardMetrics()` hook
+  - Active Shipments count from operations_active_orders
+  - Pending Orders count with status-based filtering
+  - This Month's Volume with date-based aggregation
+  - Average Delivery Time calculation from historical data
+- **Visualization Charts**: Connect the 4 dashboard charts to real data sources using `useShipmentTrends()` and `useDeliveryPerformance()` hooks
+  - Shipment Trends: Monthly aggregation queries with configurable periods (last30days, thisMonth, thisYear)
+  - Delivery Performance: Status-based analytics with real-time data
+  - Cost Analysis: Service type cost breakdowns (pending implementation)
+  - Top Destinations: Geographic shipping analysis (pending implementation)
+
 **Data Visualization Enhancements**:
 - **Scatter Plot Chart Type**: Add scatter plot visualization to DataVisualizer component for correlation analysis between two numeric variables. Ideal for queries like "What's the relationship between shipment weight and shipping cost?" or "How does shipping distance relate to delivery time?". Implementation would require:
   - New `ViewType` option: `'scatter'`
@@ -527,20 +578,5 @@ await runSingleTest('data-001')
   - Automatic recommendation when data has 2 numeric + 0-1 label columns
   - XAxis and YAxis mapping for the two numeric variables
   - Tooltip showing both X and Y values with labels
-
-**AI Chat Assistant Improvements**:
-- **Date/Time Context**: Add current date and year awareness to chat assistant. Currently the AI thinks it's 2024, but we're in 2025. Need to inject current date context (July 30, 2025) into AI prompts to ensure accurate temporal references in data queries and responses.
-
-**Client Dashboard Real Data Integration**:
-- **Status Cards Metrics**: Replace mock data in the 4 status cards with real database queries
-  - Active Shipments count from operations_active_orders
-  - Pending Orders count with status-based filtering
-  - This Month's Volume with date-based aggregation
-  - Average Delivery Time calculation from historical data
-- **Visualization Charts**: Connect the 4 dashboard charts to real data sources
-  - Shipment Trends: Monthly aggregation queries
-  - Delivery Performance: Status-based analytics
-  - Cost Analysis: Service type cost breakdowns
-  - Top Destinations: Geographic shipping analysis
 
 This documentation maintenance ensures consistency across development sessions and preserves institutional knowledge about project patterns and decisions.
