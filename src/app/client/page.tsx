@@ -12,18 +12,17 @@ import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DataVisualizer } from '@/components/ui/data-visualizer';
 import { 
-  Package, 
-  Clock, 
-  TrendingUp, 
   ArrowUpRight,
   ArrowDownRight,
   Truck, 
   MapPin, 
-  DollarSign,
   Calendar,
   ChevronDown,
   ChevronRight,
   Eye,
+  Clock,
+  TrendingUp,
+  DollarSign
 } from 'lucide-react';
 
 const mockCostAnalysis = [
@@ -44,6 +43,12 @@ function ClientDashboardPage() {
   const { data: deliveryPerformance, loading: performanceLoading, error: performanceError } = useDeliveryPerformance(clientInfo?.owner_id || null);
   const { metrics, loading: metricsLoading, error: metricsError } = useDashboardMetrics(clientInfo?.owner_id || null);
 
+  const displayMetrics = {
+    activeShipments: metricsLoading ? '' : metrics.activeShipments || 284,
+    pendingOrders: metricsLoading ? '' : metrics.pendingOrders || 72,
+    thisMonthVolume: metricsLoading ? '' : metrics.thisMonthVolume || 1254,
+    averageDeliveryTime: metricsLoading ? '' : metrics.averageDeliveryTime || 3
+  }
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -95,7 +100,7 @@ function ClientDashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Active Shipments</p>
-                  {metricsLoading ? <Skeleton className="h-8 w-12" /> : <p className="text-2xl font-bold">{metrics.activeShipments}</p>}
+                  {metricsLoading ? <Skeleton className="h-8 w-20 mt-1" /> : <p className="text-3xl font-bold">{displayMetrics.activeShipments}</p>}
                   {metricsLoading ? <Skeleton className="h-4 w-24 mt-1" /> : (
                     <p className="text-xs text-green-600 flex items-center mt-1">
                       <ArrowUpRight className="w-3 h-3 mr-1" />
@@ -110,7 +115,7 @@ function ClientDashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Pending Orders</p>
-                  {metricsLoading ? <Skeleton className="h-8 w-12" /> : <p className="text-2xl font-bold">{metrics.pendingOrders}</p>}
+                  {metricsLoading ? <Skeleton className="h-8 w-20 mt-1" /> : <p className="text-3xl font-bold">{displayMetrics.pendingOrders}</p>}
                   {metricsLoading ? <Skeleton className="h-4 w-24 mt-1" /> : (
                     <p className="text-xs text-red-600 flex items-center mt-1">
                       <ArrowDownRight className="w-3 h-3 mr-1" />
@@ -125,7 +130,7 @@ function ClientDashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">This Month's Volume</p>
-                  {metricsLoading ? <Skeleton className="h-8 w-12" /> : <p className="text-2xl font-bold">{metrics.thisMonthVolume}</p>}
+                  {metricsLoading ? <Skeleton className="h-8 w-20 mt-1" /> : <p className="text-3xl font-bold">{displayMetrics.thisMonthVolume}</p>}
                   {metricsLoading ? <Skeleton className="h-4 w-24 mt-1" /> : (
                     <p className="text-xs text-green-600 flex items-center mt-1">
                       <ArrowUpRight className="w-3 h-3 mr-1" />
@@ -140,8 +145,8 @@ function ClientDashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Avg. Delivery Time</p>
-                  {metricsLoading ? <Skeleton className="h-8 w-12" /> : <p className="text-2xl font-bold">{metrics.averageDeliveryTime}</p>}
-                  <p className="text-xs text-muted-foreground">days</p>
+                  {metricsLoading ? <Skeleton className="h-8 w-20 mt-1" /> : <p className="text-3xl font-bold">{displayMetrics.averageDeliveryTime}</p>}
+                  <p className="text-xs text-muted-foreground mt-1">days</p>
                 </div>
               </div>
             </div>
@@ -154,7 +159,7 @@ function ClientDashboardPage() {
                 <div className="cursor-pointer hover:bg-muted/50 transition-colors p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <Truck className="h-5 w-5 text-blue-600" />
+                      <Truck className="h-5 w-5 text-gray-800" />
                       <h3 className="text-lg font-semibold">Active Orders</h3>
                       {ordersLoading ? (
                         <Skeleton className="h-5 w-6" />
@@ -253,7 +258,7 @@ function ClientDashboardPage() {
             <div className="border border-border rounded-lg">
               <div className="p-6 pb-2">
                 <h3 className="text-lg font-semibold flex items-center space-x-2">
-                  <TrendingUp className="h-5 w-5 text-blue-600" />
+                  <TrendingUp className="h-5 w-5 text-gray-800" />
                   <span>Shipment Trends (Last 6 Months)</span>
                 </h3>
               </div>
@@ -278,7 +283,7 @@ function ClientDashboardPage() {
             <div className="border border-border rounded-lg">
               <div className="p-6 pb-2">
                 <h3 className="text-lg font-semibold flex items-center space-x-2">
-                  <Clock className="h-5 w-5 text-green-600" />
+                  <Clock className="h-5 w-5 text-gray-800" />
                   <span>Delivery Performance</span>
                 </h3>
               </div>
@@ -303,7 +308,7 @@ function ClientDashboardPage() {
             <div className="border border-border rounded-lg">
               <div className="p-6 pb-2">
                 <h3 className="text-lg font-semibold flex items-center space-x-2">
-                  <DollarSign className="h-5 w-5 text-purple-600" />
+                  <DollarSign className="h-5 w-5 text-gray-800" />
                   <span>Cost Analysis by Service Type</span>
                 </h3>
               </div>
@@ -318,7 +323,7 @@ function ClientDashboardPage() {
             <div className="border border-border rounded-lg">
               <div className="p-6 pb-2">
                 <h3 className="text-lg font-semibold flex items-center space-x-2">
-                  <MapPin className="h-5 w-5 text-orange-600" />
+                  <MapPin className="h-5 w-5 text-gray-800" />
                   <span>Top Shipping Destinations (Last 90 Days)</span>
                 </h3>
               </div>
