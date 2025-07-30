@@ -1,5 +1,6 @@
 import { openai } from './openai-client';
 import { db } from '../db';
+import { getCurrentDateContext, getSqlDateFilter } from '../date-utils';
 
 export interface SqlQueryResult {
   insight: string;
@@ -75,8 +76,24 @@ async function getDatabaseSchema(): Promise<string> {
  */
 async function convertToSql(userQuery: string, schema: string, conversationHistory: ChatMessage[] = [], options: QueryOptions): Promise<string> {
   try {
+    // Get current date context
+    const dateContext = getCurrentDateContext();
+
     // Build system prompt based on role
     let systemPrompt = `You are a PostgreSQL expert specializing in logistics data analysis. Convert natural language questions to PostgreSQL queries.
+
+CURRENT DATE CONTEXT:
+- Today's date: ${dateContext.today}
+- Current year: ${dateContext.currentYear}
+- Current month: ${dateContext.currentMonth}
+- Current day: ${dateContext.currentDay}
+
+Use this context for temporal queries like "this year", "this month", "last 30 days", "today", etc.
+Examples:
+- "orders this year" → WHERE "year" = ${dateContext.currentYear}
+- "orders this month" → WHERE EXTRACT(YEAR FROM date) = ${dateContext.currentYear} AND EXTRACT(MONTH FROM date) = ${dateContext.currentMonth}
+- "orders last 30 days" → WHERE DATE(date) >= '${new Date(dateContext.currentTimestamp.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}' AND DATE(date) <= '${dateContext.today}'
+- "orders today" → WHERE DATE(date) = '${dateContext.today}'
 
 IMPORTANT: Only generate SQL queries for actual data requests. Do NOT generate queries for:
 - Personal introductions ("my name is...", "I'm...", "hello")

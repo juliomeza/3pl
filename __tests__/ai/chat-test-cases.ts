@@ -533,6 +533,62 @@ export const chatTestCases: ChatTestCase[] = [
       shouldNotContain: ['"day" IN'],
       shouldStartWith: 'SELECT'
     }
+  },
+  // ===== DATE CONTEXT TESTS =====
+  {
+    id: 'date-001',
+    description: 'Orders this year should use current year (2025)',
+    userQuery: 'orders this year',
+    expectedType: 'data-query',
+    expectedSQL: {
+      shouldContain: [
+        'SELECT', 'FROM logistics_orders',
+        '"year" = 2025'
+      ],
+      shouldNotContain: ['2024'],
+      shouldStartWith: 'SELECT'
+    }
+  },
+  {
+    id: 'date-002',
+    description: 'Orders this month should use current year and month',
+    userQuery: 'orders this month',
+    expectedType: 'data-query',
+    expectedSQL: {
+      shouldContain: [
+        'SELECT', 'FROM logistics_orders',
+        'EXTRACT(YEAR FROM', 'date) = 2025',
+        'EXTRACT(MONTH FROM', 'date) = 7'
+      ],
+      shouldStartWith: 'SELECT'
+    }
+  },
+  {
+    id: 'date-003',
+    description: 'Orders last 30 days should use date range calculation',
+    userQuery: 'orders last 30 days',
+    expectedType: 'data-query',
+    expectedSQL: {
+      shouldContain: [
+        'SELECT', 'FROM logistics_orders',
+        'DATE(', 'date', ') >=',
+        'DATE(', 'date', ') <='
+      ],
+      shouldStartWith: 'SELECT'
+    }
+  },
+  {
+    id: 'date-004',
+    description: 'Orders today should use current date',
+    userQuery: 'orders today',
+    expectedType: 'data-query',
+    expectedSQL: {
+      shouldContain: [
+        'SELECT', 'FROM logistics_orders',
+        'DATE(', 'date', ') = \'2025-07-30\''
+      ],
+      shouldStartWith: 'SELECT'
+    }
   }
 ];
 
