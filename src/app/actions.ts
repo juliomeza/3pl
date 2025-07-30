@@ -81,7 +81,7 @@ export async function getActiveOrders(ownerId: number): Promise<any[]> {
       FROM operations_active_orders 
       WHERE owner_id = $1 
       AND delivery_status NOT IN ('delivered', 'cancelled')
-      ORDER BY estimated_delivery_date ASC NULLS LAST, order_created_date DESC`,
+      ORDER BY order_created_date DESC, order_fulfillment_date DESC, estimated_delivery_date DESC`,
       [ownerId]
     );
     

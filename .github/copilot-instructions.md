@@ -95,8 +95,9 @@ npm run typecheck
 ### Database Integration
 - PostgreSQL connection via `src/lib/db.ts` using connection pooling
 - Environment: `POSTGRES_URL` required
-- Schema: Tables prefixed with `logistics_` (orders, shipments, etc.)
+- Schema: Tables prefixed with `logistics_` (AI queries) and `operations_` (dashboard functionality)
 - AI queries specifically target tables starting with `logistics_`
+- Dashboard functionality uses `operations_` prefixed tables for real-time data
 
 **Critical Data Structure - logistics_orders Table**:
 - **`project_name`**: Project subdivision within a customer (most customers have 1 project, some have multiple)
@@ -104,9 +105,17 @@ npm run typecheck
 - **`project_id`**: Project subdivision ID within the customer
 - **Client Hierarchy**: Customer → Project → Orders (enables client-specific data filtering)
 
+**Operations Tables for Dashboard**:
+- **`operations_active_orders`**: Real-time active orders for client dashboard with 23 columns
+- **`owner_id`**: Client filtering field for data security and isolation
+- **`delivery_status`**: Status filtering (excludes 'delivered', 'cancelled' for active orders)
+- **Order Display Logic**: Shows `recipient_name` as "Customer" since clients view orders sent to their customers
+- **Sorting Strategy**: `ORDER BY order_created_date DESC, order_fulfillment_date DESC, estimated_delivery_date DESC`
+
 **Data Access Patterns**:
 - **Employee queries**: Can access all `logistics_*` tables (operational data, analytics, management)
 - **Client queries**: Must be filtered by `owner_id` and optionally `project_id` for client-specific data
+- **Client dashboard**: Uses `operations_*` tables with owner_id filtering for real-time data display
 - **Multi-project clients**: Some customers have multiple projects requiring project-level distinction
 - **Security filtering**: Client AI assistant must filter all queries by authenticated user's `owner_id`
 
@@ -415,7 +424,7 @@ await runSingleTest('data-001')
 - Environment or deployment changes
 - Integration of new third-party services or APIs
 
-**Recent Major Updates (July 29, 2025)**:
+**Recent Major Updates (July 30, 2025)**:
 - **Column Name Formatting (IMPLEMENTED)**: Automatic transformation of database column names for better UX
   - Added `formatColumnName()` function to convert snake_case to readable format (e.g., "day_of_week" → "Day Of Week")
   - Applied to table headers for cleaner presentation of data
@@ -429,6 +438,15 @@ await runSingleTest('data-001')
   - AI now correctly handles: "orders by day" → uses `day` column, "orders by day of week" → uses `day_of_week` column
   - Supports weekend/weekday filtering: "weekend orders" → Saturday/Sunday, "weekday orders" → Monday-Friday
   - Perfect SQL generation for queries like "what day of the week has most orders" with proper ordering
+- **Client Dashboard Active Orders Integration (IMPLEMENTED)**: Complete real data integration for client dashboard
+  - Created `operations_active_orders` table with 23 columns including delivery_status, customer, recipient details
+  - Implemented `getActiveOrders()` server action with PostgreSQL query filtering by owner_id
+  - Added `useActiveOrders()` custom hook with loading, error, and refetch functionality
+  - Updated client dashboard to display real order data instead of mock data
+  - **Client-Centric Data Display**: Modified Active Orders section to show recipient_name as "Customer" since clients view orders sent to their own customers
+  - **Smart Ordering Logic**: Orders sorted by `order_created_date DESC, order_fulfillment_date DESC, estimated_delivery_date DESC` for optimal client experience
+  - **Loading States**: Added skeleton loading animations and error handling for Active Orders section
+  - **Data Security**: All queries filtered by authenticated user's owner_id for client data isolation
 - **ChatGPT-Style Sidebar Implementation**: Complete sidebar redesign with collapse/expand functionality
   - Custom collapse buttons using `PanelLeftClose` icon with subtle gray styling (`text-gray-400 hover:text-gray-600`)
   - Logo-as-button functionality when collapsed with hover expand arrow overlay
@@ -464,6 +482,18 @@ await runSingleTest('data-001')
   - Tooltip showing both X and Y values with labels
 
 **AI Chat Assistant Improvements**:
-- **Date/Time Context**: Add current date and year awareness to chat assistant. Currently the AI thinks it's 2024, but we're in 2025. Need to inject current date context (July 29, 2025) into AI prompts to ensure accurate temporal references in data queries and responses.
+- **Date/Time Context**: Add current date and year awareness to chat assistant. Currently the AI thinks it's 2024, but we're in 2025. Need to inject current date context (July 30, 2025) into AI prompts to ensure accurate temporal references in data queries and responses.
+
+**Client Dashboard Real Data Integration**:
+- **Status Cards Metrics**: Replace mock data in the 4 status cards with real database queries
+  - Active Shipments count from operations_active_orders
+  - Pending Orders count with status-based filtering
+  - This Month's Volume with date-based aggregation
+  - Average Delivery Time calculation from historical data
+- **Visualization Charts**: Connect the 4 dashboard charts to real data sources
+  - Shipment Trends: Monthly aggregation queries
+  - Delivery Performance: Status-based analytics
+  - Cost Analysis: Service type cost breakdowns
+  - Top Destinations: Geographic shipping analysis
 
 This documentation maintenance ensures consistency across development sessions and preserves institutional knowledge about project patterns and decisions.
