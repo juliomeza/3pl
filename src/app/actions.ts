@@ -173,6 +173,7 @@ export async function getShipmentTrends(ownerId: number, period: 'last30days' | 
        FROM operations_active_orders 
        WHERE owner_id = $1 
        AND DATE(order_created_date) BETWEEN $2 AND $3
+       AND order_type = 'Outbound'
        GROUP BY month, month_name
        ORDER BY month ASC`,
       [ownerId, startDate, endDate]
@@ -228,6 +229,7 @@ export async function getTopDestinations(ownerId: number, period: 'last90days' =
         WHERE
           owner_id = $1
           AND DATE(order_created_date) BETWEEN $2 AND $3
+          AND order_type = 'Outbound'
         GROUP BY
           recipient_city,
           recipient_state
@@ -236,6 +238,7 @@ export async function getTopDestinations(ownerId: number, period: 'last90days' =
         FROM operations_active_orders 
         WHERE owner_id = $1 
         AND DATE(order_created_date) BETWEEN $2 AND $3
+        AND order_type = 'Outbound'
       )
       SELECT
         COALESCE(dc.recipient_city, 'N/A') || ', ' || COALESCE(dc.recipient_state, 'N/A') AS destination,
@@ -263,3 +266,4 @@ export async function getTopDestinations(ownerId: number, period: 'last90days' =
     return [];
   }
 }
+
