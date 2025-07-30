@@ -1,3 +1,4 @@
+
 /**
  * Date utilities for the application
  * Provides consistent date handling across AI assistant and dashboard components
@@ -28,7 +29,7 @@ export function getCurrentDateContext(): DateContext {
 /**
  * Get date range for common time periods
  */
-export function getDateRange(period: 'last30days' | 'thisMonth' | 'thisYear' | 'lastMonth' | 'lastYear' | 'today' | 'last6months'): { startDate: string; endDate: string } {
+export function getDateRange(period: 'last30days' | 'last90days' | 'thisMonth' | 'thisYear' | 'lastMonth' | 'lastYear' | 'today' | 'last6months'): { startDate: string; endDate: string } {
   const { today, currentYear, currentMonth } = getCurrentDateContext();
   const now = new Date();
 
@@ -45,6 +46,15 @@ export function getDateRange(period: 'last30days' | 'thisMonth' | 'thisYear' | '
       };
     }
     
+    case 'last90days': {
+      const ninetyDaysAgo = new Date(now);
+      ninetyDaysAgo.setDate(now.getDate() - 90);
+      return {
+        startDate: ninetyDaysAgo.toISOString().split('T')[0],
+        endDate: today
+      };
+    }
+
     case 'last6months': {
       const sixMonthsAgo = new Date(now);
       sixMonthsAgo.setDate(1); // Set to the first day of the current month before subtracting

@@ -211,3 +211,55 @@ export async function getDeliveryPerformance(ownerId: number): Promise<any[]> {
     return [];
   }
 }
+
+// Get top shipping destinations data
+export async function getTopDestinations(ownerId: number, period: 'last90days' = 'last90days'): Promise<any[]> {
+  try {
+    const { startDate, endDate } = getDateRange(period);
+
+    const query = `
+      WITH DestinationCounts AS (
+        SELECT
+          recipient_city,
+          recipient_state,
+          COUNT(*) AS shipment_count
+        FROM
+          operations_active_orders
+        WHERE
+          owner_id = $1
+          AND DATE(order_created_date) BETWEEN $2 AND $3
+        GROUP BY
+          recipient_city,
+          recipient_state
+      ), TotalShipments AS (
+        SELECT COUNT(*) AS total_count 
+        FROM operations_active_orders 
+        WHERE owner_id = $1 
+        AND DATE(order_created_date) BETWEEN $2 AND $3
+      )
+      SELECT
+        COALESCE(dc.recipient_city, 'N/A') || ', ' || COALESCE(dc.recipient_state, 'N/A') AS destination,
+        dc.shipment_count,
+        CASE
+          WHEN ts.total_count > 0 THEN ROUND((dc.shipment_count * 100.0 / ts.total_count), 2)
+          ELSE 0
+        END AS percentage
+      FROM
+        DestinationCounts dc, TotalShipments ts
+      ORDER BY
+        dc.shipment_count DESC
+      LIMIT 5;
+    `;
+
+    const result = await db.query(query, [ownerId, startDate, endDate]);
+
+    return result.rows.map(row => ({
+      destination: row.destination,
+      shipment_count: parseInt(row.shipment_count),
+      percentage: parseFloat(row.percentage)
+    }));
+  } catch (error) {
+    console.error('Error fetching top destinations:', error);
+    return [];
+  }
+}

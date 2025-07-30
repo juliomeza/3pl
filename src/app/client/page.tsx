@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useActiveOrders } from '@/hooks/use-active-orders';
-import { useShipmentTrends } from '@/hooks/use-dashboard-charts';
+import { useShipmentTrends, useTopDestinations } from '@/hooks/use-dashboard-charts';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -39,14 +39,6 @@ const mockCostAnalysis = [
   { service_type: 'Overnight', total_cost: 3200 }
 ];
 
-const mockTopDestinations = [
-  { destination: 'Los Angeles, CA', shipment_count: 23, percentage: 18.5 },
-  { destination: 'Houston, TX', shipment_count: 19, percentage: 15.3 },
-  { destination: 'Chicago, IL', shipment_count: 16, percentage: 12.9 },
-  { destination: 'Phoenix, AZ', shipment_count: 14, percentage: 11.3 },
-  { destination: 'Dallas, TX', shipment_count: 12, percentage: 9.7 }
-];
-
 function ClientDashboardPage() {
   const { clientInfo } = useAuth();
   const [activeShipmentsOpen, setActiveShipmentsOpen] = useState(false);
@@ -54,6 +46,7 @@ function ClientDashboardPage() {
   // Fetch real data
   const { activeOrders, loading: ordersLoading, error: ordersError } = useActiveOrders(clientInfo?.owner_id || null);
   const { data: shipmentTrends, loading: trendsLoading, error: trendsError } = useShipmentTrends(clientInfo?.owner_id || null, 'last6months');
+  const { data: topDestinations, loading: destinationsLoading, error: destinationsError } = useTopDestinations(clientInfo?.owner_id || null);
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -325,12 +318,22 @@ function ClientDashboardPage() {
               <div className="p-6 pb-2">
                 <h3 className="text-lg font-semibold flex items-center space-x-2">
                   <MapPin className="h-5 w-5 text-orange-600" />
-                  <span>Top Shipping Destinations</span>
+                  <span>Top Shipping Destinations (Last 90 Days)</span>
                 </h3>
               </div>
               <div className="px-6 pb-6">
                 <div className="h-80">
-                  <DataVisualizer data={mockTopDestinations} viewType="table" />
+                  {destinationsLoading ? (
+                    <div className="flex items-center justify-center h-full">
+                      <Skeleton className="w-full h-full" />
+                    </div>
+                  ) : destinationsError ? (
+                    <div className="flex items-center justify-center h-full text-red-600">
+                      Error: {destinationsError}
+                    </div>
+                  ) : (
+                    <DataVisualizer data={topDestinations} viewType="table" />
+                  )}
                 </div>
               </div>
             </div>

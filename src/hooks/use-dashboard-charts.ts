@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import { getShipmentTrends, getDeliveryPerformance } from '@/app/actions';
+import { getShipmentTrends, getDeliveryPerformance, getTopDestinations } from '@/app/actions';
 
 export interface TrendDataPoint {
   month_name: string;
@@ -9,6 +10,12 @@ export interface TrendDataPoint {
 export interface PerformanceDataPoint {
   status: string;
   count: number;
+}
+
+export interface DestinationDataPoint {
+  destination: string;
+  shipment_count: number;
+  percentage: number;
 }
 
 export function useShipmentTrends(ownerId: number | null, period: 'last30days' | 'thisMonth' | 'thisYear' | 'last6months' = 'last6months') {
@@ -92,6 +99,50 @@ export function useDeliveryPerformance(ownerId: number | null) {
       } catch (err) {
         console.error('Error refetching delivery performance:', err);
         setError('Failed to refetch delivery performance');
+      }
+    }
+  };
+
+  return { data, loading, error, refetch };
+}
+
+export function useTopDestinations(ownerId: number | null, period: 'last90days' = 'last90days') {
+  const [data, setData] = useState<DestinationDataPoint[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchTopDestinations() {
+      if (!ownerId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        const destinationsData = await getTopDestinations(ownerId, period);
+        setData(destinationsData);
+      } catch (err) {
+        console.error('Error loading top destinations:', err);
+        setError('Failed to load top destinations');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchTopDestinations();
+  }, [ownerId, period]);
+
+  const refetch = async () => {
+    if (ownerId) {
+      try {
+        setError(null);
+        const destinationsData = await getTopDestinations(ownerId, period);
+        setData(destinationsData);
+      } catch (err) {
+        console.error('Error refetching top destinations:', err);
+        setError('Failed to refetch top destinations');
       }
     }
   };
