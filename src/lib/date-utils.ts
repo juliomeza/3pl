@@ -47,8 +47,8 @@ export function getDateRange(period: 'last30days' | 'thisMonth' | 'thisYear' | '
     
     case 'last6months': {
       const sixMonthsAgo = new Date(now);
+      sixMonthsAgo.setDate(1); // Set to the first day of the current month before subtracting
       sixMonthsAgo.setMonth(now.getMonth() - 5);
-      sixMonthsAgo.setDate(1); // Start from the beginning of that month
       return {
         startDate: sixMonthsAgo.toISOString().split('T')[0],
         endDate: today
