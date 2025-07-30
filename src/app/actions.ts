@@ -80,7 +80,7 @@ export async function getActiveOrders(ownerId: number): Promise<any[]> {
         tracking_numbers
       FROM operations_active_orders 
       WHERE owner_id = $1 
-      AND delivery_status NOT IN ('delivered', 'cancelled')
+      AND LOWER(delivery_status) NOT IN ('delivered', 'cancelled')
       ORDER BY order_created_date DESC, order_fulfillment_date DESC, estimated_delivery_date DESC`,
       [ownerId]
     );
