@@ -259,7 +259,7 @@ function ClientDashboardPage() {
               <div className="p-6 pb-2">
                 <h3 className="text-lg font-semibold flex items-center space-x-2">
                   <TrendingUp className="h-5 w-5 text-gray-800" />
-                  <span>Shipment Trends (Last 6 Months)</span>
+                  <span>Outbound Sales Trends (Last 6 Months)</span>
                 </h3>
               </div>
               <div className="px-6 pb-6">

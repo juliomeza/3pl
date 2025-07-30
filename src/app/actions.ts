@@ -174,6 +174,7 @@ export async function getShipmentTrends(ownerId: number, period: 'last30days' | 
        WHERE owner_id = $1 
        AND DATE(order_created_date) BETWEEN $2 AND $3
        AND order_type = 'Outbound'
+       AND LOWER(order_class) LIKE '%sales order%'
        GROUP BY month, month_name
        ORDER BY month ASC`,
       [ownerId, startDate, endDate]
