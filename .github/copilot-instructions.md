@@ -313,6 +313,15 @@ OPENAI_API_KEY=your_openai_api_key
 
 ## Pending Implementations
 
+### Client Reports System (COMPLETED - August 2025)
+✅ **Full Reports Interface Implementation**
+- **Navigation System**: Dropdown-based report selection with 4 categories and 14 total reports
+- **Header Integration**: Dynamic header controls with report selector and action buttons
+- **Materials Report**: Complete implementation with real database integration
+- **Advanced Table Features**: Column-level filtering, sorting, and search functionality
+- **Database Security**: Owner-based data filtering with PostgreSQL integration
+- **UI Patterns**: Established reusable patterns for remaining 13 reports
+
 ### Client Dashboard Real Data Integration
 - **Status Cards**: Replace mock data with real database queries using `useDashboardMetrics()` hook
   - Active Shipments count from operations_active_orders
@@ -331,3 +340,160 @@ OPENAI_API_KEY=your_openai_api_key
   - Smart detection for exactly 2 numeric columns
   - Recharts ScatterChart integration
   - Automatic recommendations for 2 numeric + 0-1 label columns
+
+## Reports System Architecture (NEW - August 2025)
+
+### Overview
+**Comprehensive WMS Reports Interface** with advanced filtering, sorting, and real-time data integration for client users.
+
+**Key Features**:
+- **14 WMS Reports** across 4 categories (Inventory, Orders, Warehouse, Financial)
+- **Advanced Table Functionality**: Column-level search, filtering, and 3-state sorting
+- **Real Database Integration**: PostgreSQL queries with owner-based security filtering
+- **Dropdown Navigation**: Space-efficient accordion-style report selection
+- **Sample/Real Data Toggle**: Seamless transition between demonstration and live data
+
+### Implementation Structure
+
+#### Core Files
+```
+src/app/client/reports/
+├── page.tsx                           # Main reports interface with state management
+src/components/dashboard/
+├── reports-header-controls.tsx        # Dropdown navigation component  
+├── materials-table.tsx               # Advanced table with filtering/sorting
+src/app/client/layout.tsx              # Dynamic header context integration
+src/app/actions.ts                     # Server actions for database queries
+```
+
+#### Dynamic Header System
+**Header Context Pattern**:
+```typescript
+// useHeaderControls hook for dynamic header content
+const { setLeftContent, setRightContent } = useHeaderControls();
+
+// Dynamic header injection in reports page
+useEffect(() => {
+  setLeftContent(<ReportsHeaderControls />);
+  setRightContent(null);
+  return () => {
+    setLeftContent(null);
+    setRightContent(null);
+  };
+}, [selectedReportId]);
+```
+
+**Layout Integration**:
+- **Context Provider**: Client layout provides header control functions
+- **Dynamic Content**: Reports page injects navigation controls into header
+- **Cleanup Pattern**: Proper cleanup when component unmounts
+- **Space Efficiency**: Moves navigation from page body to header bar
+
+#### Database Integration
+**Server Action Pattern**:
+```typescript
+// getMaterialsData: PostgreSQL integration with security filtering
+SELECT m.lookupcode, m.statusid, m.materialgroupid, m.name, m.description 
+FROM wms_materials m 
+JOIN wms_projects p ON p.id = m.projectid 
+WHERE p.ownerid = $1
+```
+
+**Security Model**:
+- **Client Filtering**: All queries filtered by `owner_id` for data security
+- **Project Scope**: Support for multi-project clients via `project_id`
+- **Error Handling**: Graceful fallbacks and user feedback
+
+### Advanced Table Features (FINALIZED)
+
+#### Interactive Column Headers
+- **3-State Sorting**: ASC → DESC → NONE cycle with visual indicators
+- **Column-Level Filtering**: Individual search inputs for each column
+- **Dynamic Styling**: Active column highlighting with blue text and bold font
+- **Type-Safe Filtering**: Handles mixed data types (string/number) gracefully
+
+#### Technical Implementation
+```typescript
+// Column header component with memoization for performance
+const ColumnHeader = React.memo(({ field, label, filters, sortField, sortDirection, onFilterChange, onSort, getSortIcon }) => {
+  // Interactive sorting with visual feedback
+  // Input filtering with maintained focus
+  // Responsive column widths for optimal display
+});
+```
+
+#### Performance Optimizations
+- **React.memo**: Prevents unnecessary re-renders of column components
+- **useCallback**: Stable handlers for filtering and sorting
+- **useMemo**: Efficient data processing for filtered/sorted results
+- **Focus Management**: Seamless input experience without click-per-character
+
+### Report Categories & Structure
+
+#### 1. Inventory Management (4 reports)
+- **Materials Report** ✅ (COMPLETED)
+  - Table: `wms_materials`
+  - Features: Full CRUD interface, advanced filtering
+- **Inventory Levels** (Implementation pattern established)
+- **Stock Movements** 
+- **Low Stock Alerts**
+
+#### 2. Order Management (4 reports)
+- **Order History**
+- **Pending Orders** 
+- **Order Status Tracking**
+- **Return Management**
+
+#### 3. Warehouse Operations (3 reports)
+- **Picking Lists**
+- **Putaway Reports**
+- **Location Management**
+
+#### 4. Financial Reports (3 reports)
+- **Billing Summary**
+- **Cost Analysis**
+- **Invoice Details**
+
+### UI/UX Design Patterns (ESTABLISHED)
+
+#### Navigation Design
+- **Dynamic Header Integration**: Navigation controls injected into header via context
+- **Dropdown Menu**: Accordion-style with 4 main categories
+- **Header Controls Pattern**: `useHeaderControls()` hook for dynamic content injection
+- **Space Efficiency**: Compact navigation preserving screen real estate
+- **Consistent Styling**: Matches overall application theme
+
+#### Table Design Standards
+- **Column Widths**: Optimized for content (Lookup Code: 160px, Status: 120px, etc.)
+- **Typography Hierarchy**: Bold titles for active columns, semibold for inactive
+- **Interactive Elements**: 
+  - Sort icons: 4x4px with blue (#0A183C) for active states
+  - Filter inputs: 8px height with consistent styling
+  - Hover states: Blue color transitions for all interactive elements
+
+#### Data Display Patterns
+- **Sample Data Indicators**: Amber alert banners for demonstration mode
+- **Real Data Integration**: Seamless toggle with loading states
+- **Error Handling**: User-friendly messages with actionable guidance
+- **Empty States**: Appropriate messaging for filtered results
+
+### Development Guidelines
+
+#### Adding New Reports
+1. **Follow Materials Report Pattern**: Use established component structure
+2. **Database Integration**: Create server action in `actions.ts`
+3. **Table Implementation**: Extend MaterialsTable pattern with appropriate columns
+4. **Navigation Update**: Add report to ReportsHeaderControls configuration
+5. **Type Safety**: Define interfaces for data structures
+
+#### Code Standards
+- **TypeScript**: Full type coverage with proper interfaces
+- **React Patterns**: Functional components with hooks
+- **Performance**: Memoization for complex components
+- **Security**: Always filter by `owner_id` in database queries
+
+#### Testing Approach
+- **Real Data Integration**: Direct database testing (no mocks)
+- **User Experience**: Manual testing of all interactive features
+- **Performance**: Monitor for sub-15 second response times
+- **Cross-browser**: Ensure compatibility across modern browsers
