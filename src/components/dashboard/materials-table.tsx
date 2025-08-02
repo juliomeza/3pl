@@ -197,24 +197,22 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
 
   // Handle sort with useCallback
   const handleSort = useCallback((field: SortField) => {
-    setSortField(current => {
-      if (current === field) {
-        // Cycle through: asc -> desc -> none
-        setSortDirection(dir => {
-          if (dir === 'asc') return 'desc';
-          if (dir === 'desc') {
-            setSortField(null);
-            return null;
-          }
-          return 'asc';
-        });
-        return current;
+    if (sortField === field) {
+      // Cycle through: asc -> desc -> none
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortField(null);
+        setSortDirection(null);
       } else {
         setSortDirection('asc');
-        return field;
       }
-    });
-  }, []);
+    } else {
+      // New field selected, start with ascending
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  }, [sortField, sortDirection]);
 
   // Get sort icon
   const getSortIcon = useCallback((field: SortField) => {
