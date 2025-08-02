@@ -10,6 +10,25 @@ import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import withAuth from '@/components/with-auth';
 import { useAuth } from '@/context/auth-context';
 import { Skeleton } from '@/components/ui/skeleton';
+import { createContext, useContext, ReactNode, useState } from 'react';
+
+// Context for header controls
+interface HeaderControlsContextType {
+  leftContent?: ReactNode;
+  rightContent?: ReactNode;
+  setLeftContent: (content: ReactNode) => void;
+  setRightContent: (content: ReactNode) => void;
+}
+
+const HeaderControlsContext = createContext<HeaderControlsContextType | null>(null);
+
+export const useHeaderControls = () => {
+  const context = useContext(HeaderControlsContext);
+  if (!context) {
+    throw new Error('useHeaderControls must be used within HeaderControlsProvider');
+  }
+  return context;
+};
 
 const menuItems = [
   { href: '/client', label: 'Dashboard', icon: Home, exact: true },
@@ -159,28 +178,32 @@ function ClientLayout({
 }) {
   const pathname = usePathname();
   const { clientInfo, clientInfoLoading } = useAuth();
+  const [leftContent, setLeftContent] = useState<ReactNode>(null);
+  const [rightContent, setRightContent] = useState<ReactNode>(null);
   
   return (
-    <SidebarProvider>
-        <div className="flex min-h-screen bg-background w-full">
-            <Sidebar>
-                <ClientSidebarContent />
-            </Sidebar>
-            <div className="flex-1 flex flex-col h-screen">
-                <header className="flex-shrink-0 flex items-center justify-between p-4 md:justify-end bg-background">
-                    <div className="md:hidden">
-                        <SidebarTrigger />
-                    </div>
-                    <DashboardHeader />
-                </header>
-                <main className={pathname === '/client/assistant' ? 'flex-1 overflow-hidden' : 'flex-1 overflow-y-auto custom-scrollbar'}>
-                    <div className={pathname === '/client/assistant' ? 'h-full p-4 md:p-8' : 'p-4 md:p-8'}>
-                        {children}
-                    </div>
-                </main>
-            </div>
-        </div>
-    </SidebarProvider>
+    <HeaderControlsContext.Provider value={{ leftContent, rightContent, setLeftContent, setRightContent }}>
+      <SidebarProvider>
+          <div className="flex min-h-screen bg-background w-full">
+              <Sidebar>
+                  <ClientSidebarContent />
+              </Sidebar>
+              <div className="flex-1 flex flex-col h-screen">
+                  <header className="flex-shrink-0 flex items-center justify-between p-4 md:justify-end bg-background">
+                      <div className="md:hidden">
+                          <SidebarTrigger />
+                      </div>
+                      <DashboardHeader leftContent={leftContent} rightContent={rightContent} />
+                  </header>
+                  <main className={pathname === '/client/assistant' ? 'flex-1 overflow-hidden' : 'flex-1 overflow-y-auto custom-scrollbar'}>
+                      <div className={pathname === '/client/assistant' ? 'h-full p-4 md:p-8' : 'p-4 md:p-8'}>
+                          {children}
+                      </div>
+                  </main>
+              </div>
+          </div>
+      </SidebarProvider>
+    </HeaderControlsContext.Provider>
   );
 }
 
