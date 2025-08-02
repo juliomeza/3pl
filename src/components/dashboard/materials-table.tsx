@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Info, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { getMaterialsData } from '@/app/actions';
 
 interface MaterialsTableProps {
@@ -15,6 +17,17 @@ interface MaterialsTableProps {
 interface MaterialData {
   lookupCode: string;
   statusId: number;
+  materialGroupId: string | number; // Can be string or number depending on data source
+  name: string;
+  description: string;
+}
+
+type SortField = keyof MaterialData;
+type SortDirection = 'asc' | 'desc' | null;
+
+interface ColumnFilters {
+  lookupCode: string;
+  statusId: string;
   materialGroupId: string;
   name: string;
   description: string;
@@ -111,8 +124,135 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
   const [realData, setRealData] = useState<MaterialData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Filter and sort states
+  const [filters, setFilters] = useState<ColumnFilters>({
+    lookupCode: '',
+    statusId: '',
+    materialGroupId: '',
+    name: '',
+    description: ''
+  });
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+
+  // Handle filter changes
+  const handleFilterChange = (field: keyof ColumnFilters, value: string) => {
+    setFilters(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // Handle sort
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Cycle through: asc -> desc -> none
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortField(null);
+        setSortDirection(null);
+      } else {
+        setSortDirection('asc');
+      }
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Get sort icon
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) {
+      return <ChevronsUpDown className="w-4 h-4 text-gray-400" />;
+    }
+    if (sortDirection === 'asc') {
+      return <ChevronUp className="w-4 h-4 text-blue-600 font-bold" />;
+    }
+    if (sortDirection === 'desc') {
+      return <ChevronDown className="w-4 h-4 text-blue-600 font-bold" />;
+    }
+    return <ChevronsUpDown className="w-4 h-4 text-gray-400" />;
+  };
 
   // Fetch real data when isRealData changes to true
+  // Filtered and sorted data
+  const processedData = useMemo(() => {
+    let filtered = isRealData ? realData : sampleMaterials;
+
+    // Apply filters
+    filtered = filtered.filter((item: MaterialData) => {
+      const lookupCode = String(item.lookupCode || '').toLowerCase();
+      const statusId = String(item.statusId || '').toLowerCase();
+      const materialGroupId = String(item.materialGroupId || '').toLowerCase();
+      const name = String(item.name || '').toLowerCase();
+      const description = String(item.description || '').toLowerCase();
+
+      return (
+        lookupCode.includes(filters.lookupCode.toLowerCase()) &&
+        statusId.includes(filters.statusId.toLowerCase()) &&
+        materialGroupId.includes(filters.materialGroupId.toLowerCase()) &&
+        name.includes(filters.name.toLowerCase()) &&
+        description.includes(filters.description.toLowerCase())
+      );
+    });
+
+    // Apply sorting
+    if (sortField && sortDirection) {
+      filtered.sort((a: MaterialData, b: MaterialData) => {
+        let aValue: string;
+        let bValue: string;
+        
+        // Convert all values to strings for consistent sorting
+        aValue = String(a[sortField] || '');
+        bValue = String(b[sortField] || '');
+        
+        if (sortDirection === 'asc') {
+          return aValue.localeCompare(bValue);
+        } else {
+          return bValue.localeCompare(aValue);
+        }
+      });
+    }
+
+    return filtered;
+  }, [isRealData, realData, filters, sortField, sortDirection]);
+
+  // Column Header Component
+  const ColumnHeader = ({ field, label }: { field: SortField; label: string }) => {
+    const isActive = sortField === field;
+    
+    return (
+      <div className="space-y-2">
+        <div 
+          className={`flex items-center gap-1 cursor-pointer transition-colors ${
+            isActive 
+              ? 'text-blue-700 hover:text-blue-800' 
+              : 'text-gray-700 hover:text-blue-600'
+          }`}
+          onClick={() => handleSort(field)}
+        >
+          <span className={`text-sm ${
+            isActive ? 'font-bold' : 'font-semibold'
+          }`}>{label}</span>
+          <div className={`transition-colors ${
+            isActive ? 'text-blue-600' : 'text-gray-400'
+          }`}>
+            {getSortIcon(field)}
+          </div>
+        </div>
+        <Input
+          placeholder="Filter..."
+          value={filters[field]}
+          onChange={(e) => handleFilterChange(field, e.target.value)}
+          className="h-8 text-xs border-gray-200 focus:border-blue-300"
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
+    );
+  };
+
   useEffect(() => {
     async function fetchRealData() {
       if (!isRealData || !ownerId) return;
@@ -136,10 +276,6 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
 
     fetchRealData();
   }, [isRealData, ownerId]);
-
-  // For now, we'll only show sample data
-  // Real data fetching will be implemented when the View button is clicked
-  const displayData = isRealData ? realData : sampleMaterials;
 
   return (
     <div className="relative">
@@ -175,15 +311,25 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Lookup Code</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Material Group</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
+                <TableHead className="w-[160px]">
+                  <ColumnHeader field="lookupCode" label="Lookup Code" />
+                </TableHead>
+                <TableHead className="w-[120px]">
+                  <ColumnHeader field="statusId" label="Status" />
+                </TableHead>
+                <TableHead className="w-[160px]">
+                  <ColumnHeader field="materialGroupId" label="Material Group" />
+                </TableHead>
+                <TableHead className="w-[240px]">
+                  <ColumnHeader field="name" label="Name" />
+                </TableHead>
+                <TableHead>
+                  <ColumnHeader field="description" label="Description" />
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {displayData.map((material, index) => (
+              {processedData.map((material, index) => (
                 <TableRow key={index} className={!isRealData ? 'opacity-75' : ''}>
                   <TableCell className="font-medium">{material.lookupCode}</TableCell>
                   <TableCell>{getStatusBadge(material.statusId)}</TableCell>
@@ -209,7 +355,7 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
       )}
 
       {/* Empty State */}
-      {!loading && !error && displayData.length === 0 && (
+      {!loading && !error && processedData.length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
           No materials data available.
         </div>
