@@ -5,9 +5,11 @@ import { getAiInsightOpenAIClient } from '@/app/actions';
 import { useClientInfo } from '@/hooks/use-client-info';
 import { ChatMessage } from '@/lib/ai/logistics-assistant';
 import { Loader2 } from 'lucide-react';
+import { useHeaderControls } from '../layout';
 
 export default function ClientAssistantPage() {
   const { ownerId, loading, error } = useClientInfo();
+  const { setLeftContent, setRightContent } = useHeaderControls();
 
   // Show loading state while fetching client info
   if (loading) {
@@ -41,6 +43,8 @@ export default function ClientAssistantPage() {
   return (
     <SharedAiAssistant 
       getAiInsight={getClientAiInsight}
+      onLeftContentChange={setLeftContent}
+      onRightContentChange={setRightContent}
     />
   );
 }

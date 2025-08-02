@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Bot, User, Loader2, RotateCcw, GripVertical, TableIcon, BarChart3, PieChart as PieChartIcon, TrendingUp } from 'lucide-react';
 import { ChatMessage } from '@/lib/ai/logistics-assistant';
 import { DataVisualizer } from '@/components/ui/data-visualizer';
+import { VisualizationControls, NewChatControl } from '@/components/dashboard/ai-header-controls';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -23,9 +24,11 @@ interface SharedAiAssistantProps {
     data: any;
     error?: string;
   }>;
+  onLeftContentChange?: (content: React.ReactNode) => void;
+  onRightContentChange?: (content: React.ReactNode) => void;
 }
 
-export function SharedAiAssistant({ getAiInsight }: SharedAiAssistantProps) {
+export function SharedAiAssistant({ getAiInsight, onLeftContentChange, onRightContentChange }: SharedAiAssistantProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -36,6 +39,41 @@ export function SharedAiAssistant({ getAiInsight }: SharedAiAssistantProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const clearChat = () => {
+    setMessages([]);
+    setCurrentData(null);
+    setInput('');
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
+  // Setup header controls
+  useEffect(() => {
+    if (onLeftContentChange) {
+      const leftControls = (
+        <VisualizationControls
+          viewType={viewType}
+          onViewTypeChange={setViewType}
+        />
+      );
+      onLeftContentChange(leftControls);
+    }
+    
+    if (onRightContentChange) {
+      const rightControls = (
+        <NewChatControl onNewChat={clearChat} />
+      );
+      onRightContentChange(rightControls);
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      if (onLeftContentChange) onLeftContentChange(null);
+      if (onRightContentChange) onRightContentChange(null);
+    };
+  }, [viewType, onLeftContentChange, onRightContentChange]);
 
   // Auto-scroll to bottom when new messages are added
   const scrollToBottom = () => {
@@ -137,15 +175,6 @@ export function SharedAiAssistant({ getAiInsight }: SharedAiAssistantProps) {
     }
   };
 
-  const clearChat = () => {
-    setMessages([]);
-    setCurrentData(null);
-    setInput('');
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  };
-
   return (
     <div className="space-y-6">
       {/* Main Container with Fixed Height */}
@@ -158,49 +187,6 @@ export function SharedAiAssistant({ getAiInsight }: SharedAiAssistantProps) {
           className="hidden lg:flex flex-col bg-transparent"
           style={{ width: `${leftWidth}%` }}
         >
-          <div className="p-4 bg-transparent">
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={viewType === 'table' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewType('table')}
-                className="flex items-center gap-1 text-xs"
-              >
-                <TableIcon className="w-3 h-3" />
-                Table
-              </Button>
-
-              <Button
-                variant={viewType === 'bar' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewType('bar')}
-                className="flex items-center gap-1 text-xs"
-              >
-                <BarChart3 className="w-3 h-3" />
-                Bar
-              </Button>
-
-              <Button
-                variant={viewType === 'pie' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewType('pie')}
-                className="flex items-center gap-1 text-xs"
-              >
-                <PieChartIcon className="w-3 h-3" />
-                Pie
-              </Button>
-
-              <Button
-                variant={viewType === 'line' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewType('line')}
-                className="flex items-center gap-1 text-xs"
-              >
-                <TrendingUp className="w-3 h-3" />
-                Line
-              </Button>
-            </div>
-          </div>
           <div className="flex-1 p-4 overflow-auto custom-scrollbar">
             <DataVisualizer data={currentData} viewType={viewType} />
           </div>
@@ -219,22 +205,8 @@ export function SharedAiAssistant({ getAiInsight }: SharedAiAssistantProps) {
           className="flex flex-col bg-transparent w-full lg:w-auto relative"
           style={{ width: `${100 - leftWidth}%` }}
         >
-          {/* Fixed New Chat Button */}
-          <Button
-            onClick={clearChat}
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2 absolute top-4 right-4 z-30"
-          >
-            <RotateCcw className="w-4 h-4" />
-            New Chat
-          </Button>
-
-          {/* Fade out overlay for New Chat button area */}
-          <div className="absolute top-0 right-0 w-40 h-16 bg-gradient-to-l from-[#FAFBFD] via-[#FAFBFD]/80 to-transparent pointer-events-none z-20"></div>
-
           {/* Chat Messages */}
-          <div className="flex-1 overflow-y-auto p-4 pt-16 space-y-4 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
             {messages.length === 0 && (
               <div className="text-center text-gray-500 py-8">
               </div>
@@ -278,47 +250,6 @@ export function SharedAiAssistant({ getAiInsight }: SharedAiAssistantProps) {
           {/* Data Visualization (Mobile) */}
           <div className="lg:hidden">
             <div className="p-4 bg-transparent">
-              <div className="flex flex-wrap gap-2 mb-3">
-                <Button
-                  variant={viewType === 'table' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewType('table')}
-                  className="flex items-center gap-1 text-xs"
-                >
-                  <TableIcon className="w-3 h-3" />
-                  Table
-                </Button>
-
-                <Button
-                  variant={viewType === 'bar' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewType('bar')}
-                  className="flex items-center gap-1 text-xs"
-                >
-                  <BarChart3 className="w-3 h-3" />
-                  Bar
-                </Button>
-
-                <Button
-                  variant={viewType === 'pie' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewType('pie')}
-                  className="flex items-center gap-1 text-xs"
-                >
-                  <PieChartIcon className="w-3 h-3" />
-                  Pie
-                </Button>
-
-                <Button
-                  variant={viewType === 'line' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewType('line')}
-                  className="flex items-center gap-1 text-xs"
-                >
-                  <TrendingUp className="w-3 h-3" />
-                  Line
-                </Button>
-              </div>
               <div className="max-h-96 overflow-auto">
                 <DataVisualizer data={currentData} viewType={viewType} />
               </div>
