@@ -6,9 +6,27 @@ import { cn } from '@/lib/utils';
 import { Bot, Home, Building2, BarChart3, PanelLeftClose } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, createContext, useContext, ReactNode } from 'react';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import withAuth from '@/components/with-auth';
+
+// Context for header controls
+interface HeaderControlsContextType {
+  leftContent?: ReactNode;
+  rightContent?: ReactNode;
+  setLeftContent: (content: ReactNode) => void;
+  setRightContent: (content: ReactNode) => void;
+}
+
+const HeaderControlsContext = createContext<HeaderControlsContextType | null>(null);
+
+export const useHeaderControls = () => {
+  const context = useContext(HeaderControlsContext);
+  if (!context) {
+    throw new Error('useHeaderControls must be used within HeaderControlsProvider');
+  }
+  return context;
+};
 
 const menuItems = [
   { href: '/employee', label: 'Dashboard', icon: Home, exact: true },
@@ -115,6 +133,8 @@ function EmployeeLayout({
 }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
+  const [leftContent, setLeftContent] = useState<ReactNode>(null);
+  const [rightContent, setRightContent] = useState<ReactNode>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -131,34 +151,36 @@ function EmployeeLayout({
   }, []);
   
   return (
-    <SidebarProvider>
-        <div className="flex min-h-screen bg-background w-full">
-            <Sidebar>
-                <EmployeeSidebarContent />
-            </Sidebar>
-            <div className="flex-1 flex flex-col">
-                 <header className={cn(
-                    "sticky top-0 z-40 flex items-center justify-between p-4 md:justify-end transition-all duration-300",
-                    isScrolled && "bg-background/80 backdrop-blur-lg border-b"
-                  )}>
-                    <div className="md:hidden">
-                        <SidebarTrigger />
-                    </div>
-                    <DashboardHeader />
-                </header>
-                <main className={cn(
-                    "flex-1 flex flex-col",
-                    pathname === '/employee/assistant' ? 'overflow-hidden' : 'overflow-y-auto'
-                )}>
-                    <div className={cn(
-                        pathname === '/employee/assistant' ? 'h-full p-4 md:p-8' : 'p-4 md:p-8'
+    <HeaderControlsContext.Provider value={{ leftContent, rightContent, setLeftContent, setRightContent }}>
+      <SidebarProvider>
+          <div className="flex min-h-screen bg-background w-full">
+              <Sidebar>
+                  <EmployeeSidebarContent />
+              </Sidebar>
+              <div className="flex-1 flex flex-col">
+                   <header className={cn(
+                      "sticky top-0 z-40 flex items-center justify-between p-4 md:justify-end transition-all duration-300",
+                      isScrolled && "bg-background/80 backdrop-blur-lg border-b"
                     )}>
-                        {children}
-                    </div>
-                </main>
-            </div>
-        </div>
-    </SidebarProvider>
+                      <div className="md:hidden">
+                          <SidebarTrigger />
+                      </div>
+                      <DashboardHeader leftContent={leftContent} rightContent={rightContent} />
+                  </header>
+                  <main className={cn(
+                      "flex-1 flex flex-col",
+                      pathname === '/employee/assistant' ? 'overflow-hidden' : 'overflow-y-auto'
+                  )}>
+                      <div className={cn(
+                          pathname === '/employee/assistant' ? 'h-full p-4 md:p-8' : 'p-4 md:p-8'
+                      )}>
+                          {children}
+                      </div>
+                  </main>
+              </div>
+          </div>
+      </SidebarProvider>
+    </HeaderControlsContext.Provider>
   );
 }
 
