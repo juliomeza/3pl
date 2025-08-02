@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -8,6 +8,57 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Info, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { getMaterialsData } from '@/app/actions';
+
+// Define ColumnHeader outside of the main component to prevent re-creation
+const ColumnHeader = React.memo(({ 
+  field, 
+  label, 
+  filters, 
+  sortField, 
+  sortDirection, 
+  onFilterChange, 
+  onSort, 
+  getSortIcon 
+}: {
+  field: SortField;
+  label: string;
+  filters: ColumnFilters;
+  sortField: SortField | null;
+  sortDirection: SortDirection;
+  onFilterChange: (field: keyof ColumnFilters, value: string) => void;
+  onSort: (field: SortField) => void;
+  getSortIcon: (field: SortField) => React.ReactNode;
+}) => {
+  const isActive = sortField === field;
+  
+  return (
+    <div className="space-y-2">
+      <div 
+        className={`flex items-center gap-1 cursor-pointer transition-colors ${
+          isActive 
+            ? 'text-blue-700 hover:text-blue-800' 
+            : 'text-gray-700 hover:text-blue-600'
+        }`}
+        onClick={() => onSort(field)}
+      >
+        <span className={`text-sm ${
+          isActive ? 'font-bold' : 'font-semibold'
+        }`}>{label}</span>
+        <div className={`transition-colors ${
+          isActive ? 'text-blue-600' : 'text-gray-400'
+        }`}>
+          {getSortIcon(field)}
+        </div>
+      </div>
+      <Input
+        placeholder="Filter..."
+        value={filters[field]}
+        onChange={(e) => onFilterChange(field, e.target.value)}
+        className="h-8 text-xs border-gray-200 focus:border-blue-300"
+      />
+    </div>
+  );
+});
 
 interface MaterialsTableProps {
   isRealData: boolean;
@@ -136,34 +187,37 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
-  // Handle filter changes
-  const handleFilterChange = (field: keyof ColumnFilters, value: string) => {
+  // Handle filter changes with useCallback to prevent re-renders
+  const handleFilterChange = useCallback((field: keyof ColumnFilters, value: string) => {
     setFilters(prev => ({
       ...prev,
       [field]: value
     }));
-  };
+  }, []);
 
-  // Handle sort
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      // Cycle through: asc -> desc -> none
-      if (sortDirection === 'asc') {
-        setSortDirection('desc');
-      } else if (sortDirection === 'desc') {
-        setSortField(null);
-        setSortDirection(null);
+  // Handle sort with useCallback
+  const handleSort = useCallback((field: SortField) => {
+    setSortField(current => {
+      if (current === field) {
+        // Cycle through: asc -> desc -> none
+        setSortDirection(dir => {
+          if (dir === 'asc') return 'desc';
+          if (dir === 'desc') {
+            setSortField(null);
+            return null;
+          }
+          return 'asc';
+        });
+        return current;
       } else {
         setSortDirection('asc');
+        return field;
       }
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
-  };
+    });
+  }, []);
 
   // Get sort icon
-  const getSortIcon = (field: SortField) => {
+  const getSortIcon = useCallback((field: SortField) => {
     if (sortField !== field) {
       return <ChevronsUpDown className="w-4 h-4 text-gray-400" />;
     }
@@ -174,7 +228,7 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
       return <ChevronDown className="w-4 h-4 text-blue-600 font-bold" />;
     }
     return <ChevronsUpDown className="w-4 h-4 text-gray-400" />;
-  };
+  }, [sortField, sortDirection]);
 
   // Fetch real data when isRealData changes to true
   // Filtered and sorted data
@@ -218,40 +272,6 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
 
     return filtered;
   }, [isRealData, realData, filters, sortField, sortDirection]);
-
-  // Column Header Component
-  const ColumnHeader = ({ field, label }: { field: SortField; label: string }) => {
-    const isActive = sortField === field;
-    
-    return (
-      <div className="space-y-2">
-        <div 
-          className={`flex items-center gap-1 cursor-pointer transition-colors ${
-            isActive 
-              ? 'text-blue-700 hover:text-blue-800' 
-              : 'text-gray-700 hover:text-blue-600'
-          }`}
-          onClick={() => handleSort(field)}
-        >
-          <span className={`text-sm ${
-            isActive ? 'font-bold' : 'font-semibold'
-          }`}>{label}</span>
-          <div className={`transition-colors ${
-            isActive ? 'text-blue-600' : 'text-gray-400'
-          }`}>
-            {getSortIcon(field)}
-          </div>
-        </div>
-        <Input
-          placeholder="Filter..."
-          value={filters[field]}
-          onChange={(e) => handleFilterChange(field, e.target.value)}
-          className="h-8 text-xs border-gray-200 focus:border-blue-300"
-          onClick={(e) => e.stopPropagation()}
-        />
-      </div>
-    );
-  };
 
   useEffect(() => {
     async function fetchRealData() {
@@ -312,19 +332,64 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[160px]">
-                  <ColumnHeader field="lookupCode" label="Lookup Code" />
+                  <ColumnHeader 
+                    field="lookupCode" 
+                    label="Lookup Code" 
+                    filters={filters}
+                    sortField={sortField}
+                    sortDirection={sortDirection}
+                    onFilterChange={handleFilterChange}
+                    onSort={handleSort}
+                    getSortIcon={getSortIcon}
+                  />
                 </TableHead>
                 <TableHead className="w-[120px]">
-                  <ColumnHeader field="statusId" label="Status" />
+                  <ColumnHeader 
+                    field="statusId" 
+                    label="Status" 
+                    filters={filters}
+                    sortField={sortField}
+                    sortDirection={sortDirection}
+                    onFilterChange={handleFilterChange}
+                    onSort={handleSort}
+                    getSortIcon={getSortIcon}
+                  />
                 </TableHead>
                 <TableHead className="w-[160px]">
-                  <ColumnHeader field="materialGroupId" label="Material Group" />
+                  <ColumnHeader 
+                    field="materialGroupId" 
+                    label="Material Group" 
+                    filters={filters}
+                    sortField={sortField}
+                    sortDirection={sortDirection}
+                    onFilterChange={handleFilterChange}
+                    onSort={handleSort}
+                    getSortIcon={getSortIcon}
+                  />
                 </TableHead>
                 <TableHead className="w-[240px]">
-                  <ColumnHeader field="name" label="Name" />
+                  <ColumnHeader 
+                    field="name" 
+                    label="Name" 
+                    filters={filters}
+                    sortField={sortField}
+                    sortDirection={sortDirection}
+                    onFilterChange={handleFilterChange}
+                    onSort={handleSort}
+                    getSortIcon={getSortIcon}
+                  />
                 </TableHead>
                 <TableHead>
-                  <ColumnHeader field="description" label="Description" />
+                  <ColumnHeader 
+                    field="description" 
+                    label="Description" 
+                    filters={filters}
+                    sortField={sortField}
+                    sortDirection={sortDirection}
+                    onFilterChange={handleFilterChange}
+                    onSort={handleSort}
+                    getSortIcon={getSortIcon}
+                  />
                 </TableHead>
               </TableRow>
             </TableHeader>
