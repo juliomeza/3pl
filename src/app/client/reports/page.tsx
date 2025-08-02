@@ -255,7 +255,7 @@ export default function ClientReportsPage() {
   return (
     <div className="flex flex-col h-full">
       {/* Header with Reports Dropdown */}
-      <div className="p-6 border-b bg-white">
+      <div className="p-6 border-b">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-4">
             {/* Reports Dropdown Menu - Shows Current Selected Report */}
