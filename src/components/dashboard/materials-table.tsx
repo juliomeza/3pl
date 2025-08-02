@@ -1,18 +1,27 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Info } from 'lucide-react';
+import { getMaterialsData } from '@/app/actions';
 
 interface MaterialsTableProps {
   isRealData: boolean;
   ownerId?: number | null;
 }
 
+interface MaterialData {
+  lookupCode: string;
+  statusId: number;
+  materialGroupId: string;
+  name: string;
+  description: string;
+}
+
 // Sample data for materials
-const sampleMaterials = [
+const sampleMaterials: MaterialData[] = [
   {
     lookupCode: 'MAT-001',
     statusId: 1,
@@ -99,9 +108,34 @@ const getStatusBadge = (statusId: number) => {
 };
 
 export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
-  const [realData, setRealData] = useState<any[]>([]);
+  const [realData, setRealData] = useState<MaterialData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Fetch real data when isRealData changes to true
+  useEffect(() => {
+    async function fetchRealData() {
+      if (!isRealData || !ownerId) return;
+
+      try {
+        setLoading(true);
+        setError(null);
+        console.log('Fetching materials data for ownerId:', ownerId);
+        
+        const materials = await getMaterialsData(ownerId);
+        console.log('Fetched materials:', materials);
+        
+        setRealData(materials);
+      } catch (err) {
+        console.error('Error fetching materials:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load materials data');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchRealData();
+  }, [isRealData, ownerId]);
 
   // For now, we'll only show sample data
   // Real data fetching will be implemented when the View button is clicked

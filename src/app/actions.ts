@@ -266,3 +266,34 @@ export async function getTopDestinations(ownerId: number, period: 'last90days' =
     return [];
   }
 }
+
+// Get materials data for reports
+export async function getMaterialsData(ownerId: number): Promise<{
+  lookupCode: string;
+  statusId: number;
+  materialGroupId: string;
+  name: string;
+  description: string;
+}[]> {
+  try {
+    const result = await db.query(
+      `SELECT m.lookupcode, m.statusid, m.materialgroupid, m.name, m.description
+       FROM wms_materials m
+       JOIN wms_projects p ON p.id = m.projectid
+       WHERE p.ownerid = $1
+       ORDER BY m.lookupcode`,
+      [ownerId]
+    );
+
+    return result.rows.map(row => ({
+      lookupCode: row.lookupcode,
+      statusId: row.statusid,
+      materialGroupId: row.materialgroupid,
+      name: row.name,
+      description: row.description
+    }));
+  } catch (error) {
+    console.error('Error fetching materials data:', error);
+    throw new Error('Failed to fetch materials data');
+  }
+}
