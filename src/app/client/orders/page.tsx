@@ -1,12 +1,16 @@
 
-import { Wrench } from 'lucide-react';
+import { CreateOrderForm } from '@/components/dashboard/create-order-form';
 
 export default function ClientOrdersPage() {
   return (
-    <div className="flex flex-col items-center justify-center h-[50vh] text-center">
-      <Wrench className="w-16 h-16 mb-4 text-muted-foreground" />
-      <h1 className="text-3xl font-bold font-headline mb-2">Create Orders</h1>
-      <p className="text-lg text-muted-foreground">This section is under construction.</p>
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold font-headline">Create Orders</h1>
+        <p className="text-muted-foreground">
+          Create inbound (purchase) and outbound (sales) orders for your projects.
+        </p>
+      </div>
+      <CreateOrderForm />
     </div>
   );
 }
