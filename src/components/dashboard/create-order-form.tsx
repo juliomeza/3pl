@@ -10,7 +10,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Plus, Trash2, Package, Truck, MapPin, CheckCircle, ArrowLeft, ArrowRight, Eye } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface LineItem {
   id: string;
@@ -207,14 +206,6 @@ export function CreateOrderForm() {
 
   return (
     <div className="space-y-6">
-      {/* Alert for prototype */}
-      <Alert>
-        <Package className="h-4 w-4" />
-        <AlertDescription>
-          This is a visual prototype. Data is not saved to database yet.
-        </AlertDescription>
-      </Alert>
-
       {/* Step Indicator */}
       <div className="flex items-center justify-center mb-8">
         {steps.map((step, index) => (
@@ -693,13 +684,6 @@ export function CreateOrderForm() {
                 ))}
               </div>
             </div>
-
-            <Alert>
-              <CheckCircle className="h-4 w-4" />
-              <AlertDescription>
-                Please review all information carefully. After submitting, this order cannot be modified.
-              </AlertDescription>
-            </Alert>
           </CardContent>
         </Card>
       )}
