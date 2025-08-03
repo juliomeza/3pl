@@ -51,7 +51,7 @@ const ColumnHeader = React.memo(({
         </div>
       </div>
       <Input
-        placeholder="Filter..."
+        placeholder="Search"
         value={filters[field]}
         onChange={(e) => onFilterChange(field, e.target.value)}
         className="h-8 text-xs border-gray-200 focus:border-blue-300 bg-transparent"
