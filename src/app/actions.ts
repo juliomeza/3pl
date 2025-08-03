@@ -318,3 +318,23 @@ export async function getProjectsForOrders(ownerId: number): Promise<{id: string
     throw new Error('Failed to fetch projects');
   }
 }
+
+// Get carriers for order creation (no restrictions for now)
+export async function getCarriersForOrders(): Promise<{id: string, name: string}[]> {
+  try {
+    const result = await db.query(
+      `SELECT id, name
+       FROM wms_carriers
+       ORDER BY name`,
+      []
+    );
+
+    return result.rows.map(row => ({
+      id: row.id.toString(),
+      name: row.name
+    }));
+  } catch (error) {
+    console.error('Error fetching carriers for orders:', error);
+    throw new Error('Failed to fetch carriers');
+  }
+}

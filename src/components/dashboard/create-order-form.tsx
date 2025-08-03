@@ -13,6 +13,7 @@ import { Plus, Trash2, Package, Truck, MapPin, CheckCircle, ArrowLeft, ArrowRigh
 import { OrderStepIndicator } from './order-step-indicator';
 import { useHeaderControls } from '@/app/client/layout';
 import { useProjectsForOrders } from '@/hooks/use-projects-for-orders';
+import { useCarriersForOrders } from '@/hooks/use-carriers-for-orders';
 
 interface LineItem {
   id: string;
@@ -33,7 +34,7 @@ interface OrderFormData {
   recipientAddress: string;
   billingAccountName: string;
   billingAddress: string;
-  carrier: string;
+  carrierId: string;
   carrierServiceType: string;
   estimatedDeliveryDate: string;
   lineItems: LineItem[];
@@ -45,14 +46,6 @@ const mockMaterials = [
   { code: 'MAT-002', name: 'Copper Wire 12AWG', uom: 'FT' },
   { code: 'MAT-003', name: 'Concrete Mix 80lb', uom: 'BAG' },
   { code: 'MAT-004', name: 'PVC Fitting 2"', uom: 'EA' }
-];
-
-const mockCarriers = [
-  'FedEx',
-  'UPS', 
-  'DHL',
-  'USPS',
-  'Custom Freight'
 ];
 
 const serviceTypes = [
@@ -67,6 +60,9 @@ export function CreateOrderForm() {
   // Load projects from database
   const { projects, loading: projectsLoading, error: projectsError } = useProjectsForOrders();
   
+  // Load carriers from database
+  const { carriers, loading: carriersLoading, error: carriersError } = useCarriersForOrders();
+  
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<OrderFormData>({
     orderType: '',
@@ -77,7 +73,7 @@ export function CreateOrderForm() {
     recipientAddress: '',
     billingAccountName: '',
     billingAddress: '',
-    carrier: '',
+    carrierId: '',
     carrierServiceType: '',
     estimatedDeliveryDate: '',
     lineItems: [],
@@ -100,7 +96,7 @@ export function CreateOrderForm() {
            formData.recipientAddress && 
            formData.billingAccountName && 
            formData.billingAddress && 
-           formData.carrier && 
+           formData.carrierId && 
            formData.carrierServiceType);
   };
 
@@ -216,7 +212,7 @@ export function CreateOrderForm() {
         recipientAddress: '',
         billingAccountName: '',
         billingAddress: '',
-        carrier: '',
+        carrierId: '',
         carrierServiceType: '',
         estimatedDeliveryDate: '',
         lineItems: [],
@@ -392,18 +388,26 @@ export function CreateOrderForm() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="carrier">Carrier *</Label>
-                  <Select value={formData.carrier} onValueChange={(value) => 
-                    setFormData(prev => ({ ...prev, carrier: value }))
+                  <Select value={formData.carrierId} onValueChange={(value) => 
+                    setFormData(prev => ({ ...prev, carrierId: value }))
                   }>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select carrier" />
+                      <SelectValue placeholder={carriersLoading ? "Loading..." : "Select carrier"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockCarriers.map(carrier => (
-                        <SelectItem key={carrier} value={carrier}>
-                          {carrier}
-                        </SelectItem>
-                      ))}
+                      {carriersLoading ? (
+                        <SelectItem value="loading" disabled>Loading carriers...</SelectItem>
+                      ) : carriersError ? (
+                        <SelectItem value="error" disabled>Error loading carriers</SelectItem>
+                      ) : carriers.length === 0 ? (
+                        <SelectItem value="empty" disabled>No carriers found</SelectItem>
+                      ) : (
+                        carriers.map(carrier => (
+                          <SelectItem key={carrier.id} value={carrier.id}>
+                            {carrier.name}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -625,7 +629,7 @@ export function CreateOrderForm() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Carrier:</span>
-                    <span>{formData.carrier}</span>
+                    <span>{carriers.find(c => c.id === formData.carrierId)?.name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Service:</span>
