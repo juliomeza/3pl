@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Plus, Trash2, Package, Truck, MapPin, CheckCircle, ArrowLeft, ArrowRight, Eye } from 'lucide-react';
+import { OrderStepIndicator } from './order-step-indicator';
+import { useHeaderControls } from '@/app/client/layout';
 
 interface LineItem {
   id: string;
@@ -92,22 +94,16 @@ export function CreateOrderForm() {
     serialNumber: ''
   });
 
-  const steps = [
-    { number: 1, title: 'Order Information', icon: Package },
-    { number: 2, title: 'Select Materials', icon: Plus },
-    { number: 3, title: 'Review & Submit', icon: Eye }
-  ];
-
   // Validation functions for each step
   const isStep1Valid = () => {
-    return formData.orderType && 
+    return !!(formData.orderType && 
            formData.projectId && 
            formData.recipientName && 
            formData.recipientAddress && 
            formData.billingAccountName && 
            formData.billingAddress && 
            formData.carrier && 
-           formData.carrierServiceType;
+           formData.carrierServiceType);
   };
 
   const isStep2Valid = () => {
@@ -120,6 +116,27 @@ export function CreateOrderForm() {
     if (step === 3) return isStep1Valid() && isStep2Valid();
     return false;
   };
+
+  // Header controls
+  const { setLeftContent, setRightContent } = useHeaderControls();
+
+  // Effect to set header content
+  useEffect(() => {
+    setLeftContent(
+      <OrderStepIndicator 
+        currentStep={currentStep}
+        canGoToStep={canGoToStep}
+        onStepClick={handleStepClick}
+      />
+    );
+    setRightContent(null);
+
+    // Cleanup on unmount
+    return () => {
+      setLeftContent(null);
+      setRightContent(null);
+    };
+  }, [currentStep, formData, setLeftContent, setRightContent]);
 
   const handleStepClick = (step: number) => {
     if (canGoToStep(step)) {
@@ -206,34 +223,6 @@ export function CreateOrderForm() {
 
   return (
     <div className="space-y-6">
-      {/* Step Indicator */}
-      <div className="flex items-center justify-center mb-8">
-        {steps.map((step, index) => (
-          <div key={step.number} className="flex items-center">
-            <div 
-              className={`flex items-center gap-2 cursor-pointer p-2 rounded-lg transition-colors ${
-                currentStep === step.number 
-                  ? 'bg-primary text-primary-foreground' 
-                  : canGoToStep(step.number)
-                    ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                    : 'bg-muted text-muted-foreground cursor-not-allowed'
-              }`}
-              onClick={() => handleStepClick(step.number)}
-            >
-              {currentStep > step.number ? (
-                <CheckCircle className="w-5 h-5" />
-              ) : (
-                <step.icon className="w-5 h-5" />
-              )}
-              <span className="font-medium text-sm">{step.title}</span>
-            </div>
-            {index < steps.length - 1 && (
-              <div className="w-12 h-px bg-border mx-4" />
-            )}
-          </div>
-        ))}
-      </div>
-
       {/* Step 1: Order Information */}
       {currentStep === 1 && (
         <div className="space-y-6">
@@ -700,7 +689,7 @@ export function CreateOrderForm() {
         </div>
 
         <div className="text-sm text-muted-foreground">
-          Step {currentStep} of {steps.length}
+          Step {currentStep} of 3
           {currentStep === 2 && ` • ${formData.lineItems.length} materials added`}
         </div>
 
