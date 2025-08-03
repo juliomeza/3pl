@@ -47,7 +47,7 @@ src/app/
 src/components/
 ├── ai/                   # AI assistant components
 ├── ui/                   # shadcn/ui components
-├── dashboard/            # Role-specific dashboard components
+├── dashboard/            # Shared dashboard components and role-specific features
 ├── landing/              # Marketing/landing page
 └── with-auth.tsx         # Authentication HOC
 
@@ -156,6 +156,61 @@ OPENAI_API_KEY=your_api_key     # Required for AI assistant
 - Firebase project ID: "synapse3pl" (hardcoded for compatibility)
 - SSL configuration for PostgreSQL: `rejectUnauthorized: false`
 
+## Shared Component Architecture (REFACTORED - August 2025)
+
+**Component Sharing Strategy**: Client and employee interfaces share UI/UX patterns through shared components for consistency and maintainability.
+
+### Shared Layout System
+- **DashboardLayout** (`src/components/dashboard/dashboard-layout.tsx`): Unified layout for both client and employee interfaces
+  - Role-based logo rendering (client uses dynamic logo, employee uses company branding)
+  - Configurable menu items per role
+  - Shared sidebar, header, and responsive behavior
+  - Header controls context for dynamic content injection
+
+### Shared Page Components
+- **SharedDashboardPage** (`src/components/dashboard/shared-dashboard-page.tsx`): Role-based dashboard with consistent UI
+  - Client: Uses `owner_id` filtering for client-specific data
+  - Employee: Full access to all operational data (no filtering)
+  - Shared metrics cards, charts, and active orders sections
+  - Role-appropriate welcome messages and scaled numbers
+
+- **SharedReportsPage** (`src/components/dashboard/shared-reports-page.tsx`): Unified reports interface
+  - Client: 20+ client-specific reports with owner filtering
+  - Employee: 5-50 reports with configurable access levels
+  - Shared header controls, export functionality, and MaterialsTable integration
+  - Role-based access messaging and data scope indicators
+
+### Benefits Achieved
+- **Consistency**: 100% identical UI/UX between client and employee roles
+- **Maintainability**: Single source of truth for layout and page logic (~900 lines of code eliminated)
+- **Scalability**: Easy to add new features that automatically work for both roles
+- **Type Safety**: Full TypeScript coverage with role-based prop interfaces
+
+### Implementation Pattern
+```typescript
+// Page-level usage
+export default function ClientDashboardPage() {
+  return <SharedDashboardPage role="client" />;
+}
+
+export default function EmployeeDashboardPage() {
+  return <SharedDashboardPage role="employee" />;
+}
+
+// Shared component structure
+interface SharedComponentProps {
+  role: 'client' | 'employee';
+}
+
+export default function SharedComponent({ role }: SharedComponentProps) {
+  // Role-based data fetching
+  const ownerId = role === 'client' ? (clientInfo?.owner_id || null) : null;
+  
+  // Shared UI with role-specific behavior
+  return (/* consistent interface with role adaptations */);
+}
+```
+
 ## Code Standards
 
 **CRITICAL: All code, variables, functions, and comments must be in English**
@@ -165,3 +220,4 @@ OPENAI_API_KEY=your_api_key     # Required for AI assistant
 - Follow established shadcn/ui patterns in `src/components/ui/`
 - Server actions centralized in `src/app/actions.ts` for AI integration
 - Custom hooks pattern: `use-*-for-orders.ts` for database integration
+- **Shared Components**: Prefer shared components over duplicate implementations for client/employee interfaces

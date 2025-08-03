@@ -56,7 +56,7 @@ src/app/
 src/components/
 ├── ai/                   # AI assistant components
 ├── ui/                   # shadcn/ui components
-├── dashboard/            # Dashboard-specific components
+├── dashboard/            # Shared dashboard components and role-specific features
 ├── landing/              # Landing page components
 └── with-auth.tsx         # Authentication HOC
 ```
@@ -203,6 +203,7 @@ const getClientAiInsight = async (query: string, conversationHistory: ChatMessag
 - **Server Components**: Default approach, use `'use client'` only when necessary
 - **shadcn/ui**: Located in `src/components/ui/`, follow established patterns
 - **Server Actions**: Centralized in `src/app/actions.ts` for AI integration
+- **Shared Components**: Prefer shared components over duplicate implementations for client/employee interfaces
 
 ## Critical UI Implementations (DO NOT REGRESS)
 
@@ -368,6 +369,64 @@ npm run test:chat -- --testNamePattern="date-"  # Date tests
 - **Context Handling**: Conversation memory and follow-ups
 - **Date Context**: Temporal query interpretation
 - **Performance**: Response time validation
+
+## Shared Component Architecture (REFACTORED - August 2025)
+
+### Component Sharing Strategy
+**Client and employee interfaces share UI/UX patterns through shared components for consistency and maintainability.**
+
+#### Refactored Components
+- **DashboardLayout** (`src/components/dashboard/dashboard-layout.tsx`): Unified layout system
+  - Role-based logo rendering (client: dynamic logo, employee: company branding)
+  - Configurable menu items and responsive behavior
+  - Header controls context for dynamic content injection
+  - Eliminates ~200 lines of duplicated layout code
+
+- **SharedDashboardPage** (`src/components/dashboard/shared-dashboard-page.tsx`): Role-based dashboard
+  - Client: Uses `owner_id` filtering for client-specific data
+  - Employee: Full access to all operational data (no filtering)
+  - Shared metrics cards, charts, and active orders sections
+  - Role-appropriate scaling (employee shows larger numbers)
+
+- **SharedReportsPage** (`src/components/dashboard/shared-reports-page.tsx`): Unified reports interface
+  - Client: 20+ client-specific reports with owner filtering
+  - Employee: 5-50 reports with configurable access levels
+  - Shared MaterialsTable, header controls, and export functionality
+  - Role-based access messaging and security filtering
+
+#### Implementation Pattern
+```typescript
+// Simplified page implementations
+export default function ClientDashboardPage() {
+  return <SharedDashboardPage role="client" />;
+}
+
+export default function EmployeeDashboardPage() {
+  return <SharedDashboardPage role="employee" />;
+}
+
+// Shared component with role-based props
+interface SharedComponentProps {
+  role: 'client' | 'employee';
+}
+
+// Role-based data fetching pattern
+const ownerId = role === 'client' ? (clientInfo?.owner_id || null) : null;
+```
+
+#### Refactoring Benefits
+- **~900 lines of code eliminated** from duplicate implementations
+- **100% UI/UX consistency** between client and employee interfaces
+- **Single source of truth** for layout and page logic
+- **Easy feature additions** automatically work for both roles
+- **Future-proof architecture** eliminates need for duplicate maintenance
+
+#### Development Guidelines
+- **Always prefer shared components** over duplicate client/employee implementations
+- **Use role-based props** to handle behavioral differences
+- **Implement owner filtering** for client role, full access for employee role
+- **Test both roles** when making changes to shared components
+- **Follow the established pattern** when creating new shared components
 
 ## Development Guidelines
 
