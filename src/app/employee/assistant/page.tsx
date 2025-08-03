@@ -1,15 +1,14 @@
 'use client';
 
-import { SharedAiAssistant } from '@/components/ai/shared-ai-assistant';
-import { getAiInsightOpenAI } from '@/app/actions';
+import SharedAssistantPage from '@/components/dashboard/shared-assistant-page';
 import { useHeaderControls } from '../layout';
 
 export default function EmployeeAssistantPage() {
   const { setLeftContent, setRightContent } = useHeaderControls();
 
   return (
-    <SharedAiAssistant 
-      getAiInsight={getAiInsightOpenAI}
+    <SharedAssistantPage 
+      role="employee"
       onLeftContentChange={setLeftContent}
       onRightContentChange={setRightContent}
     />
