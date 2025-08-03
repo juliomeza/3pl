@@ -122,7 +122,7 @@ Firebase Auth → users/{uid}.clientId → clients/{clientId}.owner_id → Datab
 **Key Files**:
 - `src/context/auth-context.tsx`: Global auth state with clientInfo containing owner_id
 - `src/hooks/use-client-info.ts`: Retrieves owner_id from Firebase chain
-- Client hooks (like `useProjectsForOrders`, `useActiveOrders`) use `clientInfo?.owner_id` from auth context
+- Client hooks (like `useProjectsForOrders`, `useActiveOrders`) use explicit `ownerId` parameter for consistency
 
 **Security Pattern**: ALL client database queries MUST include `WHERE owner_id = [user_owner_id]` or `WHERE ownerid = $1` filtering.
 
@@ -204,6 +204,51 @@ const getClientAiInsight = async (query: string, conversationHistory: ChatMessag
 - **shadcn/ui**: Located in `src/components/ui/`, follow established patterns
 - **Server Actions**: Centralized in `src/app/actions.ts` for AI integration
 - **Shared Components**: Prefer shared components over duplicate implementations for client/employee interfaces
+- **Data Fetching Pattern**: Use `useDataFetcher()` factory hook for consistent loading/error/refetch logic
+
+## Hook Architecture & Data Fetching Patterns (REFACTORED - August 2025)
+
+### Factory Pattern Implementation
+**Centralized data fetching logic** to eliminate code duplication and ensure consistency across hooks.
+
+#### Core Data Fetching Hook
+- **File**: `src/hooks/use-data-fetcher.ts`
+- **Purpose**: Generic factory hook providing consistent loading, error, and refetch patterns
+- **Features**: Configurable initial data, error messages, dependency arrays, and refetch loading states
+
+#### Standardized Hook Pattern
+All data fetching hooks follow this consistent interface:
+```typescript
+export function useHookName(ownerId: number | null, ...params) {
+  const { data, loading, error, refetch } = useDataFetcher(
+    serverActionFunction,
+    {
+      ownerId,
+      initialData: [] as DataType[],
+      dependencies: [param1, param2], // optional
+      errorMessage: 'Failed to load data',
+      enableRefetchLoading: true // optional
+    },
+    ...params
+  );
+
+  return { data, loading, error, refetch };
+}
+```
+
+#### Refactored Hooks Using Factory Pattern
+- `useActiveOrders(ownerId)` - Active orders with owner filtering
+- `useDashboardMetrics(ownerId)` - Dashboard KPI metrics  
+- `useProjectsForOrders(ownerId)` - Projects for order creation
+- `useShipmentTrends(ownerId, period)` - Chart data with period filtering
+- `useDeliveryPerformance(ownerId)` - Performance metrics for charts
+- `useTopDestinations(ownerId, period)` - Destination analytics
+
+#### Benefits Achieved
+- **Code Reduction**: ~350+ lines of duplicate code eliminated
+- **Consistency**: Unified error handling, loading states, and refetch logic
+- **Maintainability**: Single source of truth for data fetching patterns
+- **Testability**: Explicit parameters instead of internal auth dependencies
 
 ## Critical UI Implementations (DO NOT REGRESS)
 
@@ -414,8 +459,14 @@ interface SharedComponentProps {
 const ownerId = role === 'client' ? (clientInfo?.owner_id || null) : null;
 ```
 
+- **SharedAssistantPage** (`src/components/dashboard/shared-assistant-page.tsx`): Unified AI assistant interface
+  - Client: Loading/error states with owner validation and filtered queries
+  - Employee: Direct access without additional validation
+  - Shared AI chat interface with role-appropriate data access
+  - Consistent error handling and loading states
+
 #### Refactoring Benefits
-- **~900 lines of code eliminated** from duplicate implementations
+- **~1250+ lines of code eliminated** from duplicate implementations
 - **100% UI/UX consistency** between client and employee interfaces
 - **Single source of truth** for layout and page logic
 - **Easy feature additions** automatically work for both roles

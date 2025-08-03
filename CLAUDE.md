@@ -71,7 +71,7 @@ src/lib/
 **Security Model**: All client queries automatically filtered by `owner_id` for data isolation. Employee queries have full access.
 
 **Owner ID Filtering Pattern**: 
-- Client hooks (like `useProjectsForOrders`, `useActiveOrders`) use `clientInfo?.owner_id` from auth context
+- Client hooks (like `useProjectsForOrders`, `useActiveOrders`) use explicit `ownerId` parameter for consistency
 - Server actions receive `owner_id` parameter and apply `WHERE ownerid = $1` or `WHERE owner_id = $1` filtering
 - AI assistant queries automatically include owner filtering for client role
 
@@ -180,6 +180,12 @@ OPENAI_API_KEY=your_api_key     # Required for AI assistant
   - Shared header controls, export functionality, and MaterialsTable integration
   - Role-based access messaging and data scope indicators
 
+- **SharedAssistantPage** (`src/components/dashboard/shared-assistant-page.tsx`): Unified AI assistant interface
+  - Client: Loading/error states with owner validation and filtered queries
+  - Employee: Direct access without additional validation
+  - Shared AI chat interface with role-appropriate data access
+  - Consistent error handling and loading states
+
 ### Benefits Achieved
 - **Consistency**: 100% identical UI/UX between client and employee roles
 - **Maintainability**: Single source of truth for layout and page logic (~900 lines of code eliminated)
@@ -211,6 +217,49 @@ export default function SharedComponent({ role }: SharedComponentProps) {
 }
 ```
 
+## Hook Architecture & Data Fetching Patterns
+
+**Factory Pattern Implementation (August 2025)**: Centralized data fetching logic to eliminate code duplication and ensure consistency across hooks.
+
+### Core Data Fetching Hook
+- **File**: `src/hooks/use-data-fetcher.ts`
+- **Purpose**: Generic factory hook providing consistent loading, error, and refetch patterns
+- **Features**: Configurable initial data, error messages, dependency arrays, and refetch loading states
+
+### Standardized Hook Pattern
+All data fetching hooks follow this consistent interface:
+```typescript
+export function useHookName(ownerId: number | null, ...params) {
+  const { data, loading, error, refetch } = useDataFetcher(
+    serverActionFunction,
+    {
+      ownerId,
+      initialData: [] as DataType[],
+      dependencies: [param1, param2], // optional
+      errorMessage: 'Failed to load data',
+      enableRefetchLoading: true // optional
+    },
+    ...params
+  );
+
+  return { data, loading, error, refetch };
+}
+```
+
+### Refactored Hooks Using Factory Pattern
+- `useActiveOrders(ownerId)` - Active orders with owner filtering
+- `useDashboardMetrics(ownerId)` - Dashboard KPI metrics  
+- `useProjectsForOrders(ownerId)` - Projects for order creation
+- `useShipmentTrends(ownerId, period)` - Chart data with period filtering
+- `useDeliveryPerformance(ownerId)` - Performance metrics for charts
+- `useTopDestinations(ownerId, period)` - Destination analytics
+
+### Benefits Achieved
+- **Code Reduction**: ~350+ lines of duplicate code eliminated
+- **Consistency**: Unified error handling, loading states, and refetch logic
+- **Maintainability**: Single source of truth for data fetching patterns
+- **Testability**: Explicit parameters instead of internal auth dependencies
+
 ## Code Standards
 
 **CRITICAL: All code, variables, functions, and comments must be in English**
@@ -221,3 +270,4 @@ export default function SharedComponent({ role }: SharedComponentProps) {
 - Server actions centralized in `src/app/actions.ts` for AI integration
 - Custom hooks pattern: `use-*-for-orders.ts` for database integration
 - **Shared Components**: Prefer shared components over duplicate implementations for client/employee interfaces
+- **Data Fetching Pattern**: Use `useDataFetcher()` factory hook for consistent loading/error/refetch logic
