@@ -183,8 +183,8 @@ export default function SharedReportsPage({ role }: SharedReportsPageProps) {
 
       {/* Full-Width Report Content */}
       <div className="flex-1 p-6 bg-gray-50/50 overflow-auto">
-        <Card className="h-full">
-          <CardContent className="p-6">
+        <Card className="h-full bg-transparent border-0 shadow-none">
+          <CardContent className="p-6 bg-transparent">
             {selectedReportId === 'materials' ? (
               <MaterialsTable 
                 isRealData={showRealData} 

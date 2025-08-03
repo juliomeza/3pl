@@ -54,7 +54,7 @@ const ColumnHeader = React.memo(({
         placeholder="Filter..."
         value={filters[field]}
         onChange={(e) => onFilterChange(field, e.target.value)}
-        className="h-8 text-xs border-gray-200 focus:border-blue-300"
+        className="h-8 text-xs border-gray-200 focus:border-blue-300 bg-transparent"
       />
     </div>
   );
@@ -325,11 +325,11 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
 
       {/* Materials Table */}
       {!loading && !error && (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[160px]">
+        <div className="rounded-md border bg-transparent">
+          <Table className="[&_thead]:border-b-0 [&_thead_tr]:border-b-0 [&_th]:bg-transparent [&_td]:bg-transparent bg-transparent">
+            <TableHeader className="border-b-0 bg-transparent">
+              <TableRow className="border-b-0 hover:bg-transparent bg-transparent">
+                <TableHead className="w-[160px] border-r-0 bg-transparent">
                   <ColumnHeader 
                     field="lookupCode" 
                     label="Lookup Code" 
@@ -341,7 +341,7 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
                     getSortIcon={getSortIcon}
                   />
                 </TableHead>
-                <TableHead className="w-[120px]">
+                <TableHead className="w-[120px] border-r-0 bg-transparent">
                   <ColumnHeader 
                     field="statusId" 
                     label="Status" 
@@ -353,7 +353,7 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
                     getSortIcon={getSortIcon}
                   />
                 </TableHead>
-                <TableHead className="w-[160px]">
+                <TableHead className="w-[160px] border-r-0 bg-transparent">
                   <ColumnHeader 
                     field="materialGroupId" 
                     label="Material Group" 
@@ -365,7 +365,7 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
                     getSortIcon={getSortIcon}
                   />
                 </TableHead>
-                <TableHead className="w-[240px]">
+                <TableHead className="w-[240px] border-r-0 bg-transparent">
                   <ColumnHeader 
                     field="name" 
                     label="Name" 
@@ -377,7 +377,7 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
                     getSortIcon={getSortIcon}
                   />
                 </TableHead>
-                <TableHead>
+                <TableHead className="border-r-0 bg-transparent">
                   <ColumnHeader 
                     field="description" 
                     label="Description" 
@@ -391,14 +391,14 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
                 </TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className="bg-transparent">
               {processedData.map((material, index) => (
-                <TableRow key={index} className={!isRealData ? 'opacity-75' : ''}>
-                  <TableCell className="font-medium">{material.lookupCode}</TableCell>
-                  <TableCell>{getStatusBadge(material.statusId)}</TableCell>
-                  <TableCell>{material.materialGroupId}</TableCell>
-                  <TableCell>{material.name}</TableCell>
-                  <TableCell className="max-w-xs truncate" title={material.description}>
+                <TableRow key={index} className={`border-b-0 hover:bg-transparent bg-transparent ${!isRealData ? 'opacity-75' : ''}`}>
+                  <TableCell className="font-medium border-r-0 bg-transparent">{material.lookupCode}</TableCell>
+                  <TableCell className="border-r-0 bg-transparent">{getStatusBadge(material.statusId)}</TableCell>
+                  <TableCell className="border-r-0 bg-transparent">{material.materialGroupId}</TableCell>
+                  <TableCell className="border-r-0 bg-transparent">{material.name}</TableCell>
+                  <TableCell className="max-w-xs truncate border-r-0 bg-transparent" title={material.description}>
                     {material.description}
                   </TableCell>
                 </TableRow>
