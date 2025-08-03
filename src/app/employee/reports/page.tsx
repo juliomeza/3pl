@@ -1,12 +1,6 @@
 
-import { Wrench } from 'lucide-react';
+import SharedReportsPage from '@/components/dashboard/shared-reports-page';
 
 export default function EmployeeReportsPage() {
-  return (
-    <div className="flex flex-col items-center justify-center h-[50vh] text-center">
-      <Wrench className="w-16 h-16 mb-4 text-muted-foreground" />
-      <h1 className="text-3xl font-bold font-headline mb-2">Reports</h1>
-      <p className="text-lg text-muted-foreground">This section is under construction.</p>
-    </div>
-  );
+  return <SharedReportsPage role="employee" />;
 }
