@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { Plus, Trash2, Package, Truck, MapPin, CheckCircle, ArrowLeft, ArrowRight, Eye } from 'lucide-react';
 import { OrderStepIndicator } from './order-step-indicator';
 import { useHeaderControls } from '@/app/client/layout';
+import { useProjectsForOrders } from '@/hooks/use-projects-for-orders';
 
 interface LineItem {
   id: string;
@@ -39,12 +40,6 @@ interface OrderFormData {
   status: 'draft' | 'submitted';
 }
 
-const mockProjects = [
-  { id: '1', name: 'Project Alpha' },
-  { id: '2', name: 'Project Beta' },
-  { id: '3', name: 'Project Gamma' }
-];
-
 const mockMaterials = [
   { code: 'MAT-001', name: 'Steel Pipe 6"', uom: 'EA' },
   { code: 'MAT-002', name: 'Copper Wire 12AWG', uom: 'FT' },
@@ -69,6 +64,9 @@ const serviceTypes = [
 ];
 
 export function CreateOrderForm() {
+  // Load projects from database
+  const { projects, loading: projectsLoading, error: projectsError } = useProjectsForOrders();
+  
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<OrderFormData>({
     orderType: '',
@@ -119,6 +117,13 @@ export function CreateOrderForm() {
 
   // Header controls
   const { setLeftContent, setRightContent } = useHeaderControls();
+
+  // Auto-select first project when projects load
+  useEffect(() => {
+    if (projects.length > 0 && !formData.projectId && !projectsLoading) {
+      setFormData(prev => ({ ...prev, projectId: projects[0].id }));
+    }
+  }, [projects, formData.projectId, projectsLoading]);
 
   // Effect to set header content
   useEffect(() => {
@@ -268,14 +273,22 @@ export function CreateOrderForm() {
                     disabled={currentStep > 2}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select project" />
+                      <SelectValue placeholder={projectsLoading ? "Loading..." : "Select project"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockProjects.map(project => (
-                        <SelectItem key={project.id} value={project.id}>
-                          {project.name}
-                        </SelectItem>
-                      ))}
+                      {projectsLoading ? (
+                        <SelectItem value="loading" disabled>Loading projects...</SelectItem>
+                      ) : projectsError ? (
+                        <SelectItem value="error" disabled>Error loading projects</SelectItem>
+                      ) : projects.length === 0 ? (
+                        <SelectItem value="empty" disabled>No projects found</SelectItem>
+                      ) : (
+                        projects.map(project => (
+                          <SelectItem key={project.id} value={project.id}>
+                            {project.name}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   {currentStep > 2 && (
@@ -442,7 +455,7 @@ export function CreateOrderForm() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">Selected Project</p>
-                  <p className="text-lg">{mockProjects.find(p => p.id === formData.projectId)?.name || 'No project selected'}</p>
+                  <p className="text-lg">{projects.find(p => p.id === formData.projectId)?.name || 'No project selected'}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium">Order Type</p>
@@ -594,7 +607,7 @@ export function CreateOrderForm() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Project:</span>
-                    <span>{mockProjects.find(p => p.id === formData.projectId)?.name}</span>
+                    <span>{projects.find(p => p.id === formData.projectId)?.name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Order Number:</span>

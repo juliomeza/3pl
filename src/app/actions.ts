@@ -297,3 +297,24 @@ export async function getMaterialsData(ownerId: number): Promise<{
     throw new Error('Failed to fetch materials data');
   }
 }
+
+// Get projects for order creation (filtered by owner_id)
+export async function getProjectsForOrders(ownerId: number): Promise<{id: string, name: string}[]> {
+  try {
+    const result = await db.query(
+      `SELECT id, name
+       FROM wms_projects
+       WHERE ownerid = $1
+       ORDER BY name`,
+      [ownerId]
+    );
+
+    return result.rows.map(row => ({
+      id: row.id.toString(),
+      name: row.name
+    }));
+  } catch (error) {
+    console.error('Error fetching projects for orders:', error);
+    throw new Error('Failed to fetch projects');
+  }
+}
