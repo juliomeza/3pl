@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
 import { getActiveOrders } from '@/app/actions';
+import { useDataFetcher } from './use-data-fetcher';
 
 export interface ActiveOrder {
   order_number: string;
@@ -18,48 +18,15 @@ export interface ActiveOrder {
 }
 
 export function useActiveOrders(ownerId: number | null) {
-  const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchActiveOrders() {
-      if (!ownerId) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError(null);
-        const orders = await getActiveOrders(ownerId);
-        setActiveOrders(orders);
-      } catch (err) {
-        console.error('Error loading active orders:', err);
-        setError('Failed to load active orders');
-      } finally {
-        setLoading(false);
-      }
+  const { data: activeOrders, loading, error, refetch } = useDataFetcher(
+    getActiveOrders,
+    {
+      ownerId,
+      initialData: [] as ActiveOrder[],
+      errorMessage: 'Failed to load active orders',
+      enableRefetchLoading: true
     }
-
-    fetchActiveOrders();
-  }, [ownerId]);
-
-  const refetch = async () => {
-    if (ownerId) {
-      try {
-        setLoading(true);
-        setError(null);
-        const orders = await getActiveOrders(ownerId);
-        setActiveOrders(orders);
-      } catch (err) {
-        console.error('Error refetching active orders:', err);
-        setError('Failed to load active orders');
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
+  );
 
   return { activeOrders, loading, error, refetch };
 }

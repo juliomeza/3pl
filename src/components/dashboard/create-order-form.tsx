@@ -15,6 +15,7 @@ import { useHeaderControls } from '@/app/client/layout';
 import { useProjectsForOrders } from '@/hooks/use-projects-for-orders';
 import { useCarriersForOrders } from '@/hooks/use-carriers-for-orders';
 import { useCarrierServiceTypesForOrders } from '@/hooks/use-carrier-service-types-for-orders';
+import { useClientInfo } from '@/hooks/use-client-info';
 
 interface LineItem {
   id: string;
@@ -50,8 +51,11 @@ const mockMaterials = [
 ];
 
 export function CreateOrderForm() {
+  // Get client info for owner filtering
+  const { ownerId } = useClientInfo();
+  
   // Load projects from database
-  const { projects, loading: projectsLoading, error: projectsError } = useProjectsForOrders();
+  const { projects, loading: projectsLoading, error: projectsError } = useProjectsForOrders(ownerId);
   
   // Load carriers from database
   const { carriers, loading: carriersLoading, error: carriersError } = useCarriersForOrders();
