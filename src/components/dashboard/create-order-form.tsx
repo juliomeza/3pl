@@ -14,6 +14,7 @@ import { OrderStepIndicator } from './order-step-indicator';
 import { useHeaderControls } from '@/app/client/layout';
 import { useProjectsForOrders } from '@/hooks/use-projects-for-orders';
 import { useCarriersForOrders } from '@/hooks/use-carriers-for-orders';
+import { useCarrierServiceTypesForOrders } from '@/hooks/use-carrier-service-types-for-orders';
 
 interface LineItem {
   id: string;
@@ -35,7 +36,7 @@ interface OrderFormData {
   billingAccountName: string;
   billingAddress: string;
   carrierId: string;
-  carrierServiceType: string;
+  carrierServiceTypeId: string;
   estimatedDeliveryDate: string;
   lineItems: LineItem[];
   status: 'draft' | 'submitted';
@@ -46,14 +47,6 @@ const mockMaterials = [
   { code: 'MAT-002', name: 'Copper Wire 12AWG', uom: 'FT' },
   { code: 'MAT-003', name: 'Concrete Mix 80lb', uom: 'BAG' },
   { code: 'MAT-004', name: 'PVC Fitting 2"', uom: 'EA' }
-];
-
-const serviceTypes = [
-  'Standard',
-  'Express',
-  'Overnight',
-  'Ground',
-  '2-Day'
 ];
 
 export function CreateOrderForm() {
@@ -74,11 +67,14 @@ export function CreateOrderForm() {
     billingAccountName: '',
     billingAddress: '',
     carrierId: '',
-    carrierServiceType: '',
+    carrierServiceTypeId: '',
     estimatedDeliveryDate: '',
     lineItems: [],
     status: 'draft'
   });
+
+  // Load carrier service types from database (filtered by selected carrier)
+  const { serviceTypes, loading: serviceTypesLoading, error: serviceTypesError } = useCarrierServiceTypesForOrders(formData.carrierId);
 
   const [newLineItem, setNewLineItem] = useState<Partial<LineItem>>({
     materialCode: '',
@@ -97,7 +93,7 @@ export function CreateOrderForm() {
            formData.billingAccountName && 
            formData.billingAddress && 
            formData.carrierId && 
-           formData.carrierServiceType);
+           formData.carrierServiceTypeId);
   };
 
   const isStep2Valid = () => {
@@ -213,7 +209,7 @@ export function CreateOrderForm() {
         billingAccountName: '',
         billingAddress: '',
         carrierId: '',
-        carrierServiceType: '',
+        carrierServiceTypeId: '',
         estimatedDeliveryDate: '',
         lineItems: [],
         status: 'draft'
@@ -389,7 +385,11 @@ export function CreateOrderForm() {
                 <div className="space-y-2">
                   <Label htmlFor="carrier">Carrier *</Label>
                   <Select value={formData.carrierId} onValueChange={(value) => 
-                    setFormData(prev => ({ ...prev, carrierId: value }))
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      carrierId: value,
+                      carrierServiceTypeId: '' // Reset service type when carrier changes
+                    }))
                   }>
                     <SelectTrigger>
                       <SelectValue placeholder={carriersLoading ? "Loading..." : "Select carrier"} />
@@ -414,18 +414,34 @@ export function CreateOrderForm() {
 
                 <div className="space-y-2">
                   <Label htmlFor="serviceType">Service Type *</Label>
-                  <Select value={formData.carrierServiceType} onValueChange={(value) => 
-                    setFormData(prev => ({ ...prev, carrierServiceType: value }))
-                  }>
+                  <Select 
+                    value={formData.carrierServiceTypeId} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, carrierServiceTypeId: value }))}
+                    disabled={!formData.carrierId}
+                  >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select service" />
+                      <SelectValue placeholder={
+                        !formData.carrierId ? "Select carrier first" :
+                        serviceTypesLoading ? "Loading..." : 
+                        "Select service"
+                      } />
                     </SelectTrigger>
                     <SelectContent>
-                      {serviceTypes.map(service => (
-                        <SelectItem key={service} value={service}>
-                          {service}
-                        </SelectItem>
-                      ))}
+                      {!formData.carrierId ? (
+                        <SelectItem value="no-carrier" disabled>Select a carrier first</SelectItem>
+                      ) : serviceTypesLoading ? (
+                        <SelectItem value="loading" disabled>Loading service types...</SelectItem>
+                      ) : serviceTypesError ? (
+                        <SelectItem value="error" disabled>Error loading service types</SelectItem>
+                      ) : serviceTypes.length === 0 ? (
+                        <SelectItem value="empty" disabled>No service types found</SelectItem>
+                      ) : (
+                        serviceTypes.map(service => (
+                          <SelectItem key={service.id} value={service.id}>
+                            {service.name}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -633,7 +649,7 @@ export function CreateOrderForm() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Service:</span>
-                    <span>{formData.carrierServiceType}</span>
+                    <span>{serviceTypes.find(s => s.id === formData.carrierServiceTypeId)?.name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Est. Delivery:</span>

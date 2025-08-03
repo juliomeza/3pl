@@ -338,3 +338,24 @@ export async function getCarriersForOrders(): Promise<{id: string, name: string}
     throw new Error('Failed to fetch carriers');
   }
 }
+
+// Get carrier service types for order creation (filtered by carrier)
+export async function getCarrierServiceTypesForOrders(carrierId: string): Promise<{id: string, name: string}[]> {
+  try {
+    const result = await db.query(
+      `SELECT id, name
+       FROM wms_carrierservicetypes
+       WHERE carrierid = $1
+       ORDER BY name`,
+      [carrierId]
+    );
+
+    return result.rows.map(row => ({
+      id: row.id.toString(),
+      name: row.name
+    }));
+  } catch (error) {
+    console.error('Error fetching carrier service types for orders:', error);
+    throw new Error('Failed to fetch carrier service types');
+  }
+}
