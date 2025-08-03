@@ -554,3 +554,196 @@ const ColumnHeader = React.memo(({ field, label, filters, sortField, sortDirecti
 - **User Experience**: Manual testing of all interactive features
 - **Performance**: Monitor for sub-15 second response times
 - **Cross-browser**: Ensure compatibility across modern browsers
+
+## Order Creation System (IN PROGRESS - August 2025)
+
+### Overview
+**Multi-Step Order Creation Form** with real database integration for creating inbound/outbound orders with materials selection.
+
+**Current Status**: 🚧 **PARTIALLY COMPLETE** - Database integration in progress
+- ✅ **Step 1 Complete**: Order information, addresses, and shipping details with real database integration
+- ✅ **Projects Dropdown**: Real data from `wms_projects` table with auto-selection
+- ✅ **Carriers Dropdown**: Real data from `wms_carriers` table 
+- ✅ **Service Types Dropdown**: Real data from `wms_carrierservicetypes` table with dynamic filtering by carrier
+- ⏳ **Step 2 Pending**: Materials selection still using mock data - needs `wms_materials` integration
+- ⏳ **Step 3 Pending**: Order submission to `portal_*` tables not implemented
+
+### Implementation Architecture
+
+#### Database Integration Pattern (ESTABLISHED)
+```typescript
+// Server Actions Pattern (src/app/actions.ts)
+export async function getProjectsForOrders(ownerId: string) {
+  // PostgreSQL query with owner filtering
+  const query = 'SELECT id, name FROM wms_projects WHERE ownerid = $1 ORDER BY name';
+  // Error handling and data transformation
+}
+
+// Custom Hooks Pattern (src/hooks/use-*-for-orders.ts)
+export function useProjectsForOrders() {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  useEffect(() => {
+    // Firebase auth integration for owner_id
+    // Server action call with error handling
+  }, []);
+  
+  return { projects: data, loading, error };
+}
+```
+
+#### Form Architecture
+```
+src/components/dashboard/
+├── create-order-form.tsx           # Main multi-step form component
+├── order-step-indicator.tsx        # Header navigation component
+src/hooks/
+├── use-projects-for-orders.ts      # Projects data hook ✅
+├── use-carriers-for-orders.ts      # Carriers data hook ✅  
+├── use-carrier-service-types-for-orders.ts  # Service types hook ✅
+├── use-materials-for-orders.ts     # Materials hook ⏳ PENDING
+```
+
+#### Database Tables Integration
+
+**Read Operations (wms_* tables)**:
+- ✅ `wms_projects`: Project dropdown with owner filtering
+- ✅ `wms_carriers`: Carrier selection with service type integration
+- ✅ `wms_carrierservicetypes`: Dynamic filtering by selected carrier
+- ⏳ `wms_materials`: Material selection filtered by project (PENDING)
+
+**Write Operations (portal_* tables)**:
+- ⏳ `portal_orders`: Main order record (PENDING)
+- ⏳ `portal_order_line_items`: Materials and quantities (PENDING)
+
+### Form Steps Architecture
+
+#### Step 1: Order Information (COMPLETED ✅)
+- **Order Type**: Inbound/Outbound selection with visual indicators
+- **Project Selection**: Real database dropdown with auto-selection of first project
+- **Addresses**: Ship From/To and Billing addresses with dynamic labels
+- **Shipping**: Carrier and service type selection with dynamic filtering
+- **Validation**: Complete form validation for all required fields
+
+#### Step 2: Materials Selection (IN PROGRESS ⏳)
+- **Current State**: Using `mockMaterials` array
+- **Target**: Integrate `wms_materials` table filtered by selected project
+- **Features**: Add/remove line items, batch tracking, UOM management
+- **Validation**: Require at least one material to proceed
+
+#### Step 3: Order Review (UI COMPLETE ⏳)
+- **Display**: Complete order summary with all details
+- **Actions**: Save as Draft / Submit Order buttons
+- **Target**: Actual database persistence to `portal_*` tables
+
+### Header Integration Pattern
+```tsx
+// Dynamic header controls for step navigation
+const { setLeftContent, setRightContent } = useHeaderControls();
+
+useEffect(() => {
+  setLeftContent(
+    <OrderStepIndicator 
+      currentStep={currentStep}
+      canGoToStep={canGoToStep}
+      onStepClick={handleStepClick}
+    />
+  );
+}, [currentStep, formData]);
+```
+
+### Data Flow Architecture
+```
+User Selection → Server Action → Database Query → Custom Hook → Form UI
+     ↓              ↓               ↓              ↓           ↓
+  Project ID   getProjectsForOrders  wms_projects  useProjectsForOrders  Select Component
+```
+
+### Security Model
+- **Owner-Based Filtering**: All queries include `WHERE ownerid = $1` parameter
+- **Firebase Auth Integration**: User authentication provides `owner_id` context
+- **Project Scope**: Materials will be filtered by selected project for data isolation
+
+### Validation Pattern
+```tsx
+// Step-based validation with dependency checking
+const isStep1Valid = () => {
+  return !!(formData.orderType && formData.projectId && 
+           formData.recipientName && formData.recipientAddress && 
+           formData.carrierId && formData.carrierServiceTypeId);
+};
+
+const canGoToStep = (step: number) => {
+  if (step === 1) return true;
+  if (step === 2) return isStep1Valid();
+  if (step === 3) return isStep1Valid() && isStep2Valid();
+  return false;
+};
+```
+
+### PENDING WORK - Critical Next Steps
+
+#### 1. Materials Integration (HIGH PRIORITY)
+```typescript
+// NEEDED: Server action for materials
+export async function getMaterialsForOrders(projectId: string, ownerId: string) {
+  const query = `
+    SELECT m.lookupcode, m.name, m.description, m.uom 
+    FROM wms_materials m 
+    JOIN wms_projects p ON p.id = m.projectid 
+    WHERE m.projectid = $1 AND p.ownerid = $2 
+    ORDER BY m.lookupcode
+  `;
+}
+
+// NEEDED: Custom hook
+export function useMaterialsForOrders(projectId: string) {
+  // Implementation following established pattern
+}
+
+// NEEDED: Update create-order-form.tsx
+const { materials, loading: materialsLoading, error: materialsError } = useMaterialsForOrders(formData.projectId);
+```
+
+#### 2. Order Persistence (HIGH PRIORITY)
+```typescript
+// NEEDED: Server action for saving orders
+export async function saveOrder(orderData: OrderFormData, ownerId: string) {
+  // Insert into portal_orders table
+  // Insert line items into portal_order_line_items table
+  // Return order ID and confirmation
+}
+
+// NEEDED: Update form submission
+const handleSave = async (status: 'draft' | 'submitted') => {
+  const result = await saveOrder(formData, user.ownerId);
+  // Handle success/error feedback
+};
+```
+
+#### 3. Logo Integration (LOW PRIORITY)
+- **Status**: User will provide transparent background logos for carriers
+- **Implementation**: Replace current icon-based system with real logo files
+- **Pattern**: Similar to CarrierLogo component but with actual image assets
+
+### Current File States
+
+#### Active Files
+- `src/components/dashboard/create-order-form.tsx`: Main form with Steps 1-3 UI complete, real data for Step 1, mock data for Step 2
+- `src/hooks/use-projects-for-orders.ts`: ✅ Complete implementation
+- `src/hooks/use-carriers-for-orders.ts`: ✅ Complete implementation  
+- `src/hooks/use-carrier-service-types-for-orders.ts`: ✅ Complete implementation
+- `src/app/actions.ts`: Contains getProjectsForOrders, getCarriersForOrders, getCarrierServiceTypesForOrders
+
+#### Missing Files (TO BE CREATED)
+- `src/hooks/use-materials-for-orders.ts`: Materials hook for project-filtered selection
+- Additional server actions in `src/app/actions.ts`: getMaterialsForOrders, saveOrder
+
+### Integration Notes
+- **Form follows established patterns**: Same architecture as Reports system
+- **Header controls integration**: Uses same dynamic header pattern
+- **Database security**: All queries include owner-based filtering
+- **Error handling**: Consistent loading/error states across all dropdowns
+- **User experience**: Auto-selection and dynamic filtering for smooth workflow
