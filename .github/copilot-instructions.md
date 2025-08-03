@@ -35,9 +35,9 @@ OPENAI_API_KEY=your_openai_api_key
 ## Code Standards
 
 **Language Requirements**:
-- All code, variables, functions, and comments in English
-- User-facing text can be localized later
+- **CRITICAL: All code, variables, functions, and comments in English**
 - Code output always in English regardless of conversation language
+- User-facing text can be localized later
 
 ## Project Structure
 
@@ -101,11 +101,48 @@ src/lib/
 - **User Management**: Firestore for user profiles and role assignment
 - **Role-Based Routing**: `client`, `employee`, `none` (pending approval)
 
+### Authentication Flow (CRITICAL for Data Security)
+1. User authenticates via Firebase Auth (Google/Microsoft OAuth)
+2. User document created/retrieved from `users` collection with `clientId` field
+3. For client role: Client document retrieved from `clients` collection containing `owner_id`
+4. `owner_id` is used for all database filtering and access control
+
+**Critical Data Flow**:
+```
+Firebase Auth → users/{uid}.clientId → clients/{clientId}.owner_id → Database filtering
+```
+
 ### Security Patterns
 - **Employee Access**: Full operational data and management capabilities
-- **Client Access**: Limited to client-specific data with `owner_id` filtering
+- **Client Access**: Limited to client-specific data with automatic `owner_id` filtering
 - **Protected Routes**: `src/components/with-auth.tsx` HOC wrapper
 - **Global Auth State**: `src/context/auth-context.tsx` context provider
+
+### Owner ID Filtering Implementation (MANDATORY)
+**Key Files**:
+- `src/context/auth-context.tsx`: Global auth state with clientInfo containing owner_id
+- `src/hooks/use-client-info.ts`: Retrieves owner_id from Firebase chain
+- Client hooks (like `useProjectsForOrders`, `useActiveOrders`) use `clientInfo?.owner_id` from auth context
+
+**Security Pattern**: ALL client database queries MUST include `WHERE owner_id = [user_owner_id]` or `WHERE ownerid = $1` filtering.
+
+**Implementation Examples**:
+```typescript
+// Server action pattern
+export async function getProjectsForOrders(ownerId: string) {
+  const query = 'SELECT id, name FROM wms_projects WHERE ownerid = $1 ORDER BY name';
+  return await db.query(query, [ownerId]);
+}
+
+// Hook pattern
+const { clientInfo } = useAuth();
+const { data } = useActiveOrders(clientInfo?.owner_id || null);
+
+// AI assistant pattern  
+const getClientAiInsight = async (query: string, conversationHistory: ChatMessage[]) => {
+  return await getAiInsightOpenAIClient(query, ownerId, conversationHistory);
+};
+```
 
 ## Database Integration
 
