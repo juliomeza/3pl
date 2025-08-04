@@ -54,7 +54,9 @@ const ColumnHeader = React.memo(({
         placeholder="Search"
         value={filters[field]}
         onChange={(e) => onFilterChange(field, e.target.value)}
-        className="h-8 text-xs border-0 focus:border-0 focus:ring-0 bg-transparent"
+        className={`h-8 text-xs border-0 focus:border-0 focus:ring-0 focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent ${
+          filters[field] ? 'text-blue-700' : 'text-gray-700'
+        }`}
       />
     </div>
   );
