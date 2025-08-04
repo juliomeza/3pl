@@ -33,12 +33,17 @@ export function DashboardHeader({ leftContent, rightContent }: DashboardHeaderPr
 
   return (
     <div className="flex items-center justify-between w-full">
-      {/* Left content from page */}
-      <div className="flex-1">
+      {/* Left content and welcome message */}
+      <div className="flex items-center gap-4">
         {leftContent}
+        {user && (
+          <h1 className="text-xl font-bold font-headline text-gray-900 dark:text-gray-100">
+            Welcome, {user.displayName || 'User'}!
+          </h1>
+        )}
       </div>
       
-      {/* Right content and user avatar */}
+      {/* Right content and avatar */}
       <div className="flex items-center gap-3">
         {rightContent}
         

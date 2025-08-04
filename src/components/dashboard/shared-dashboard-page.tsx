@@ -55,14 +55,6 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
   const { data: deliveryPerformance, loading: performanceLoading, error: performanceError } = useDeliveryPerformance(ownerId);
   const { metrics, loading: metricsLoading, error: metricsError } = useDashboardMetrics(ownerId);
 
-  // Role-based display logic
-  const getWelcomeMessage = () => {
-    if (role === 'client') {
-      return clientInfo?.name ? `Welcome back, ${clientInfo.name}!` : 'Welcome to your dashboard!';
-    }
-    return `Welcome, ${user?.displayName || 'Employee'}!`;
-  };
-
   const displayMetrics = {
     activeShipments: metricsLoading ? '' : metrics.activeShipments || (role === 'employee' ? 1284 : 284),
     pendingOrders: metricsLoading ? '' : metrics.pendingOrders || (role === 'employee' ? 172 : 72),
@@ -116,10 +108,6 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
   if (role === 'employee' && metricsLoading && activeOrders.length === 0) {
     return (
       <div className="space-y-8">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold font-headline">{getWelcomeMessage()}</h1>
-        </div>
-        
         {/* Quick Status Cards with Employee-scale numbers */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="p-6 border border-border rounded-lg">
@@ -191,12 +179,6 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
 
   return (
       <div className="space-y-8">
-          {role === 'employee' && (
-            <div className="flex justify-between items-center">
-              <h1 className="text-3xl font-bold font-headline">{getWelcomeMessage()}</h1>
-            </div>
-          )}
-          
           {/* Quick Status Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="p-6 border border-border rounded-lg">
