@@ -112,7 +112,7 @@ export function CreateOrderForm() {
   };
 
   // Header controls
-  const { setLeftContent, setRightContent } = useHeaderControls();
+  const { setCenterContent, setRightContent } = useHeaderControls();
 
   // Auto-select first project when projects load
   useEffect(() => {
@@ -123,7 +123,7 @@ export function CreateOrderForm() {
 
   // Effect to set header content
   useEffect(() => {
-    setLeftContent(
+    setCenterContent(
       <OrderStepIndicator 
         currentStep={currentStep}
         canGoToStep={canGoToStep}
@@ -134,10 +134,10 @@ export function CreateOrderForm() {
 
     // Cleanup on unmount
     return () => {
-      setLeftContent(null);
+      setCenterContent(null);
       setRightContent(null);
     };
-  }, [currentStep, formData, setLeftContent, setRightContent]);
+  }, [currentStep, formData, setCenterContent, setRightContent]);
 
   const handleStepClick = (step: number) => {
     if (canGoToStep(step)) {

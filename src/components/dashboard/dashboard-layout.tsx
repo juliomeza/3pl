@@ -13,8 +13,10 @@ import { createContext, useContext, ReactNode, useState, useEffect } from 'react
 interface HeaderControlsContextType {
   leftContent?: ReactNode;
   rightContent?: ReactNode;
+  centerContent?: ReactNode;
   setLeftContent: (content: ReactNode) => void;
   setRightContent: (content: ReactNode) => void;
+  setCenterContent: (content: ReactNode) => void;
 }
 
 const HeaderControlsContext = createContext<HeaderControlsContextType | null>(null);
@@ -251,6 +253,7 @@ export default function DashboardLayout({ children, menuItems, logoConfig, role 
   const pathname = usePathname();
   const [leftContent, setLeftContent] = useState<ReactNode>(null);
   const [rightContent, setRightContent] = useState<ReactNode>(null);
+  const [centerContent, setCenterContent] = useState<ReactNode>(null);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -273,7 +276,7 @@ export default function DashboardLayout({ children, menuItems, logoConfig, role 
   const isDashboardPage = pathname === '/client' || pathname === '/employee';
   
   return (
-    <HeaderControlsContext.Provider value={{ leftContent, rightContent, setLeftContent, setRightContent }}>
+    <HeaderControlsContext.Provider value={{ leftContent, rightContent, centerContent, setLeftContent, setRightContent, setCenterContent }}>
       <SidebarProvider>
         <div className="flex min-h-screen bg-background w-full">
           <Sidebar>
@@ -288,7 +291,7 @@ export default function DashboardLayout({ children, menuItems, logoConfig, role 
               <div className="md:hidden">
                 <SidebarTrigger />
               </div>
-              <DashboardHeader leftContent={leftContent} rightContent={rightContent} showWelcomeMessage={isDashboardPage} />
+              <DashboardHeader leftContent={leftContent} rightContent={rightContent} centerContent={centerContent} showWelcomeMessage={isDashboardPage} />
             </header>
             <main className={cn(
               "flex-1",

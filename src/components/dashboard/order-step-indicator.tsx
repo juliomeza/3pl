@@ -26,7 +26,7 @@ export function OrderStepIndicator({ currentStep, canGoToStep, onStepClick }: Or
       {steps.map((step, index) => (
         <div key={step.number} className="flex items-center">
           <div 
-            className={`flex items-center gap-2 cursor-pointer p-2 rounded-lg transition-colors ${
+            className={`flex items-center gap-2 cursor-pointer p-2 px-3 rounded-lg transition-colors whitespace-nowrap min-w-fit ${
               currentStep === step.number 
                 ? 'bg-primary text-primary-foreground' 
                 : canGoToStep(step.number)
@@ -36,11 +36,11 @@ export function OrderStepIndicator({ currentStep, canGoToStep, onStepClick }: Or
             onClick={() => onStepClick(step.number)}
           >
             {currentStep > step.number ? (
-              <CheckCircle className="w-5 h-5" />
+              <CheckCircle className="w-5 h-5 flex-shrink-0" />
             ) : (
-              <step.icon className="w-5 h-5" />
+              <step.icon className="w-5 h-5 flex-shrink-0" />
             )}
-            <span className="font-medium text-sm">{step.title}</span>
+            <span className="font-medium text-sm whitespace-nowrap">{step.title}</span>
           </div>
           {index < steps.length - 1 && (
             <div className="w-12 h-px bg-border mx-4" />
