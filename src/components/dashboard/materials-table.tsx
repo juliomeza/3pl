@@ -319,7 +319,7 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
         <div className="rounded-md bg-transparent">
           <Table className="[&_thead]:border-b-0 [&_thead_tr]:border-b-0 bg-transparent">
             <TableHeader className="border-b-0 bg-transparent">
-              <TableRow className="border-b-0 hover:bg-white bg-white">
+              <TableRow className="border-b-0 hover:bg-transparent bg-transparent">
                 <TableHead className="w-[160px] border-r-0">
                   <ColumnHeader 
                     field="lookupCode" 
@@ -384,7 +384,7 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
             </TableHeader>
             <TableBody className="bg-transparent">
               {processedData.map((material, index) => (
-                <TableRow key={index} className={`border-b-0 hover:bg-yellow-100 ${index % 2 === 0 ? 'bg-transparent' : 'bg-white'} ${!isRealData ? 'opacity-75' : ''}`}>
+                <TableRow key={index} className={`border-b-0 hover:bg-yellow-100 ${index % 2 === 0 ? 'bg-white' : 'bg-transparent'} ${!isRealData ? 'opacity-75' : ''}`}>
                   <TableCell className="font-medium border-r-0">{material.lookupCode}</TableCell>
                   <TableCell className="border-r-0">{getStatusBadge(material.statusId)}</TableCell>
                   <TableCell className="border-r-0">{material.materialGroupId}</TableCell>
