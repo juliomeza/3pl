@@ -229,7 +229,7 @@ export default function SharedReportsPage({ role }: SharedReportsPageProps) {
                     {getReportImplementationMessage()}
                   </p>
                   <p className="text-sm text-gray-500 mb-4">
-                    Data source: <code className="bg-gray-100 px-2 py-1 rounded text-xs">{selectedReport.table}</code>
+                    Data source: <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-xs">{selectedReport.table}</code>
                   </p>
                   {role === 'employee' && (
                     <p className="text-xs text-blue-600 mb-4">

@@ -5,7 +5,9 @@ import React from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/auth-context';
+import { useTheme } from '@/context/theme-context';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Moon, Sun } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +24,7 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ leftContent, rightContent }: DashboardHeaderProps) {
   const { user, userInfo, loading, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const getSettingsPath = () => {
     if (!userInfo) return '#';
@@ -61,8 +64,18 @@ export function DashboardHeader({ leftContent, rightContent }: DashboardHeaderPr
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="#">Settings</Link>
+                <DropdownMenuItem onClick={toggleTheme}>
+                  {theme === 'light' ? (
+                    <>
+                      <Moon className="w-4 h-4 mr-2" />
+                      Dark Mode
+                    </>
+                  ) : (
+                    <>
+                      <Sun className="w-4 h-4 mr-2" />
+                      Light Mode
+                    </>
+                  )}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout}>Sign out</DropdownMenuItem>

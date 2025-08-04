@@ -88,7 +88,7 @@ function DashboardSidebarContent({ menuItems, logoConfig }: { menuItems: MenuIte
               const trigger = document.querySelector('[data-sidebar="trigger"]') as HTMLElement;
               trigger?.click();
             }}
-            className="absolute -right-4 top-1/2 transform -translate-y-1/2 h-12 w-12 hover:bg-gray-100 rounded-md z-10 flex items-center justify-center"
+            className="absolute -right-4 top-1/2 transform -translate-y-1/2 h-12 w-12 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md z-10 flex items-center justify-center"
           >
             <PanelLeftClose className="w-6 h-6 text-gray-400 hover:text-gray-600" />
           </button>
@@ -109,7 +109,7 @@ function DashboardSidebarContent({ menuItems, logoConfig }: { menuItems: MenuIte
             const trigger = document.querySelector('[data-sidebar="trigger"]') as HTMLElement;
             trigger?.click();
           }}
-          className="absolute -right-12 top-1/2 transform -translate-y-1/2 h-12 w-12 hover:bg-gray-100 rounded-md z-10 flex items-center justify-center"
+          className="absolute -right-12 top-1/2 transform -translate-y-1/2 h-12 w-12 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md z-10 flex items-center justify-center"
         >
           <PanelLeftClose className="w-6 h-6 text-gray-400 hover:text-gray-600" />
         </button>
@@ -151,7 +151,7 @@ function DashboardSidebarContent({ menuItems, logoConfig }: { menuItems: MenuIte
               </svg>
             </div>
           ) : (
-            <SidebarTrigger className="h-8 w-8 hover:bg-gray-100">
+            <SidebarTrigger className="h-8 w-8 hover:bg-gray-100 dark:hover:bg-gray-800">
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
                 viewBox="0 0 24 24" 

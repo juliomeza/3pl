@@ -36,8 +36,8 @@ const ColumnHeader = React.memo(({
       <div 
         className={`flex items-center gap-1 cursor-pointer transition-colors ${
           isActive 
-            ? 'text-blue-700 hover:text-blue-800' 
-            : 'text-gray-700 hover:text-blue-600'
+            ? 'text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300' 
+            : 'text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400'
         }`}
         onClick={() => onSort(field)}
       >
@@ -45,7 +45,7 @@ const ColumnHeader = React.memo(({
           isActive ? 'font-bold' : 'font-semibold'
         }`}>{label}</span>
         <div className={`transition-colors ${
-          isActive ? 'text-blue-600' : 'text-gray-400'
+          isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'
         }`}>
           {getSortIcon(field)}
         </div>
@@ -55,7 +55,7 @@ const ColumnHeader = React.memo(({
         value={filters[field]}
         onChange={(e) => onFilterChange(field, e.target.value)}
         className={`h-8 text-xs border-0 focus:border-0 focus:ring-0 focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent ${
-          filters[field] ? 'text-blue-700' : 'text-gray-700'
+          filters[field] ? 'text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'
         }`}
       />
     </div>
@@ -163,7 +163,7 @@ const sampleMaterials: MaterialData[] = [
 const getStatusBadge = (statusId: number) => {
   switch (statusId) {
     case 1:
-      return <Badge variant="default" className="bg-green-100 text-green-700">Active</Badge>;
+      return <Badge variant="default" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">Active</Badge>;
     case 2:
       return <Badge variant="secondary">Inactive</Badge>;
     case 3:
@@ -394,7 +394,7 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
             <Table className="bg-transparent">
               <TableBody className="bg-transparent">
                 {processedData.map((material, index) => (
-                  <TableRow key={index} className={`border-b-0 hover:bg-yellow-100 ${index % 2 === 0 ? 'bg-white' : 'bg-transparent'} ${!isRealData ? 'opacity-75' : ''}`}>
+                  <TableRow key={index} className={`border-b-0 hover:bg-yellow-100 dark:hover:bg-yellow-900/20 ${index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-transparent'} ${!isRealData ? 'opacity-75' : ''}`}>
                     <TableCell className="font-medium border-r-0 w-[160px]">{material.lookupCode}</TableCell>
                     <TableCell className="border-r-0 w-[120px]">{getStatusBadge(material.statusId)}</TableCell>
                     <TableCell className="border-r-0 w-[160px]">{material.materialGroupId}</TableCell>
