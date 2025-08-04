@@ -3,10 +3,15 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { 
   Database,
   Download,
-  Eye
+  Eye,
+  FileText,
+  FileSpreadsheet,
+  FileImage,
+  ChevronDown
 } from 'lucide-react';
 import { useHeaderControls as useClientHeaderControls } from '@/app/client/layout';
 import { useHeaderControls as useEmployeeHeaderControls } from '@/app/employee/layout';
@@ -35,6 +40,11 @@ export default function SharedReportsPage({ role }: SharedReportsPageProps) {
   const handleViewReport = () => {
     setShowRealData(true);
     // TODO: This will trigger the real data fetch in the MaterialsTable component
+  };
+
+  const handleExport = (format: 'csv' | 'excel' | 'pdf') => {
+    // TODO: Implement export functionality for each format
+    console.log(`Exporting ${selectedReport.title} as ${format.toUpperCase()}`);
   };
 
   // Reset to sample data when report changes
@@ -169,10 +179,29 @@ export default function SharedReportsPage({ role }: SharedReportsPageProps) {
       <div className="px-6 py-2">
         <div className="flex justify-end items-center">
           <div className="flex gap-2">
-            <Button variant="outline" size="sm">
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  Export
+                  <ChevronDown className="w-4 h-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleExport('csv')}>
+                  <FileText className="w-4 h-4 mr-2" />
+                  CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('excel')}>
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                  Excel
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                  <FileImage className="w-4 h-4 mr-2" />
+                  PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button variant="default" size="sm" onClick={handleViewReport}>
               <Eye className="w-4 h-4 mr-2" />
               View
