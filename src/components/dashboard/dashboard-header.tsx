@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/auth-context';
 import { useTheme } from '@/context/theme-context';
+import { getTimeBasedGreeting } from '@/lib/date-utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Moon, Sun } from 'lucide-react';
 import {
@@ -31,6 +32,11 @@ export function DashboardHeader({ leftContent, rightContent }: DashboardHeaderPr
     return `/${userInfo.role}/settings`;
   }
 
+  const getFirstName = (displayName: string | null | undefined): string => {
+    if (!displayName) return 'User';
+    return displayName.split(' ')[0];
+  }
+
   return (
     <div className="flex items-center justify-between w-full">
       {/* Left content and welcome message */}
@@ -38,7 +44,7 @@ export function DashboardHeader({ leftContent, rightContent }: DashboardHeaderPr
         {leftContent}
         {user && (
           <h1 className="text-xl font-bold font-headline text-gray-900 dark:text-gray-100">
-            Welcome, {user.displayName || 'User'}!
+            {getTimeBasedGreeting()}, {getFirstName(user.displayName)}!
           </h1>
         )}
       </div>

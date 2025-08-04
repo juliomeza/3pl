@@ -143,3 +143,19 @@ export function isValidDate(dateString: string): boolean {
   const date = new Date(dateString);
   return !isNaN(date.getTime());
 }
+
+/**
+ * Get time-based greeting message
+ */
+export function getTimeBasedGreeting(): string {
+  const now = new Date();
+  const hour = now.getHours();
+  
+  if (hour >= 5 && hour < 12) {
+    return 'Good morning';
+  } else if (hour >= 12 && hour < 18) {
+    return 'Good afternoon';
+  } else {
+    return 'Good evening';
+  }
+}
