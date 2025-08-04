@@ -178,7 +178,8 @@ OPENAI_API_KEY=your_api_key     # Required for AI assistant
   - Client: 20+ client-specific reports with owner filtering
   - Employee: 5-50 reports with configurable access levels
   - Shared header controls, export functionality, and MaterialsTable integration
-  - Role-based access messaging and data scope indicators
+  - Optimized layout: Compact action bar (py-2), transparent backgrounds for seamless integration
+  - Layout optimization: Uses -m-4 md:-m-8 to neutralize main container padding for edge-to-edge design
 
 - **SharedAssistantPage** (`src/components/dashboard/shared-assistant-page.tsx`): Unified AI assistant interface
   - Client: Loading/error states with owner validation and filtered queries
@@ -260,6 +261,36 @@ export function useHookName(ownerId: number | null, ...params) {
 - **Maintainability**: Single source of truth for data fetching patterns
 - **Testability**: Explicit parameters instead of internal auth dependencies
 
+## Table Design Standards (MaterialsTable - August 2025)
+
+**Modern Borderless Design**: Clean, zebra-striped tables without traditional borders for improved visual hierarchy.
+
+### Key Design Principles
+- **No Borders**: Eliminate all table borders (outer, inner, header separator) for clean aesthetic
+- **Zebra Striping**: Alternating row colors (white/transparent) starting with header for visual separation
+- **Transparent Integration**: Tables blend seamlessly with page backgrounds using `bg-transparent`
+- **Minimalist Search**: Search boxes with `border-0` and clean "Search" placeholder (no "Filter...")
+
+### MaterialsTable Specifications
+- **Header Row**: `bg-white` (first stripe)
+- **Data Rows**: Alternating `bg-transparent` (even) and `bg-white` (odd) pattern
+- **Search Inputs**: Borderless with `border-0 focus:border-0 focus:ring-0`
+- **Watermark**: Sample data uses `text-blue-200 text-8xl opacity-40` at `rotate-[22.5deg]` positioned at `left-1/3`
+- **Container**: No outer border, fully transparent background integration
+
+### Implementation Pattern
+```typescript
+// Table container - no borders, transparent
+<div className="rounded-md bg-transparent">
+  <Table className="[&_thead]:border-b-0 [&_thead_tr]:border-b-0 bg-transparent">
+    // Header with first stripe color
+    <TableRow className="border-b-0 hover:bg-white bg-white">
+    // Data rows with alternating pattern
+    <TableRow className={`border-b-0 ${index % 2 === 0 ? 'bg-transparent' : 'bg-white'}`}>
+    // Search inputs without borders
+    <Input className="border-0 focus:border-0 focus:ring-0 bg-transparent" />
+```
+
 ## Code Standards
 
 **CRITICAL: All code, variables, functions, and comments must be in English**
@@ -271,3 +302,4 @@ export function useHookName(ownerId: number | null, ...params) {
 - Custom hooks pattern: `use-*-for-orders.ts` for database integration
 - **Shared Components**: Prefer shared components over duplicate implementations for client/employee interfaces
 - **Data Fetching Pattern**: Use `useDataFetcher()` factory hook for consistent loading/error/refetch logic
+- **Table Design**: Follow borderless zebra-stripe pattern with transparent integration

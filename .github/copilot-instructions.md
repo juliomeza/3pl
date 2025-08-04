@@ -437,6 +437,7 @@ npm run test:chat -- --testNamePattern="date-"  # Date tests
   - Client: 20+ client-specific reports with owner filtering
   - Employee: 5-50 reports with configurable access levels
   - Shared MaterialsTable, header controls, and export functionality
+  - Optimized layout: Compact action bar (py-2), transparent backgrounds, edge-to-edge design (-m-4 md:-m-8)
   - Role-based access messaging and security filtering
 
 #### Implementation Pattern
@@ -667,13 +668,17 @@ const ColumnHeader = React.memo(({ field, label, filters, sortField, sortDirecti
 - **Space Efficiency**: Compact navigation preserving screen real estate
 - **Consistent Styling**: Matches overall application theme
 
-#### Table Design Standards
+#### Table Design Standards (MODERN BORDERLESS - August 2025)
+- **Borderless Design**: All table borders eliminated for clean, modern aesthetic
+- **Zebra Striping**: Alternating white/transparent rows starting with header for visual separation  
+- **Transparent Integration**: Tables blend seamlessly with page backgrounds using bg-transparent
+- **Search Inputs**: Borderless (border-0) with clean "Search" placeholder (no "Filter...")
 - **Column Widths**: Optimized for content (Lookup Code: 160px, Status: 120px, etc.)
 - **Typography Hierarchy**: Bold titles for active columns, semibold for inactive
 - **Interactive Elements**: 
   - Sort icons: 4x4px with blue (#0A183C) for active states
-  - Filter inputs: 8px height with consistent styling
   - Hover states: Blue color transitions for all interactive elements
+  - Sample watermark: text-blue-200 text-8xl opacity-40 at rotate-[22.5deg] positioned left-1/3
 
 #### Data Display Patterns
 - **Sample Data Indicators**: Amber alert banners for demonstration mode
