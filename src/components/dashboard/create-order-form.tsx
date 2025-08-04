@@ -28,13 +28,13 @@ interface LineItem {
   serialNumber?: string;
 }
 
-interface AddressComponent {
-  street_number: string;
-  route: string;
-  locality: string;
-  administrative_area_level_1: string;
+interface AddressData {
+  line1: string;
+  line2: string;
+  city: string;
+  state: string;
+  zipCode: string;
   country: string;
-  postal_code: string;
 }
 
 interface OrderFormData {
@@ -43,9 +43,9 @@ interface OrderFormData {
   orderNumber: string;
   shipmentNumber: string;
   recipientName: string;
-  recipientAddress: string;
+  recipientAddress: AddressData;
   billingAccountName: string;
-  billingAddress: string;
+  billingAddress: AddressData;
   carrierId: string;
   carrierServiceTypeId: string;
   estimatedDeliveryDate: string;
@@ -60,72 +60,207 @@ const mockMaterials = [
   { code: 'MAT-004', name: 'PVC Fitting 2"', uom: 'EA' }
 ];
 
-const AutocompleteInput = ({ value, onChange, placeholder, id }: { 
-  value: string, 
-  onChange: (value: string) => void, 
-  placeholder: string,
-  id?: string 
+const AddressInput = ({ 
+  value, 
+  onChange, 
+  label,
+  id 
+}: { 
+  value: AddressData, 
+  onChange: (value: AddressData) => void, 
+  label: string,
+  id: string
 }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<any>(null);
-  const [inputValue, setInputValue] = useState(value);
-  const isPlaceSelection = useRef(false);
-
-  // Update internal state when external value changes, but only if it's not from place selection
-  useEffect(() => {
-    if (!isPlaceSelection.current) {
-      setInputValue(value);
-    }
-    isPlaceSelection.current = false;
-  }, [value]);
+  const line1Ref = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!inputRef.current || !(window as any).google) return;
-
-    const autocomplete = new (window as any).google.maps.places.Autocomplete(inputRef.current, {
-      types: ['address'],
-      componentRestrictions: { country: "us" },
-      fields: ['address_components', 'formatted_address']
-    });
-
-    const handlePlaceChanged = () => {
-      const place = autocomplete.getPlace();
-      if (place.formatted_address) {
-        isPlaceSelection.current = true;
-        setInputValue(place.formatted_address);
-        onChange(place.formatted_address);
+    const initAutocomplete = () => {
+      console.log('🚀 Initializing autocomplete for', id); // Debug log
+      if (!line1Ref.current) {
+        console.log('❌ No line1Ref.current'); 
+        return;
       }
+      if (!(window as any).google?.maps?.places) {
+        console.log('❌ Google Maps Places not available');
+        return;
+      }
+
+      // Clear any existing autocomplete
+      if (autocompleteRef.current) {
+        console.log('🧹 Clearing existing autocomplete');
+        (window as any).google.maps.event.clearInstanceListeners(autocompleteRef.current);
+        autocompleteRef.current = null;
+      }
+
+      console.log('✅ Creating Google Places Autocomplete'); // Debug log
+
+      const autocomplete = new (window as any).google.maps.places.Autocomplete(line1Ref.current, {
+        types: ['address'],
+        componentRestrictions: { country: "us" },
+        fields: ['address_components', 'formatted_address']
+      });
+
+      console.log('✅ Autocomplete created:', autocomplete); // Debug log
+
+      const handlePlaceChanged = () => {
+        console.log('🎯 PLACE CHANGED EVENT FIRED!'); // Debug log
+        const place = autocomplete.getPlace();
+        console.log('📍 Place selected:', place); // Debug log
+        
+        if (!place) {
+          console.log('❌ No place object');
+          return;
+        }
+        
+        if (!place.address_components) {
+          console.log('❌ No address_components in place');
+          return;
+        }
+
+        const components = place.address_components;
+        console.log('🏠 Address components:', components); // Debug log
+        
+        // Parse Google Places components
+        let streetNumber = '';
+        let route = '';
+        let city = '';
+        let state = '';
+        let zipCode = '';
+        let country = '';
+
+        components.forEach((component: any) => {
+          const types = component.types;
+          console.log('🔍 Component:', component.long_name, 'Types:', types); // Debug log
+          
+          if (types.includes('street_number')) {
+            streetNumber = component.long_name;
+          } else if (types.includes('route')) {
+            route = component.long_name;
+          } else if (types.includes('locality')) {
+            city = component.long_name;
+          } else if (types.includes('administrative_area_level_1')) {
+            state = component.short_name;
+          } else if (types.includes('postal_code')) {
+            zipCode = component.long_name;
+          } else if (types.includes('country')) {
+            country = component.long_name;
+          }
+        });
+
+        const newAddress: AddressData = {
+          line1: `${streetNumber} ${route}`.trim(),
+          line2: value.line2, // Keep existing line2
+          city,
+          state,
+          zipCode,
+          country
+        };
+
+        console.log('🏡 New address data:', newAddress); // Debug log
+        console.log('📞 Calling onChange...'); // Debug log
+        onChange(newAddress);
+        console.log('✅ onChange called!'); // Debug log
+      };
+
+      autocomplete.addListener('place_changed', handlePlaceChanged);
+      console.log('👂 Event listener added'); // Debug log
+      autocompleteRef.current = autocomplete;
     };
 
-    autocomplete.addListener('place_changed', handlePlaceChanged);
-    autocompleteRef.current = autocomplete;
+    // Only initialize once when component mounts
+    console.log('🔍 Checking if Google Maps is available...');
+    if ((window as any).google?.maps?.places) {
+      console.log('✅ Google Maps available immediately');
+      initAutocomplete();
+    } else {
+      console.log('⏳ Waiting for Google Maps to load...');
+      const checkGoogle = setInterval(() => {
+        if ((window as any).google?.maps?.places) {
+          console.log('✅ Google Maps loaded!');
+          clearInterval(checkGoogle);
+          initAutocomplete();
+        }
+      }, 100);
+
+      return () => clearInterval(checkGoogle);
+    }
 
     return () => {
       if ((window as any).google && autocompleteRef.current) {
         (window as any).google.maps.event.clearInstanceListeners(autocompleteRef.current);
       }
     };
-  }, []); // Remove onChange from dependencies to prevent recreation
+  }, []); // Empty dependency array - only run once on mount
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setInputValue(newValue);
-    
-    // Small delay to ensure Google Places API doesn't interfere
-    setTimeout(() => {
-      onChange(newValue);
-    }, 0);
+  const handleFieldChange = (field: keyof AddressData, newValue: string) => {
+    onChange({
+      ...value,
+      [field]: newValue
+    });
   };
 
   return (
-    <Input
-      ref={inputRef}
-      value={inputValue}
-      onChange={handleInputChange}
-      placeholder={placeholder}
-      id={id}
-      autoComplete="off"
-    />
+    <div className="space-y-3">
+      <h4 className="font-medium text-sm text-muted-foreground">{label}</h4>
+      <div className="space-y-3">
+        <div className="space-y-2">
+          <Label htmlFor={`${id}-line1`}>Address Line 1 *</Label>
+          <Input
+            ref={line1Ref}
+            id={`${id}-line1`}
+            value={value.line1}
+            onChange={(e) => handleFieldChange('line1', e.target.value)}
+            placeholder="Start typing an address..."
+            autoComplete="off"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor={`${id}-line2`}>Address Line 2</Label>
+          <Input
+            id={`${id}-line2`}
+            value={value.line2}
+            onChange={(e) => handleFieldChange('line2', e.target.value)}
+            placeholder="Apt, Suite, Unit, etc. (optional)"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="space-y-2">
+            <Label htmlFor={`${id}-city`}>City *</Label>
+            <Input
+              id={`${id}-city`}
+              value={value.city}
+              onChange={(e) => handleFieldChange('city', e.target.value)}
+              placeholder="City"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor={`${id}-state`}>State *</Label>
+            <Input
+              id={`${id}-state`}
+              value={value.state}
+              onChange={(e) => handleFieldChange('state', e.target.value)}
+              placeholder="State"
+              maxLength={2}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor={`${id}-zip`}>ZIP Code *</Label>
+            <Input
+              id={`${id}-zip`}
+              value={value.zipCode}
+              onChange={(e) => handleFieldChange('zipCode', e.target.value)}
+              placeholder="ZIP Code"
+              maxLength={10}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -147,9 +282,23 @@ export function CreateOrderForm() {
     orderNumber: '',
     shipmentNumber: '',
     recipientName: '',
-    recipientAddress: '',
+    recipientAddress: {
+      line1: '',
+      line2: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      country: 'United States'
+    },
     billingAccountName: '',
-    billingAddress: '',
+    billingAddress: {
+      line1: '',
+      line2: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      country: 'United States'
+    },
     carrierId: '',
     carrierServiceTypeId: '',
     estimatedDeliveryDate: '',
@@ -170,12 +319,22 @@ export function CreateOrderForm() {
 
   // Validation functions for each step
   const isStep1Valid = () => {
+    const isRecipientAddressValid = formData.recipientAddress.line1 && 
+                                   formData.recipientAddress.city && 
+                                   formData.recipientAddress.state && 
+                                   formData.recipientAddress.zipCode;
+    
+    const isBillingAddressValid = formData.billingAddress.line1 && 
+                                 formData.billingAddress.city && 
+                                 formData.billingAddress.state && 
+                                 formData.billingAddress.zipCode;
+
     return !!(formData.orderType && 
            formData.projectId && 
            formData.recipientName && 
-           formData.recipientAddress && 
+           isRecipientAddressValid &&
            formData.billingAccountName && 
-           formData.billingAddress && 
+           isBillingAddressValid &&
            formData.carrierId && 
            formData.carrierServiceTypeId);
   };
@@ -289,9 +448,23 @@ export function CreateOrderForm() {
         orderNumber: '',
         shipmentNumber: '',
         recipientName: '',
-        recipientAddress: '',
+        recipientAddress: {
+          line1: '',
+          line2: '',
+          city: '',
+          state: '',
+          zipCode: '',
+          country: 'United States'
+        },
         billingAccountName: '',
-        billingAddress: '',
+        billingAddress: {
+          line1: '',
+          line2: '',
+          city: '',
+          state: '',
+          zipCode: '',
+          country: 'United States'
+        },
         carrierId: '',
         carrierServiceTypeId: '',
         estimatedDeliveryDate: '',
@@ -404,12 +577,9 @@ export function CreateOrderForm() {
                 Addresses
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="space-y-4">
-                  <h4 className="font-medium text-sm text-muted-foreground">
-                    {formData.orderType === 'inbound' ? 'Ship From' : 'Ship To'} Address
-                  </h4>
                   <div className="space-y-2">
                     <Label htmlFor="recipientName">Recipient Name *</Label>
                     <Input
@@ -419,19 +589,15 @@ export function CreateOrderForm() {
                       placeholder="Enter recipient name"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="recipientAddress">Address *</Label>
-                    <AutocompleteInput
-                      id="recipientAddress"
-                      value={formData.recipientAddress}
-                      onChange={(value) => setFormData(prev => ({ ...prev, recipientAddress: value }))}
-                      placeholder="Start typing an address..."
-                    />
-                  </div>
+                  <AddressInput
+                    id="recipient"
+                    label={formData.orderType === 'inbound' ? 'Ship From Address' : 'Ship To Address'}
+                    value={formData.recipientAddress}
+                    onChange={(value) => setFormData(prev => ({ ...prev, recipientAddress: value }))}
+                  />
                 </div>
 
                 <div className="space-y-4">
-                  <h4 className="font-medium text-sm text-muted-foreground">Billing Address</h4>
                   <div className="space-y-2">
                     <Label htmlFor="billingAccountName">Billing Account Name *</Label>
                     <Input
@@ -441,15 +607,12 @@ export function CreateOrderForm() {
                       placeholder="Enter billing account name"
                     />
                   </div>
-                   <div className="space-y-2">
-                    <Label htmlFor="billingAddress">Billing Address *</Label>
-                     <AutocompleteInput
-                      id="billingAddress"
-                      value={formData.billingAddress}
-                      onChange={(value) => setFormData(prev => ({ ...prev, billingAddress: value }))}
-                      placeholder="Start typing an address..."
-                    />
-                  </div>
+                  <AddressInput
+                    id="billing"
+                    label="Billing Address"
+                    value={formData.billingAddress}
+                    onChange={(value) => setFormData(prev => ({ ...prev, billingAddress: value }))}
+                  />
                 </div>
               </div>
             </CardContent>
@@ -750,7 +913,12 @@ export function CreateOrderForm() {
                 </h4>
                 <div className="text-sm space-y-1">
                   <p className="font-medium">{formData.recipientName}</p>
-                  <p className="text-muted-foreground whitespace-pre-line">{formData.recipientAddress}</p>
+                  <div className="text-muted-foreground">
+                    <p>{formData.recipientAddress.line1}</p>
+                    {formData.recipientAddress.line2 && <p>{formData.recipientAddress.line2}</p>}
+                    <p>{formData.recipientAddress.city}, {formData.recipientAddress.state} {formData.recipientAddress.zipCode}</p>
+                    <p>{formData.recipientAddress.country}</p>
+                  </div>
                 </div>
               </div>
 
@@ -758,7 +926,12 @@ export function CreateOrderForm() {
                 <h4 className="font-medium">Billing Address</h4>
                 <div className="text-sm space-y-1">
                   <p className="font-medium">{formData.billingAccountName}</p>
-                  <p className="text-muted-foreground whitespace-pre-line">{formData.billingAddress}</p>
+                  <div className="text-muted-foreground">
+                    <p>{formData.billingAddress.line1}</p>
+                    {formData.billingAddress.line2 && <p>{formData.billingAddress.line2}</p>}
+                    <p>{formData.billingAddress.city}, {formData.billingAddress.state} {formData.billingAddress.zipCode}</p>
+                    <p>{formData.billingAddress.country}</p>
+                  </div>
                 </div>
               </div>
             </div>
