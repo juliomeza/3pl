@@ -60,26 +60,44 @@ const mockMaterials = [
   { code: 'MAT-004', name: 'PVC Fitting 2"', uom: 'EA' }
 ];
 
-const AutocompleteInput = ({ value, onChange, placeholder }: { value: string, onChange: (value: string) => void, placeholder: string }) => {
+const AutocompleteInput = ({ value, onChange, placeholder, id }: { 
+  value: string, 
+  onChange: (value: string) => void, 
+  placeholder: string,
+  id?: string 
+}) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const autocompleteRef = useRef<any>(null);
+  const [inputValue, setInputValue] = useState(value);
+  const isPlaceSelection = useRef(false);
+
+  // Update internal state when external value changes, but only if it's not from place selection
+  useEffect(() => {
+    if (!isPlaceSelection.current) {
+      setInputValue(value);
+    }
+    isPlaceSelection.current = false;
+  }, [value]);
 
   useEffect(() => {
     if (!inputRef.current || !(window as any).google) return;
 
     const autocomplete = new (window as any).google.maps.places.Autocomplete(inputRef.current, {
       types: ['address'],
-      componentRestrictions: { country: "us" }, // Restrict to US for now, can be dynamic
+      componentRestrictions: { country: "us" },
       fields: ['address_components', 'formatted_address']
     });
 
-    autocomplete.addListener('place_changed', () => {
+    const handlePlaceChanged = () => {
       const place = autocomplete.getPlace();
       if (place.formatted_address) {
+        isPlaceSelection.current = true;
+        setInputValue(place.formatted_address);
         onChange(place.formatted_address);
       }
-    });
+    };
 
+    autocomplete.addListener('place_changed', handlePlaceChanged);
     autocompleteRef.current = autocomplete;
 
     return () => {
@@ -87,14 +105,26 @@ const AutocompleteInput = ({ value, onChange, placeholder }: { value: string, on
         (window as any).google.maps.event.clearInstanceListeners(autocompleteRef.current);
       }
     };
-  }, [onChange]);
+  }, []); // Remove onChange from dependencies to prevent recreation
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    
+    // Small delay to ensure Google Places API doesn't interfere
+    setTimeout(() => {
+      onChange(newValue);
+    }, 0);
+  };
 
   return (
     <Input
       ref={inputRef}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
+      value={inputValue}
+      onChange={handleInputChange}
       placeholder={placeholder}
+      id={id}
+      autoComplete="off"
     />
   );
 };
@@ -392,6 +422,7 @@ export function CreateOrderForm() {
                   <div className="space-y-2">
                     <Label htmlFor="recipientAddress">Address *</Label>
                     <AutocompleteInput
+                      id="recipientAddress"
                       value={formData.recipientAddress}
                       onChange={(value) => setFormData(prev => ({ ...prev, recipientAddress: value }))}
                       placeholder="Start typing an address..."
@@ -413,6 +444,7 @@ export function CreateOrderForm() {
                    <div className="space-y-2">
                     <Label htmlFor="billingAddress">Billing Address *</Label>
                      <AutocompleteInput
+                      id="billingAddress"
                       value={formData.billingAddress}
                       onChange={(value) => setFormData(prev => ({ ...prev, billingAddress: value }))}
                       placeholder="Start typing an address..."
