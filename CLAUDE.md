@@ -146,41 +146,13 @@ Firebase Auth → users/{uid}.clientId → clients/{clientId}.owner_id → Datab
 - **Page-Specific Display**: Only shown on main Dashboard pages (`/client`, `/employee`)
 - **Header Positioning**: Located in header bar on left side, avatar remains on right
 
-### Implementation Details
-- **Time Function**: `getTimeBasedGreeting()` in `src/lib/date-utils.ts`
-- **Name Extraction**: `getFirstName()` function splits displayName and uses first word
-- **Conditional Rendering**: `showWelcomeMessage` prop controls visibility per page
-- **Typography**: `text-2xl font-bold font-headline` with dark mode support
-- **Layout**: Flexbox with `items-center gap-4` for proper spacing
-
-### Key Files
-- `src/lib/date-utils.ts` - Time-based greeting logic
-- `src/components/dashboard/dashboard-header.tsx` - Header component with greeting
-- `src/components/dashboard/dashboard-layout.tsx` - Page detection and prop passing
-
-### Header Layout Architecture (Updated August 2025)
+### Header Layout Architecture
 **Flexible Header System**: Dynamic layout supporting left, center, and right content positioning.
 
 #### Layout Modes
 - **Default Layout**: `justify-between` with left content + welcome message, spacer, right content + avatar
 - **Center Content Layout**: Three-column `flex-1` layout when `centerContent` prop is provided
 - **Conditional Rendering**: Automatically switches layout based on content presence
-
-#### Step Indicator Integration
-```typescript
-// Create Order form uses centerContent for step indicator
-const { setCenterContent } = useHeaderControls();
-
-useEffect(() => {
-  setCenterContent(
-    <OrderStepIndicator 
-      currentStep={currentStep}
-      canGoToStep={canGoToStep}
-      onStepClick={handleStepClick}
-    />
-  );
-}, [currentStep]);
-```
 
 #### Header Props
 ```typescript
@@ -192,18 +164,21 @@ interface DashboardHeaderProps {
 }
 ```
 
+### Key Files
+- `src/lib/date-utils.ts` - Time-based greeting logic (`getTimeBasedGreeting()`)
+- `src/components/dashboard/dashboard-header.tsx` - Header component with greeting
+- `src/components/dashboard/dashboard-layout.tsx` - Page detection and prop passing
+- `src/components/dashboard/order-step-indicator.tsx` - Single-line step indicators
+
 ### Usage Pattern
 ```typescript
-// Header shows greeting only on dashboard pages
-const isDashboardPage = pathname === '/client' || pathname === '/employee';
-<DashboardHeader showWelcomeMessage={isDashboardPage} />
-
 // Time-based greeting function
 const greeting = getTimeBasedGreeting(); // "Good morning" | "Good afternoon" | "Good evening"
 const firstName = getFirstName(user.displayName); // "John" from "John Smith"
 
 // Center content for step indicators
-<DashboardHeader centerContent={<OrderStepIndicator />} />
+const { setCenterContent } = useHeaderControls();
+setCenterContent(<OrderStepIndicator currentStep={currentStep} />);
 ```
 
 ## Testing Strategy
@@ -221,9 +196,51 @@ const firstName = getFirstName(user.displayName); // "John" from "John Smith"
 - **Pattern**: `'date) = ' + getCurrentMonth()` for month validation and `'DATE(', 'date', ') = \'' + getCurrentDate() + '\''` for today validation
 - **Helper Functions**: `getCurrentMonth()` returns `(new Date().getMonth() + 1).toString()` and `getCurrentDate()` returns `new Date().toISOString().split('T')[0]`
 - **Affected Tests**: `date-002` (orders this month) and `date-004` (orders today) now work consistently on any execution date
-- **Testing Commands**: 
-  - `npm run test:chat` - Full AI test suite
-  - `npm run test:chat -- --testNamePattern="date-"` - Run only date-related tests
+
+## Shared Component Architecture (August 2025)
+
+**Component Sharing Strategy**: Client and employee interfaces share UI/UX patterns through shared components for consistency and maintainability.
+
+### Shared Components
+- **SharedDashboardPage** (`src/components/dashboard/shared-dashboard-page.tsx`): Role-based dashboard
+  - Client: Uses `owner_id` filtering for client-specific data
+  - Employee: Full access to all operational data (no filtering)
+  - Shared metrics cards, charts, and active orders sections
+
+- **SharedReportsPage** (`src/components/dashboard/shared-reports-page.tsx`): Unified reports interface
+  - Client: 20+ client-specific reports with owner filtering
+  - Employee: 5-50 reports with configurable access levels
+  - Shared MaterialsTable, header controls, and export functionality
+
+- **SharedAssistantPage** (`src/components/dashboard/shared-assistant-page.tsx`): Unified AI assistant interface
+  - Client: Loading/error states with owner validation and filtered queries
+  - Employee: Direct access without additional validation
+  - Shared AI chat interface with role-appropriate data access
+
+### Hook Architecture & Data Fetching Patterns
+
+**Factory Pattern Implementation**: Centralized data fetching logic to eliminate code duplication.
+
+**Core Data Fetching Hook**: `src/hooks/use-data-fetcher.ts` - Generic factory hook providing consistent loading, error, and refetch patterns.
+
+**Standardized Hook Pattern**:
+```typescript
+export function useHookName(ownerId: number | null, ...params) {
+  const { data, loading, error, refetch } = useDataFetcher(
+    serverActionFunction,
+    {
+      ownerId,
+      initialData: [] as DataType[],
+      dependencies: [param1, param2], // optional
+      errorMessage: 'Failed to load data',
+      enableRefetchLoading: true // optional
+    },
+    ...params
+  );
+
+  return { data, loading, error, refetch };
+}
+```
 
 ## Environment Variables
 
@@ -254,195 +271,11 @@ OPENAI_API_KEY=your_api_key     # Required for AI assistant
 - **CSS Variables**: Pre-configured in `globals.css` with complete light/dark variable sets
 - **Tailwind Config**: `darkMode: ['class']` with CSS variable-based color system
 
-### Implementation Details
-- **Automatic Switching**: Most components use shadcn/ui CSS variables (no changes needed)
-- **Hardcoded Color Updates**: Fixed specific instances like status badges and hover effects
-- **Theme Persistence**: Saves user preference in localStorage with system preference fallback
-- **UI Integration**: Moon/Sun icons with dynamic text based on current theme
-
-### Key Files Modified
-- `src/context/theme-context.tsx` - Theme provider and hook
-- `src/components/dashboard/dashboard-header.tsx` - Avatar menu toggle
-- `src/app/layout.tsx` - ThemeProvider integration
-- Various dashboard components - Dark mode color variants for hardcoded colors
-
 ### Usage Pattern
 ```typescript
 const { theme, toggleTheme } = useTheme();
 // Components automatically adapt via CSS variables
 // Hardcoded colors use: className="bg-blue-100 dark:bg-blue-900/30"
-```
-
-## Shared Component Architecture (REFACTORED - August 2025)
-
-**Component Sharing Strategy**: Client and employee interfaces share UI/UX patterns through shared components for consistency and maintainability.
-
-### Shared Layout System
-- **DashboardLayout** (`src/components/dashboard/dashboard-layout.tsx`): Unified layout for both client and employee interfaces
-  - Role-based logo rendering (client uses dynamic logo, employee uses company branding)
-  - Configurable menu items per role
-  - Shared sidebar, header, and responsive behavior
-  - Header controls context for dynamic content injection
-
-### Shared Page Components
-- **SharedDashboardPage** (`src/components/dashboard/shared-dashboard-page.tsx`): Role-based dashboard with consistent UI
-  - Client: Uses `owner_id` filtering for client-specific data
-  - Employee: Full access to all operational data (no filtering)
-  - Shared metrics cards, charts, and active orders sections
-  - Role-appropriate welcome messages and scaled numbers
-
-- **SharedReportsPage** (`src/components/dashboard/shared-reports-page.tsx`): Unified reports interface
-  - Client: 20+ client-specific reports with owner filtering
-  - Employee: 5-50 reports with configurable access levels
-  - Shared header controls, export functionality, and MaterialsTable integration
-  - **Export Dropdown**: Dropdown menu with CSV, Excel, PDF options using appropriate Lucide icons (FileText, FileSpreadsheet, FileImage)
-  - **Pending Implementation**: Export functionality handlers are placeholder - need actual CSV/Excel/PDF generation logic
-  - Optimized layout: Compact action bar (py-2), transparent backgrounds for seamless integration
-  - Layout optimization: Uses -m-4 md:-m-8 to neutralize main container padding for edge-to-edge design
-
-- **SharedAssistantPage** (`src/components/dashboard/shared-assistant-page.tsx`): Unified AI assistant interface
-  - Client: Loading/error states with owner validation and filtered queries
-  - Employee: Direct access without additional validation
-  - Shared AI chat interface with role-appropriate data access
-  - Consistent error handling and loading states
-
-### Benefits Achieved
-- **Consistency**: 100% identical UI/UX between client and employee roles
-- **Maintainability**: Single source of truth for layout and page logic (~900 lines of code eliminated)
-- **Scalability**: Easy to add new features that automatically work for both roles
-- **Type Safety**: Full TypeScript coverage with role-based prop interfaces
-
-### Implementation Pattern
-```typescript
-// Page-level usage
-export default function ClientDashboardPage() {
-  return <SharedDashboardPage role="client" />;
-}
-
-export default function EmployeeDashboardPage() {
-  return <SharedDashboardPage role="employee" />;
-}
-
-// Shared component structure
-interface SharedComponentProps {
-  role: 'client' | 'employee';
-}
-
-export default function SharedComponent({ role }: SharedComponentProps) {
-  // Role-based data fetching
-  const ownerId = role === 'client' ? (clientInfo?.owner_id || null) : null;
-  
-  // Shared UI with role-specific behavior
-  return (/* consistent interface with role adaptations */);
-}
-```
-
-## Hook Architecture & Data Fetching Patterns
-
-**Factory Pattern Implementation (August 2025)**: Centralized data fetching logic to eliminate code duplication and ensure consistency across hooks.
-
-### Core Data Fetching Hook
-- **File**: `src/hooks/use-data-fetcher.ts`
-- **Purpose**: Generic factory hook providing consistent loading, error, and refetch patterns
-- **Features**: Configurable initial data, error messages, dependency arrays, and refetch loading states
-
-### Standardized Hook Pattern
-All data fetching hooks follow this consistent interface:
-```typescript
-export function useHookName(ownerId: number | null, ...params) {
-  const { data, loading, error, refetch } = useDataFetcher(
-    serverActionFunction,
-    {
-      ownerId,
-      initialData: [] as DataType[],
-      dependencies: [param1, param2], // optional
-      errorMessage: 'Failed to load data',
-      enableRefetchLoading: true // optional
-    },
-    ...params
-  );
-
-  return { data, loading, error, refetch };
-}
-```
-
-### Refactored Hooks Using Factory Pattern
-- `useActiveOrders(ownerId)` - Active orders with owner filtering
-- `useDashboardMetrics(ownerId)` - Dashboard KPI metrics  
-- `useProjectsForOrders(ownerId)` - Projects for order creation
-- `useShipmentTrends(ownerId, period)` - Chart data with period filtering
-- `useDeliveryPerformance(ownerId)` - Performance metrics for charts
-- `useTopDestinations(ownerId, period)` - Destination analytics
-
-### Benefits Achieved
-- **Code Reduction**: ~350+ lines of duplicate code eliminated
-- **Consistency**: Unified error handling, loading states, and refetch logic
-- **Maintainability**: Single source of truth for data fetching patterns
-- **Testability**: Explicit parameters instead of internal auth dependencies
-
-## Table Design Standards (MaterialsTable - August 2025)
-
-**Modern Borderless Design**: Clean, zebra-striped tables with sticky headers and advanced filtering for improved visual hierarchy and usability.
-
-### Key Design Principles
-- **No Borders**: Eliminate all table borders (outer, inner, header separator) for clean aesthetic
-- **Inverted Zebra Striping**: Header transparent, first data row white, alternating pattern
-- **Sticky Headers**: Fixed header that remains visible during scroll for large datasets
-- **Independent Scroll**: Table has its own scroll container separate from page scroll
-- **Transparent Integration**: Tables blend seamlessly with page backgrounds using `bg-transparent`
-- **Interactive Search**: Search boxes with blue highlight when active and no focus borders
-
-### MaterialsTable Specifications (UPDATED)
-- **Header Structure**: Separated fixed header from scrollable body for sticky functionality
-- **Header Row**: `bg-gray-50` (light gray background) with `bg-transparent` hover state
-- **Data Rows**: Inverted zebra pattern - first row `bg-white`, alternating with `bg-transparent`
-- **Sticky Implementation**: Fixed header container + scrollable body container pattern
-- **Search Inputs**: 
-  - Borderless with complete focus ring removal: `border-0 focus:border-0 focus:ring-0 focus-visible:ring-0`
-  - Dynamic text color: `text-blue-700` when typing, `text-gray-700` when empty
-  - Yellow hover effect on data rows: `hover:bg-yellow-100`
-- **Scroll Container**: `max-h-[calc(100vh-400px)] overflow-auto custom-scrollbar`
-- **Sample Data Watermark**: `text-blue-200 text-8xl opacity-40` at `rotate-[22.5deg]`
-
-### Sticky Header Implementation Pattern
-```typescript
-// Separate fixed header from scrollable body
-<div className="rounded-md bg-transparent">
-  {/* Fixed Header */}
-  <div className="bg-gray-50">
-    <Table className="bg-transparent [&_thead]:border-b-0 [&_thead_tr]:border-b-0">
-      <TableHeader className="border-b-0">
-        <TableRow className="border-b-0 hover:bg-Gray-50 bg-gray-50">
-          <TableHead className="w-[160px] border-r-0">
-            // Column headers with search inputs
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-    </Table>
-  </div>
-
-  {/* Scrollable Body */}
-  <div className="max-h-[calc(100vh-400px)] overflow-auto custom-scrollbar">
-    <Table className="bg-transparent">
-      <TableBody>
-        // Data rows with inverted zebra striping
-        <TableRow className={`${index % 2 === 0 ? 'bg-white' : 'bg-transparent'} hover:bg-yellow-100`}>
-      </TableBody>
-    </Table>
-  </div>
-</div>
-```
-
-### Search Input Styling
-```typescript
-// Complete focus border removal with dynamic text color
-<Input className={`
-  h-8 text-xs border-0 focus:border-0 focus:ring-0 
-  focus:outline-none focus-visible:outline-none 
-  focus-visible:ring-0 focus-visible:ring-offset-0 
-  bg-transparent
-  ${filters[field] ? 'text-blue-700' : 'text-gray-700'}
-`} />
 ```
 
 ## Code Standards
@@ -456,4 +289,3 @@ export function useHookName(ownerId: number | null, ...params) {
 - Custom hooks pattern: `use-*-for-orders.ts` for database integration
 - **Shared Components**: Prefer shared components over duplicate implementations for client/employee interfaces
 - **Data Fetching Pattern**: Use `useDataFetcher()` factory hook for consistent loading/error/refetch logic
-- **Table Design**: Follow borderless zebra-stripe pattern with transparent integration
