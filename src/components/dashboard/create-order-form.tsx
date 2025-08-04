@@ -65,9 +65,9 @@ const AutocompleteInput = ({ value, onChange, placeholder }: { value: string, on
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
   useEffect(() => {
-    if (!inputRef.current || !window.google) return;
+    if (!inputRef.current || !(window as any).google) return;
 
-    const autocomplete = new google.maps.places.Autocomplete(inputRef.current, {
+    const autocomplete = new (window as any).google.maps.places.Autocomplete(inputRef.current, {
       types: ['address'],
       componentRestrictions: { country: "us" }, // Restrict to US for now, can be dynamic
       fields: ['address_components', 'formatted_address']
@@ -83,8 +83,8 @@ const AutocompleteInput = ({ value, onChange, placeholder }: { value: string, on
     autocompleteRef.current = autocomplete;
 
     return () => {
-      if (autocompleteRef.current) {
-        google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      if ((window as any).google && autocompleteRef.current) {
+        (window as any).google.maps.event.clearInstanceListeners(autocompleteRef.current);
       }
     };
   }, [onChange]);
