@@ -297,15 +297,6 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
 
   return (
     <div className="relative">
-      {/* Sample Data Watermark */}
-      {!isRealData && (
-        <Alert className="mb-4 border-amber-200 bg-amber-50">
-          <Info className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-amber-800">
-            <strong>Sample Data Preview</strong> - This is demonstration data. Click "View" to load real materials data.
-          </AlertDescription>
-        </Alert>
-      )}
 
       {/* Loading State */}
       {loading && (
@@ -325,7 +316,7 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
 
       {/* Materials Table */}
       {!loading && !error && (
-        <div className="rounded-md border bg-transparent">
+        <div className="rounded-md bg-transparent">
           <Table className="[&_thead]:border-b-0 [&_thead_tr]:border-b-0 bg-transparent">
             <TableHeader className="border-b-0 bg-transparent">
               <TableRow className="border-b-0 hover:bg-white bg-white">
@@ -409,7 +400,7 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
           {/* Sample Data Overlay Effect */}
           {!isRealData && (
             <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute top-1/2 left-1/4 transform -translate-x-1/2 -translate-y-1/2 rotate-[22.5deg] text-blue-200 text-8xl font-bold opacity-40 select-none">
+              <div className="absolute top-1/2 left-1/3 transform -translate-x-1/2 -translate-y-1/2 rotate-[22.5deg] text-blue-200 text-8xl font-bold opacity-40 select-none">
                 SAMPLE DATA
               </div>
             </div>
