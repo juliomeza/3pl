@@ -178,6 +178,8 @@ OPENAI_API_KEY=your_api_key     # Required for AI assistant
   - Client: 20+ client-specific reports with owner filtering
   - Employee: 5-50 reports with configurable access levels
   - Shared header controls, export functionality, and MaterialsTable integration
+  - **Export Dropdown**: Dropdown menu with CSV, Excel, PDF options using appropriate Lucide icons (FileText, FileSpreadsheet, FileImage)
+  - **Pending Implementation**: Export functionality handlers are placeholder - need actual CSV/Excel/PDF generation logic
   - Optimized layout: Compact action bar (py-2), transparent backgrounds for seamless integration
   - Layout optimization: Uses -m-4 md:-m-8 to neutralize main container padding for edge-to-edge design
 

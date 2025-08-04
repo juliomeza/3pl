@@ -437,6 +437,8 @@ npm run test:chat -- --testNamePattern="date-"  # Date tests
   - Client: 20+ client-specific reports with owner filtering
   - Employee: 5-50 reports with configurable access levels
   - Shared MaterialsTable, header controls, and export functionality
+  - **Export Dropdown**: Dropdown menu with CSV, Excel, PDF options using Lucide icons (FileText, FileSpreadsheet, FileImage)
+  - **Pending Implementation**: Export functionality handlers are placeholder - need actual CSV/Excel/PDF generation logic
   - Optimized layout: Compact action bar (py-2), transparent backgrounds, edge-to-edge design (-m-4 md:-m-8)
   - Role-based access messaging and security filtering
 
