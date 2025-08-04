@@ -158,6 +158,40 @@ Firebase Auth → users/{uid}.clientId → clients/{clientId}.owner_id → Datab
 - `src/components/dashboard/dashboard-header.tsx` - Header component with greeting
 - `src/components/dashboard/dashboard-layout.tsx` - Page detection and prop passing
 
+### Header Layout Architecture (Updated August 2025)
+**Flexible Header System**: Dynamic layout supporting left, center, and right content positioning.
+
+#### Layout Modes
+- **Default Layout**: `justify-between` with left content + welcome message, spacer, right content + avatar
+- **Center Content Layout**: Three-column `flex-1` layout when `centerContent` prop is provided
+- **Conditional Rendering**: Automatically switches layout based on content presence
+
+#### Step Indicator Integration
+```typescript
+// Create Order form uses centerContent for step indicator
+const { setCenterContent } = useHeaderControls();
+
+useEffect(() => {
+  setCenterContent(
+    <OrderStepIndicator 
+      currentStep={currentStep}
+      canGoToStep={canGoToStep}
+      onStepClick={handleStepClick}
+    />
+  );
+}, [currentStep]);
+```
+
+#### Header Props
+```typescript
+interface DashboardHeaderProps {
+  leftContent?: React.ReactNode;      // Left side content
+  rightContent?: React.ReactNode;     // Right side content  
+  centerContent?: React.ReactNode;    // Centered content (step indicators)
+  showWelcomeMessage?: boolean;       // Dashboard page greeting
+}
+```
+
 ### Usage Pattern
 ```typescript
 // Header shows greeting only on dashboard pages
@@ -167,6 +201,9 @@ const isDashboardPage = pathname === '/client' || pathname === '/employee';
 // Time-based greeting function
 const greeting = getTimeBasedGreeting(); // "Good morning" | "Good afternoon" | "Good evening"
 const firstName = getFirstName(user.displayName); // "John" from "John Smith"
+
+// Center content for step indicators
+<DashboardHeader centerContent={<OrderStepIndicator />} />
 ```
 
 ## Testing Strategy

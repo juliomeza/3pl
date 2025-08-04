@@ -1050,8 +1050,54 @@ const isDashboardPage = pathname === '/client' || pathname === '/employee';
 
 ### Files Modified
 - `src/lib/date-utils.ts`: Added getTimeBasedGreeting() function
-- `src/components/dashboard/dashboard-header.tsx`: Header with greeting logic
-- `src/components/dashboard/dashboard-layout.tsx`: Page detection and prop passing
+- `src/components/dashboard/dashboard-header.tsx`: Header with greeting logic and centerContent support
+- `src/components/dashboard/dashboard-layout.tsx`: Page detection, centerContent context, and prop passing
+- `src/components/dashboard/order-step-indicator.tsx`: Single-line step indicators with whitespace-nowrap
+- `src/components/dashboard/create-order-form.tsx`: Uses setCenterContent for step indicator positioning
+
+### Header Layout Architecture (ENHANCED - August 2025)
+**Flexible Three-Layout System**: Dynamic header supporting multiple content positioning strategies.
+
+#### Layout Modes
+- **Default Mode**: `justify-between` layout with left content + welcome message, spacer, right content + avatar
+- **Center Content Mode**: Three-column `flex-1` layout when `centerContent` prop is provided
+- **Automatic Detection**: Conditionally switches layout based on content presence
+
+#### Header Context Extensions
+```typescript
+interface HeaderControlsContextType {
+  leftContent?: ReactNode;
+  rightContent?: ReactNode;
+  centerContent?: ReactNode;        // NEW: Center positioning support
+  setLeftContent: (content: ReactNode) => void;
+  setRightContent: (content: ReactNode) => void;
+  setCenterContent: (content: ReactNode) => void;  // NEW: Center content setter
+}
+```
+
+#### Step Indicator Integration Pattern
+```typescript
+// Create Order form implementation
+const { setCenterContent } = useHeaderControls();
+
+useEffect(() => {
+  setCenterContent(
+    <OrderStepIndicator 
+      currentStep={currentStep}
+      canGoToStep={canGoToStep}
+      onStepClick={handleStepClick}
+    />
+  );
+  return () => setCenterContent(null); // Cleanup
+}, [currentStep]);
+```
+
+#### Step Indicator Design Standards
+- **Single-Line Text**: `whitespace-nowrap` prevents text wrapping
+- **Flexible Width**: `min-w-fit` ensures adequate space for content
+- **Non-Shrinking Icons**: `flex-shrink-0` maintains icon dimensions
+- **Proper Spacing**: `px-3` provides comfortable padding
+- **Professional Appearance**: Clean rectangular containers with rounded corners
 
 ### User Experience Benefits
 - **Personal Touch**: Uses actual user name from authentication
@@ -1059,3 +1105,5 @@ const isDashboardPage = pathname === '/client' || pathname === '/employee';
 - **Clean Interface**: No exclamation marks or excessive punctuation  
 - **Space Efficient**: Integrated into existing header without layout changes
 - **Professional Feel**: Maintains business application aesthetics
+- **Perfect Centering**: Step indicators professionally centered in header
+- **Single-Line Steps**: Clean, readable step progression without text wrapping
