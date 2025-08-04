@@ -415,6 +415,16 @@ npm run test:chat -- --testNamePattern="date-"  # Date tests
 - **Date Context**: Temporal query interpretation
 - **Performance**: Response time validation
 
+### Dynamic Date Testing (UPDATED - August 2025)
+**Issue Fixed**: Test cases were using hardcoded dates causing failures when run on different days/months.
+
+**Solution Implemented**:
+- **Dynamic Date Generation**: Test expectations now use JavaScript functions to generate current dates
+- **Pattern**: `'date) = ' + getCurrentMonth()` for month validation and `'DATE(', 'date', ') = \'' + getCurrentDate() + '\''` for today validation
+- **Helper Functions**: `getCurrentMonth()` returns `(new Date().getMonth() + 1).toString()` and `getCurrentDate()` returns `new Date().toISOString().split('T')[0]`
+- **Affected Tests**: `date-002` (orders this month) and `date-004` (orders today) now work on any date
+- **Result**: Tests pass consistently regardless of execution date, eliminating temporal test failures
+
 ## Shared Component Architecture (REFACTORED - August 2025)
 
 ### Component Sharing Strategy

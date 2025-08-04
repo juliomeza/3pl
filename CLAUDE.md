@@ -142,6 +142,16 @@ Firebase Auth → users/{uid}.clientId → clients/{clientId}.owner_id → Datab
 - `__tests__/ai/chat-assistant.test.ts`: Jest test runner
 - `__tests__/ai/manual-testing.ts`: Manual debugging utilities
 
+**Dynamic Date Testing (UPDATED - August 2025)**:
+- **Issue Fixed**: Test cases were using hardcoded dates causing failures when run on different days/months
+- **Solution**: Test expectations now use JavaScript functions to generate current dates dynamically
+- **Pattern**: `'date) = ' + getCurrentMonth()` for month validation and `'DATE(', 'date', ') = \'' + getCurrentDate() + '\''` for today validation
+- **Helper Functions**: `getCurrentMonth()` returns `(new Date().getMonth() + 1).toString()` and `getCurrentDate()` returns `new Date().toISOString().split('T')[0]`
+- **Affected Tests**: `date-002` (orders this month) and `date-004` (orders today) now work consistently on any execution date
+- **Testing Commands**: 
+  - `npm run test:chat` - Full AI test suite
+  - `npm run test:chat -- --testNamePattern="date-"` - Run only date-related tests
+
 ## Environment Variables
 
 ```bash

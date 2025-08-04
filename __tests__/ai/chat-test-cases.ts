@@ -25,6 +25,15 @@ export interface ChatTestCase {
   }>;
 }
 
+// Helper function to get dynamic date values
+function getCurrentMonth(): string {
+  return (new Date().getMonth() + 1).toString();
+}
+
+function getCurrentDate(): string {
+  return new Date().toISOString().split('T')[0];
+}
+
 export const chatTestCases: ChatTestCase[] = [
   // ===== CONVERSATIONAL TESTS =====
   {
@@ -558,7 +567,7 @@ export const chatTestCases: ChatTestCase[] = [
       shouldContain: [
         'SELECT', 'FROM logistics_orders',
         'EXTRACT(YEAR FROM', 'date) = 2025',
-        'EXTRACT(MONTH FROM', 'date) = 7'
+        'EXTRACT(MONTH FROM', 'date) = ' + getCurrentMonth()
       ],
       shouldStartWith: 'SELECT'
     }
@@ -585,7 +594,7 @@ export const chatTestCases: ChatTestCase[] = [
     expectedSQL: {
       shouldContain: [
         'SELECT', 'FROM logistics_orders',
-        'DATE(', 'date', ') = \'2025-07-30\''
+        'DATE(', 'date', ') = \'' + getCurrentDate() + '\''
       ],
       shouldStartWith: 'SELECT'
     }
