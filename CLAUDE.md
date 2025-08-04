@@ -263,32 +263,67 @@ export function useHookName(ownerId: number | null, ...params) {
 
 ## Table Design Standards (MaterialsTable - August 2025)
 
-**Modern Borderless Design**: Clean, zebra-striped tables without traditional borders for improved visual hierarchy.
+**Modern Borderless Design**: Clean, zebra-striped tables with sticky headers and advanced filtering for improved visual hierarchy and usability.
 
 ### Key Design Principles
 - **No Borders**: Eliminate all table borders (outer, inner, header separator) for clean aesthetic
-- **Zebra Striping**: Alternating row colors (white/transparent) starting with header for visual separation
+- **Inverted Zebra Striping**: Header transparent, first data row white, alternating pattern
+- **Sticky Headers**: Fixed header that remains visible during scroll for large datasets
+- **Independent Scroll**: Table has its own scroll container separate from page scroll
 - **Transparent Integration**: Tables blend seamlessly with page backgrounds using `bg-transparent`
-- **Minimalist Search**: Search boxes with `border-0` and clean "Search" placeholder (no "Filter...")
+- **Interactive Search**: Search boxes with blue highlight when active and no focus borders
 
-### MaterialsTable Specifications
-- **Header Row**: `bg-white` (first stripe)
-- **Data Rows**: Alternating `bg-transparent` (even) and `bg-white` (odd) pattern
-- **Search Inputs**: Borderless with `border-0 focus:border-0 focus:ring-0`
-- **Watermark**: Sample data uses `text-blue-200 text-8xl opacity-40` at `rotate-[22.5deg]` positioned at `left-1/3`
-- **Container**: No outer border, fully transparent background integration
+### MaterialsTable Specifications (UPDATED)
+- **Header Structure**: Separated fixed header from scrollable body for sticky functionality
+- **Header Row**: `bg-gray-50` (light gray background) with `bg-transparent` hover state
+- **Data Rows**: Inverted zebra pattern - first row `bg-white`, alternating with `bg-transparent`
+- **Sticky Implementation**: Fixed header container + scrollable body container pattern
+- **Search Inputs**: 
+  - Borderless with complete focus ring removal: `border-0 focus:border-0 focus:ring-0 focus-visible:ring-0`
+  - Dynamic text color: `text-blue-700` when typing, `text-gray-700` when empty
+  - Yellow hover effect on data rows: `hover:bg-yellow-100`
+- **Scroll Container**: `max-h-[calc(100vh-400px)] overflow-auto custom-scrollbar`
+- **Sample Data Watermark**: `text-blue-200 text-8xl opacity-40` at `rotate-[22.5deg]`
 
-### Implementation Pattern
+### Sticky Header Implementation Pattern
 ```typescript
-// Table container - no borders, transparent
+// Separate fixed header from scrollable body
 <div className="rounded-md bg-transparent">
-  <Table className="[&_thead]:border-b-0 [&_thead_tr]:border-b-0 bg-transparent">
-    // Header with first stripe color
-    <TableRow className="border-b-0 hover:bg-white bg-white">
-    // Data rows with alternating pattern
-    <TableRow className={`border-b-0 ${index % 2 === 0 ? 'bg-transparent' : 'bg-white'}`}>
-    // Search inputs without borders
-    <Input className="border-0 focus:border-0 focus:ring-0 bg-transparent" />
+  {/* Fixed Header */}
+  <div className="bg-gray-50">
+    <Table className="bg-transparent [&_thead]:border-b-0 [&_thead_tr]:border-b-0">
+      <TableHeader className="border-b-0">
+        <TableRow className="border-b-0 hover:bg-Gray-50 bg-gray-50">
+          <TableHead className="w-[160px] border-r-0">
+            // Column headers with search inputs
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+    </Table>
+  </div>
+
+  {/* Scrollable Body */}
+  <div className="max-h-[calc(100vh-400px)] overflow-auto custom-scrollbar">
+    <Table className="bg-transparent">
+      <TableBody>
+        // Data rows with inverted zebra striping
+        <TableRow className={`${index % 2 === 0 ? 'bg-white' : 'bg-transparent'} hover:bg-yellow-100`}>
+      </TableBody>
+    </Table>
+  </div>
+</div>
+```
+
+### Search Input Styling
+```typescript
+// Complete focus border removal with dynamic text color
+<Input className={`
+  h-8 text-xs border-0 focus:border-0 focus:ring-0 
+  focus:outline-none focus-visible:outline-none 
+  focus-visible:ring-0 focus-visible:ring-offset-0 
+  bg-transparent
+  ${filters[field] ? 'text-blue-700' : 'text-gray-700'}
+`} />
 ```
 
 ## Code Standards

@@ -670,15 +670,62 @@ const ColumnHeader = React.memo(({ field, label, filters, sortField, sortDirecti
 
 #### Table Design Standards (MODERN BORDERLESS - August 2025)
 - **Borderless Design**: All table borders eliminated for clean, modern aesthetic
-- **Zebra Striping**: Alternating white/transparent rows starting with header for visual separation  
+- **Inverted Zebra Striping**: Header `bg-gray-50`, first data row `bg-white`, alternating with `bg-transparent`
+- **Sticky Headers**: Fixed header that remains visible during scroll for large datasets
+- **Independent Scroll**: Table has its own scroll container separate from page scroll (`max-h-[calc(100vh-400px)]`)
 - **Transparent Integration**: Tables blend seamlessly with page backgrounds using bg-transparent
-- **Search Inputs**: Borderless (border-0) with clean "Search" placeholder (no "Filter...")
+- **Interactive Search Inputs**: 
+  - Borderless with complete focus ring removal: `border-0 focus:border-0 focus:ring-0 focus-visible:ring-0`
+  - Dynamic text color: `text-blue-700` when typing, `text-gray-700` when empty
+  - Clean "Search" placeholder (no "Filter...")
 - **Column Widths**: Optimized for content (Lookup Code: 160px, Status: 120px, etc.)
 - **Typography Hierarchy**: Bold titles for active columns, semibold for inactive
 - **Interactive Elements**: 
   - Sort icons: 4x4px with blue (#0A183C) for active states
   - Hover states: Blue color transitions for all interactive elements
+  - Data row hover: `hover:bg-yellow-100` for visual feedback
   - Sample watermark: text-blue-200 text-8xl opacity-40 at rotate-[22.5deg] positioned left-1/3
+
+#### Sticky Header Implementation Pattern
+```typescript
+// Separate fixed header from scrollable body for sticky functionality
+<div className="rounded-md bg-transparent">
+  {/* Fixed Header */}
+  <div className="bg-gray-50">
+    <Table className="bg-transparent [&_thead]:border-b-0 [&_thead_tr]:border-b-0">
+      <TableHeader className="border-b-0">
+        <TableRow className="border-b-0 hover:bg-gray-50 bg-gray-50">
+          <TableHead className="w-[160px] border-r-0">
+            // Column headers with search inputs
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+    </Table>
+  </div>
+
+  {/* Scrollable Body */}
+  <div className="max-h-[calc(100vh-400px)] overflow-auto custom-scrollbar">
+    <Table className="bg-transparent">
+      <TableBody>
+        // Data rows with inverted zebra striping
+        <TableRow className={`${index % 2 === 0 ? 'bg-white' : 'bg-transparent'} hover:bg-yellow-100`}>
+      </TableBody>
+    </Table>
+  </div>
+</div>
+```
+
+#### Search Input Styling Pattern
+```typescript
+// Complete focus border removal with dynamic text color
+<Input className={`
+  h-8 text-xs border-0 focus:border-0 focus:ring-0 
+  focus:outline-none focus-visible:outline-none 
+  focus-visible:ring-0 focus-visible:ring-offset-0 
+  bg-transparent
+  ${filters[field] ? 'text-blue-700' : 'text-gray-700'}
+`} />
+```
 
 #### Data Display Patterns
 - **Sample Data Indicators**: Amber alert banners for demonstration mode
