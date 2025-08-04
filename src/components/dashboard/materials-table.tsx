@@ -409,7 +409,7 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
           {/* Sample Data Overlay Effect */}
           {!isRealData && (
             <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-45 text-gray-200 text-6xl font-bold opacity-20 select-none">
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-[22.5deg] text-blue-200 text-8xl font-bold opacity-40 select-none">
                 SAMPLE DATA
               </div>
             </div>
