@@ -965,3 +965,43 @@ const handleSave = async (status: 'draft' | 'submitted') => {
 - **File Location**: `src/components/landing/pricing.tsx`
 - **Plan Structure**: Three tiers (Starter Free, Professional $30/month, Enterprise Custom)
 - **Features**: Professional plan includes up to 5,000 orders/month, advanced inventory, AI insights, API access
+
+## Dark Mode Implementation (Added August 2025)
+
+**Complete Theme System**: Full light/dark mode support for all dashboard components (landing page excluded by design).
+
+### Quick Reference
+- **Theme Hook**: `useTheme()` from `src/context/theme-context.tsx`
+- **Toggle Access**: Avatar dropdown menu (replaced Settings option)
+- **Persistence**: localStorage with system preference fallback
+- **Icons**: Moon (light→dark) / Sun (dark→light) with Lucide React
+
+### Technical Implementation
+```typescript
+// Theme Hook Usage
+const { theme, toggleTheme } = useTheme();
+
+// Color Pattern for Hardcoded Colors
+className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+
+// Hover Effects
+className="hover:bg-gray-100 dark:hover:bg-gray-800"
+```
+
+### Architecture Benefits
+- **shadcn/ui Compatibility**: Automatic adaptation via CSS variables
+- **Minimal Code Changes**: Most components work without modification
+- **Consistent Experience**: Unified theming across all dashboard areas
+- **Performance**: Client-side switching with no server round-trips
+
+### Files Structure
+- `src/context/theme-context.tsx`: Theme provider and state management
+- `src/components/dashboard/dashboard-header.tsx`: Toggle UI implementation
+- `src/app/layout.tsx`: Provider integration
+- `src/app/globals.css`: CSS variables for both themes (pre-configured)
+
+### Color Strategy
+- **Primary Approach**: Use shadcn CSS variables (`bg-background`, `text-foreground`)
+- **Hardcoded Updates**: Only where specific brand colors needed dark variants
+- **Status Badges**: Custom dark variants for better visibility (e.g., `dark:bg-blue-900/30`)
+- **Interactive Elements**: Hover states adapted for both themes

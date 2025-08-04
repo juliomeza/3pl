@@ -171,6 +171,35 @@ OPENAI_API_KEY=your_api_key     # Required for AI assistant
 - **Professional Plan**: $30/month (updated from $29/month)
 - Located in: `src/components/landing/pricing.tsx`
 
+## Dark Mode Implementation (Added August 2025)
+
+**Full Dark Mode Support**: Complete light/dark theme switching for dashboard areas (excludes landing page as requested).
+
+### Architecture
+- **Theme Provider**: `src/context/theme-context.tsx` - React context with localStorage persistence
+- **Toggle Location**: Avatar dropdown menu (replaced "Settings" option)
+- **CSS Variables**: Pre-configured in `globals.css` with complete light/dark variable sets
+- **Tailwind Config**: `darkMode: ['class']` with CSS variable-based color system
+
+### Implementation Details
+- **Automatic Switching**: Most components use shadcn/ui CSS variables (no changes needed)
+- **Hardcoded Color Updates**: Fixed specific instances like status badges and hover effects
+- **Theme Persistence**: Saves user preference in localStorage with system preference fallback
+- **UI Integration**: Moon/Sun icons with dynamic text based on current theme
+
+### Key Files Modified
+- `src/context/theme-context.tsx` - Theme provider and hook
+- `src/components/dashboard/dashboard-header.tsx` - Avatar menu toggle
+- `src/app/layout.tsx` - ThemeProvider integration
+- Various dashboard components - Dark mode color variants for hardcoded colors
+
+### Usage Pattern
+```typescript
+const { theme, toggleTheme } = useTheme();
+// Components automatically adapt via CSS variables
+// Hardcoded colors use: className="bg-blue-100 dark:bg-blue-900/30"
+```
+
 ## Shared Component Architecture (REFACTORED - August 2025)
 
 **Component Sharing Strategy**: Client and employee interfaces share UI/UX patterns through shared components for consistency and maintainability.
