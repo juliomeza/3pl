@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +28,15 @@ interface LineItem {
   serialNumber?: string;
 }
 
+interface AddressComponent {
+  street_number: string;
+  route: string;
+  locality: string;
+  administrative_area_level_1: string;
+  country: string;
+  postal_code: string;
+}
+
 interface OrderFormData {
   orderType: 'inbound' | 'outbound' | '';
   projectId: string;
@@ -49,6 +59,46 @@ const mockMaterials = [
   { code: 'MAT-003', name: 'Concrete Mix 80lb', uom: 'BAG' },
   { code: 'MAT-004', name: 'PVC Fitting 2"', uom: 'EA' }
 ];
+
+const AutocompleteInput = ({ value, onChange, placeholder }: { value: string, onChange: (value: string) => void, placeholder: string }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+
+  useEffect(() => {
+    if (!inputRef.current || !window.google) return;
+
+    const autocomplete = new google.maps.places.Autocomplete(inputRef.current, {
+      types: ['address'],
+      componentRestrictions: { country: "us" }, // Restrict to US for now, can be dynamic
+      fields: ['address_components', 'formatted_address']
+    });
+
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      if (place.formatted_address) {
+        onChange(place.formatted_address);
+      }
+    });
+
+    autocompleteRef.current = autocomplete;
+
+    return () => {
+      if (autocompleteRef.current) {
+        google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      }
+    };
+  }, [onChange]);
+
+  return (
+    <Input
+      ref={inputRef}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+    />
+  );
+};
+
 
 export function CreateOrderForm() {
   // Get client info for owner filtering
@@ -341,12 +391,10 @@ export function CreateOrderForm() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="recipientAddress">Address *</Label>
-                    <Textarea
-                      id="recipientAddress"
+                    <AutocompleteInput
                       value={formData.recipientAddress}
-                      onChange={(e) => setFormData(prev => ({ ...prev, recipientAddress: e.target.value }))}
-                      placeholder="Enter complete address"
-                      rows={3}
+                      onChange={(value) => setFormData(prev => ({ ...prev, recipientAddress: value }))}
+                      placeholder="Start typing an address..."
                     />
                   </div>
                 </div>
@@ -362,14 +410,12 @@ export function CreateOrderForm() {
                       placeholder="Enter billing account name"
                     />
                   </div>
-                  <div className="space-y-2">
+                   <div className="space-y-2">
                     <Label htmlFor="billingAddress">Billing Address *</Label>
-                    <Textarea
-                      id="billingAddress"
+                     <AutocompleteInput
                       value={formData.billingAddress}
-                      onChange={(e) => setFormData(prev => ({ ...prev, billingAddress: e.target.value }))}
-                      placeholder="Enter billing address"
-                      rows={3}
+                      onChange={(value) => setFormData(prev => ({ ...prev, billingAddress: value }))}
+                      placeholder="Start typing an address..."
                     />
                   </div>
                 </div>
