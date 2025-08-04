@@ -24,7 +24,7 @@ const pricingPlans = [
     {
         name: 'Professional',
         description: 'Best for growing businesses',
-        price: '$29',
+        price: '$30',
         period: 'per month',
         features: [
             'Up to 5,000 orders/month',

@@ -958,3 +958,10 @@ const handleSave = async (status: 'draft' | 'submitted') => {
 - **Database security**: All queries include owner-based filtering
 - **Error handling**: Consistent loading/error states across all dropdowns
 - **User experience**: Auto-selection and dynamic filtering for smooth workflow
+
+## Pricing Configuration (Updated August 2025)
+
+**Professional Plan Pricing**: $30/month (updated from $29/month)
+- **File Location**: `src/components/landing/pricing.tsx`
+- **Plan Structure**: Three tiers (Starter Free, Professional $30/month, Enterprise Custom)
+- **Features**: Professional plan includes up to 5,000 orders/month, advanced inventory, AI insights, API access

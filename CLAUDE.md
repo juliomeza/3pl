@@ -166,6 +166,11 @@ OPENAI_API_KEY=your_api_key     # Required for AI assistant
 - Firebase project ID: "synapse3pl" (hardcoded for compatibility)
 - SSL configuration for PostgreSQL: `rejectUnauthorized: false`
 
+## Pricing Configuration (Updated August 2025)
+
+- **Professional Plan**: $30/month (updated from $29/month)
+- Located in: `src/components/landing/pricing.tsx`
+
 ## Shared Component Architecture (REFACTORED - August 2025)
 
 **Component Sharing Strategy**: Client and employee interfaces share UI/UX patterns through shared components for consistency and maintainability.
