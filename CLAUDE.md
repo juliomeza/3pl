@@ -133,6 +133,42 @@ Firebase Auth → users/{uid}.clientId → clients/{clientId}.owner_id → Datab
 **Icons**: Exclusively `lucide-react` for consistency
 **Components**: shadcn/ui with Radix UI primitives + Tailwind CSS
 
+## Header & Welcome Message System (Updated August 2025)
+
+**Interactive Time-Based Greeting**: Dashboard header displays personalized greetings that change throughout the day.
+
+### Welcome Message Features
+- **Time-Based Greetings**: "Good morning", "Good afternoon", or "Good evening" based on current time
+  - 5:00 AM - 11:59 AM: "Good morning"
+  - 12:00 PM - 5:59 PM: "Good afternoon" 
+  - 6:00 PM - 4:59 AM: "Good evening"
+- **First Name Only**: Extracts and displays only the first name from user's displayName
+- **Page-Specific Display**: Only shown on main Dashboard pages (`/client`, `/employee`)
+- **Header Positioning**: Located in header bar on left side, avatar remains on right
+
+### Implementation Details
+- **Time Function**: `getTimeBasedGreeting()` in `src/lib/date-utils.ts`
+- **Name Extraction**: `getFirstName()` function splits displayName and uses first word
+- **Conditional Rendering**: `showWelcomeMessage` prop controls visibility per page
+- **Typography**: `text-2xl font-bold font-headline` with dark mode support
+- **Layout**: Flexbox with `items-center gap-4` for proper spacing
+
+### Key Files
+- `src/lib/date-utils.ts` - Time-based greeting logic
+- `src/components/dashboard/dashboard-header.tsx` - Header component with greeting
+- `src/components/dashboard/dashboard-layout.tsx` - Page detection and prop passing
+
+### Usage Pattern
+```typescript
+// Header shows greeting only on dashboard pages
+const isDashboardPage = pathname === '/client' || pathname === '/employee';
+<DashboardHeader showWelcomeMessage={isDashboardPage} />
+
+// Time-based greeting function
+const greeting = getTimeBasedGreeting(); // "Good morning" | "Good afternoon" | "Good evening"
+const firstName = getFirstName(user.displayName); // "John" from "John Smith"
+```
+
 ## Testing Strategy
 
 **AI Testing**: Real integration tests using actual OpenAI API and PostgreSQL (no mocks). Tests validate response time < 15-20 seconds.

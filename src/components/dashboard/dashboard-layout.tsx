@@ -270,6 +270,7 @@ export default function DashboardLayout({ children, menuItems, logoConfig, role 
   }, [role]);
 
   const isAssistantPage = pathname.endsWith('/assistant');
+  const isDashboardPage = pathname === '/client' || pathname === '/employee';
   
   return (
     <HeaderControlsContext.Provider value={{ leftContent, rightContent, setLeftContent, setRightContent }}>
@@ -287,7 +288,7 @@ export default function DashboardLayout({ children, menuItems, logoConfig, role 
               <div className="md:hidden">
                 <SidebarTrigger />
               </div>
-              <DashboardHeader leftContent={leftContent} rightContent={rightContent} />
+              <DashboardHeader leftContent={leftContent} rightContent={rightContent} showWelcomeMessage={isDashboardPage} />
             </header>
             <main className={cn(
               "flex-1",

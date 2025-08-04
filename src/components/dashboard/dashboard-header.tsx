@@ -21,9 +21,10 @@ import {
 interface DashboardHeaderProps {
   leftContent?: React.ReactNode;
   rightContent?: React.ReactNode;
+  showWelcomeMessage?: boolean;
 }
 
-export function DashboardHeader({ leftContent, rightContent }: DashboardHeaderProps) {
+export function DashboardHeader({ leftContent, rightContent, showWelcomeMessage = false }: DashboardHeaderProps) {
   const { user, userInfo, loading, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
@@ -42,7 +43,7 @@ export function DashboardHeader({ leftContent, rightContent }: DashboardHeaderPr
       {/* Left content and welcome message */}
       <div className="flex items-center gap-4">
         {leftContent}
-        {user && (
+        {user && showWelcomeMessage && (
           <h1 className="text-2xl font-bold font-headline text-gray-900 dark:text-gray-100">
             {getTimeBasedGreeting()}, {getFirstName(user.displayName)}
           </h1>

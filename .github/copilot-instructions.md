@@ -1005,3 +1005,57 @@ className="hover:bg-gray-100 dark:hover:bg-gray-800"
 - **Hardcoded Updates**: Only where specific brand colors needed dark variants
 - **Status Badges**: Custom dark variants for better visibility (e.g., `dark:bg-blue-900/30`)
 - **Interactive Elements**: Hover states adapted for both themes
+
+## Interactive Welcome Message System (NEW - August 2025)
+
+**Time-Based Personalized Greetings**: Dynamic header messages that adapt throughout the day.
+
+### Implementation Overview
+- **Smart Greetings**: "Good morning", "Good afternoon", "Good evening" based on current time
+- **First Name Display**: Extracts first name only from user's Firebase displayName
+- **Strategic Positioning**: Located in header left side, dashboard pages only
+- **Clean Typography**: Large, bold headline font with dark mode support
+
+### Time-Based Logic
+```typescript
+// getTimeBasedGreeting() function in src/lib/date-utils.ts
+if (hour >= 5 && hour < 12) return 'Good morning';     // 5:00 AM - 11:59 AM
+if (hour >= 12 && hour < 18) return 'Good afternoon';  // 12:00 PM - 5:59 PM
+return 'Good evening';                                  // 6:00 PM - 4:59 AM
+```
+
+### Page-Specific Display Logic
+```typescript
+// Only shows on main dashboard pages
+const isDashboardPage = pathname === '/client' || pathname === '/employee';
+<DashboardHeader showWelcomeMessage={isDashboardPage} />
+```
+
+### Key Features
+- **Dynamic Time Updates**: Automatically refreshes based on current hour
+- **Name Extraction**: `getFirstName()` splits displayName at first space
+- **Dashboard Only**: Hidden on Orders, Reports, AI Assistant, Management pages
+- **Responsive Design**: Maintains header height while increasing font size (`text-2xl`)
+- **Dark Mode Ready**: Proper color contrast in both light and dark themes
+
+### Architecture Pattern
+```typescript
+// Header component with conditional rendering
+{user && showWelcomeMessage && (
+  <h1 className="text-2xl font-bold font-headline text-gray-900 dark:text-gray-100">
+    {getTimeBasedGreeting()}, {getFirstName(user.displayName)}
+  </h1>
+)}
+```
+
+### Files Modified
+- `src/lib/date-utils.ts`: Added getTimeBasedGreeting() function
+- `src/components/dashboard/dashboard-header.tsx`: Header with greeting logic
+- `src/components/dashboard/dashboard-layout.tsx`: Page detection and prop passing
+
+### User Experience Benefits
+- **Personal Touch**: Uses actual user name from authentication
+- **Time Awareness**: Contextual greeting appropriate to time of day
+- **Clean Interface**: No exclamation marks or excessive punctuation  
+- **Space Efficient**: Integrated into existing header without layout changes
+- **Professional Feel**: Maintains business application aesthetics
