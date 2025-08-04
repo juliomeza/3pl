@@ -43,8 +43,8 @@ export function DashboardHeader({ leftContent, rightContent }: DashboardHeaderPr
       <div className="flex items-center gap-4">
         {leftContent}
         {user && (
-          <h1 className="text-xl font-bold font-headline text-gray-900 dark:text-gray-100">
-            {getTimeBasedGreeting()}, {getFirstName(user.displayName)}!
+          <h1 className="text-2xl font-bold font-headline text-gray-900 dark:text-gray-100">
+            {getTimeBasedGreeting()}, {getFirstName(user.displayName)}
           </h1>
         )}
       </div>
