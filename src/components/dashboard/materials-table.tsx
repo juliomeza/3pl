@@ -317,85 +317,94 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
       {/* Materials Table */}
       {!loading && !error && (
         <div className="rounded-md bg-transparent">
-          <Table className="[&_thead]:border-b-0 [&_thead_tr]:border-b-0 bg-transparent">
-            <TableHeader className="border-b-0 bg-transparent">
-              <TableRow className="border-b-0 hover:bg-transparent bg-transparent">
-                <TableHead className="w-[160px] border-r-0">
-                  <ColumnHeader 
-                    field="lookupCode" 
-                    label="Lookup Code" 
-                    filters={filters}
-                    sortField={sortField}
-                    sortDirection={sortDirection}
-                    onFilterChange={handleFilterChange}
-                    onSort={handleSort}
-                    getSortIcon={getSortIcon}
-                  />
-                </TableHead>
-                <TableHead className="w-[120px] border-r-0">
-                  <ColumnHeader 
-                    field="statusId" 
-                    label="Status" 
-                    filters={filters}
-                    sortField={sortField}
-                    sortDirection={sortDirection}
-                    onFilterChange={handleFilterChange}
-                    onSort={handleSort}
-                    getSortIcon={getSortIcon}
-                  />
-                </TableHead>
-                <TableHead className="w-[160px] border-r-0">
-                  <ColumnHeader 
-                    field="materialGroupId" 
-                    label="Material Group" 
-                    filters={filters}
-                    sortField={sortField}
-                    sortDirection={sortDirection}
-                    onFilterChange={handleFilterChange}
-                    onSort={handleSort}
-                    getSortIcon={getSortIcon}
-                  />
-                </TableHead>
-                <TableHead className="w-[240px] border-r-0">
-                  <ColumnHeader 
-                    field="name" 
-                    label="Name" 
-                    filters={filters}
-                    sortField={sortField}
-                    sortDirection={sortDirection}
-                    onFilterChange={handleFilterChange}
-                    onSort={handleSort}
-                    getSortIcon={getSortIcon}
-                  />
-                </TableHead>
-                <TableHead className="border-r-0">
-                  <ColumnHeader 
-                    field="description" 
-                    label="Description" 
-                    filters={filters}
-                    sortField={sortField}
-                    sortDirection={sortDirection}
-                    onFilterChange={handleFilterChange}
-                    onSort={handleSort}
-                    getSortIcon={getSortIcon}
-                  />
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="bg-transparent">
-              {processedData.map((material, index) => (
-                <TableRow key={index} className={`border-b-0 hover:bg-yellow-100 ${index % 2 === 0 ? 'bg-white' : 'bg-transparent'} ${!isRealData ? 'opacity-75' : ''}`}>
-                  <TableCell className="font-medium border-r-0">{material.lookupCode}</TableCell>
-                  <TableCell className="border-r-0">{getStatusBadge(material.statusId)}</TableCell>
-                  <TableCell className="border-r-0">{material.materialGroupId}</TableCell>
-                  <TableCell className="border-r-0">{material.name}</TableCell>
-                  <TableCell className="max-w-xs truncate border-r-0" title={material.description}>
-                    {material.description}
-                  </TableCell>
+          {/* Fixed Header */}
+          <div className="bg-gray-50">
+            <Table className="bg-transparent [&_thead]:border-b-0 [&_thead_tr]:border-b-0">
+              <TableHeader className="border-b-0">
+                <TableRow className="border-b-0 hover:bg-gray-50 bg-gray-50">
+                  <TableHead className="w-[160px] border-r-0">
+                    <ColumnHeader 
+                      field="lookupCode" 
+                      label="Lookup Code" 
+                      filters={filters}
+                      sortField={sortField}
+                      sortDirection={sortDirection}
+                      onFilterChange={handleFilterChange}
+                      onSort={handleSort}
+                      getSortIcon={getSortIcon}
+                    />
+                  </TableHead>
+                  <TableHead className="w-[120px] border-r-0">
+                    <ColumnHeader 
+                      field="statusId" 
+                      label="Status" 
+                      filters={filters}
+                      sortField={sortField}
+                      sortDirection={sortDirection}
+                      onFilterChange={handleFilterChange}
+                      onSort={handleSort}
+                      getSortIcon={getSortIcon}
+                    />
+                  </TableHead>
+                  <TableHead className="w-[160px] border-r-0">
+                    <ColumnHeader 
+                      field="materialGroupId" 
+                      label="Material Group" 
+                      filters={filters}
+                      sortField={sortField}
+                      sortDirection={sortDirection}
+                      onFilterChange={handleFilterChange}
+                      onSort={handleSort}
+                      getSortIcon={getSortIcon}
+                    />
+                  </TableHead>
+                  <TableHead className="w-[240px] border-r-0">
+                    <ColumnHeader 
+                      field="name" 
+                      label="Name" 
+                      filters={filters}
+                      sortField={sortField}
+                      sortDirection={sortDirection}
+                      onFilterChange={handleFilterChange}
+                      onSort={handleSort}
+                      getSortIcon={getSortIcon}
+                    />
+                  </TableHead>
+                  <TableHead className="border-r-0">
+                    <ColumnHeader 
+                      field="description" 
+                      label="Description" 
+                      filters={filters}
+                      sortField={sortField}
+                      sortDirection={sortDirection}
+                      onFilterChange={handleFilterChange}
+                      onSort={handleSort}
+                      getSortIcon={getSortIcon}
+                    />
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+            </Table>
+          </div>
+
+          {/* Scrollable Body */}
+          <div className="max-h-[calc(100vh-400px)] overflow-auto custom-scrollbar">
+            <Table className="bg-transparent">
+              <TableBody className="bg-transparent">
+                {processedData.map((material, index) => (
+                  <TableRow key={index} className={`border-b-0 hover:bg-yellow-100 ${index % 2 === 0 ? 'bg-white' : 'bg-transparent'} ${!isRealData ? 'opacity-75' : ''}`}>
+                    <TableCell className="font-medium border-r-0 w-[160px]">{material.lookupCode}</TableCell>
+                    <TableCell className="border-r-0 w-[120px]">{getStatusBadge(material.statusId)}</TableCell>
+                    <TableCell className="border-r-0 w-[160px]">{material.materialGroupId}</TableCell>
+                    <TableCell className="border-r-0 w-[240px]">{material.name}</TableCell>
+                    <TableCell className="max-w-xs truncate border-r-0" title={material.description}>
+                      {material.description}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
 
           {/* Sample Data Overlay Effect */}
           {!isRealData && (
