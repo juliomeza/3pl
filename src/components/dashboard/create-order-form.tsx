@@ -889,6 +889,16 @@ export function CreateOrderForm() {
                 </div>
 
                 <div>
+                  <Label htmlFor="batch">Batch (Optional)</Label>
+                  <Input
+                    id="batch"
+                    value={newLineItem.batchNumber || ''}
+                    onChange={(e) => setNewLineItem(prev => ({ ...prev, batchNumber: e.target.value }))}
+                    placeholder="Batch #"
+                  />
+                </div>
+
+                <div>
                   <Label htmlFor="quantity">Quantity *</Label>
                   <Input
                     id="quantity"
@@ -912,20 +922,14 @@ export function CreateOrderForm() {
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="batch">Batch (Optional)</Label>
-                  <Input
-                    id="batch"
-                    value={newLineItem.batchNumber || ''}
-                    onChange={(e) => setNewLineItem(prev => ({ ...prev, batchNumber: e.target.value }))}
-                    placeholder="Batch #"
-                  />
-                </div>
-
                 <div className="flex items-end">
-                  <Button onClick={addLineItem} className="w-full">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add
+                  <Button
+                    onClick={addLineItem}
+                    variant="ghost"
+                    size="sm"
+                    className="h-10 w-10 rounded-full p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                  >
+                    <Plus className="w-5 h-5" />
                   </Button>
                 </div>
               </div>
@@ -942,14 +946,19 @@ export function CreateOrderForm() {
                           <div>
                             <div className="font-medium">{item.materialCode}</div>
                             <div className="text-sm text-muted-foreground">{item.materialName}</div>
-                            {formData.orderType === 'outbound' && item.availableAmount && (
-                              <div className="text-xs text-blue-600">
-                                Available: {item.availableAmount.toLocaleString()} {item.uom}
-                              </div>
-                            )}
+                            {formData.orderType === 'outbound' && item.availableAmount && (() => {
+                              const inventoryItem = inventory.find(inv => inv.material_code === item.materialCode);
+                              const currentRemainingQty = inventoryItem ? getRemainingQuantity(item.materialCode, inventoryItem.total_available_amount) : 0;
+                              
+                              return (
+                                <div className="text-xs text-blue-600">
+                                  Available: {currentRemainingQty.toLocaleString()} {item.uom}
+                                </div>
+                              );
+                            })()}
                           </div>
                           <Badge variant="outline">
-                            {item.quantity} {item.uom}
+                            {item.quantity.toLocaleString()} {item.uom}
                           </Badge>
                           {item.batchNumber && (
                             <Badge variant="secondary">
@@ -1080,14 +1089,19 @@ export function CreateOrderForm() {
                       <div>
                         <div className="font-medium">{item.materialCode}</div>
                         <div className="text-sm text-muted-foreground">{item.materialName}</div>
-                        {formData.orderType === 'outbound' && item.availableAmount && (
-                          <div className="text-xs text-blue-600">
-                            Available: {item.availableAmount.toLocaleString()} {item.uom}
-                          </div>
-                        )}
+                        {formData.orderType === 'outbound' && item.availableAmount && (() => {
+                          const inventoryItem = inventory.find(inv => inv.material_code === item.materialCode);
+                          const currentRemainingQty = inventoryItem ? getRemainingQuantity(item.materialCode, inventoryItem.total_available_amount) : 0;
+                          
+                          return (
+                            <div className="text-xs text-blue-600">
+                              Available: {currentRemainingQty.toLocaleString()} {item.uom}
+                            </div>
+                          );
+                        })()}
                       </div>
                       <Badge variant="outline">
-                        {item.quantity} {item.uom}
+                        {item.quantity.toLocaleString()} {item.uom}
                       </Badge>
                       {item.batchNumber && (
                         <Badge variant="secondary">
