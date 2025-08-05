@@ -373,6 +373,94 @@ const isAddressValid = (address: AddressData) => {
 - Updated form validation logic for separate address fields
 - Enhanced review step display for structured address presentation
 
+## Order Management System (Added August 2025)
+
+**Create Orders Feature**: Complete order creation workflow with material selection and inventory management.
+
+### Order Types
+- **Outbound Orders**: Sales orders with real-time inventory validation
+- **Inbound Orders**: Purchase orders with manual material entry
+
+### Materials Selection Architecture
+
+#### Outbound Inventory System
+**Key Files**:
+- `src/app/actions.ts`: `getOutboundInventory()` - Grouped inventory by material with owner filtering
+- `src/hooks/use-outbound-inventory.ts`: Hook for inventory data with dynamic updates
+- `src/components/dashboard/create-order-form.tsx`: Material selection UI with validation
+
+**Data Structure**:
+```typescript
+interface OutboundInventoryItem {
+  material_code: string;
+  material_description: string;
+  total_available_amount: number;
+  uom: string;
+}
+```
+
+**Dynamic Inventory Validation**:
+- Real-time quantity tracking across multiple line items
+- Prevents over-allocation of inventory
+- Shows used quantities in orange text
+- Updates available amounts as materials are added
+
+#### Lot-Specific Selection System
+**Key Files**:
+- `src/app/actions.ts`: `getLotsForMaterial()` - Lots filtered by material and owner
+- `src/hooks/use-material-lots.ts`: Hook for lot-specific data
+- Lot dropdown activated when material is selected
+
+**Lot Data Structure**:
+```typescript
+interface MaterialLot {
+  lot_code: string;
+  total_available_amount: number;
+  uom: string;
+}
+```
+
+**Lot Validation Logic**:
+- Validates quantity against specific lot availability
+- Tracks usage per lot across multiple line items
+- Shows remaining quantity per lot in real-time
+
+### Form Field Architecture
+
+**Field Order**: Material → Lot (Optional) → Quantity → UOM
+- Material: Dropdown with description truncated to 18 characters
+- Lot: Conditional dropdown (outbound) or manual input (inbound)
+- Quantity: Numeric input with validation
+- UOM: Auto-populated from material/lot selection
+
+### UI/UX Patterns
+
+**Number Formatting**: All quantities use `.toLocaleString()` for thousands separators
+**Toast Notifications**: Professional error/success messages using `useToast()`
+**Single-Line Displays**: Selected items show in compact format:
+```
+MAT-001 • Steel pipe for c... • 1,500 EACH
+LOT001 • 500 EACH
+```
+
+**Dynamic Updates**: All displays update in real-time as items are added/removed
+
+### Validation Rules
+
+1. **Material Level**: Validates against total available inventory
+2. **Lot Level**: When lot selected, validates against lot-specific availability
+3. **Dynamic Tracking**: Considers quantities already used in current order
+4. **Error Messages**: Specific messages for material vs lot validation
+
+### Order Creation Workflow
+
+**3-Step Process**:
+1. **Order Info**: Type, project, addresses, shipping details
+2. **Materials**: Add materials with real-time inventory validation
+3. **Review**: Final confirmation with all details
+
+**Step Validation**: Progressive validation prevents invalid state transitions
+
 ## Environment Variables
 
 ```bash

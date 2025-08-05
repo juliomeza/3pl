@@ -593,7 +593,356 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key  # NEW: Required for ad
 - **Professional Plan**: $30/month (updated from $29/month)
 - Located in: `src/components/landing/pricing.tsx`
 
+## Order Management System (Added August 2025)
+
+**Create Orders Feature**: Complete order creation system with intelligent material selection and real-time inventory validation.
+
+### Order Creation Architecture
+
+#### Two-Mode Operation
+- **Outbound Orders**: Sales orders with real-time PostgreSQL inventory validation
+- **Inbound Orders**: Purchase orders with manual material entry (no inventory constraints)
+
+#### Smart Material Selection System
+**Key Files**:
+- `src/app/actions.ts`: `getOutboundInventory()`, `getLotsForMaterial()` server actions
+- `src/hooks/use-outbound-inventory.ts`: Material inventory data with dynamic updates
+- `src/hooks/use-material-lots.ts`: Lot-specific inventory data
+- `src/components/dashboard/create-order-form.tsx`: Complete order creation form
+
+**Material Selection Flow**:
+1. **Material Dropdown**: Shows available materials with total quantities
+2. **Lot Selection**: Conditional dropdown (outbound) filtered by selected material
+3. **Quantity Validation**: Real-time checking against available inventory
+4. **Dynamic Updates**: All displays update as items are added/removed
+
+#### Data Structures
+```typescript
+// Outbound inventory (materials aggregated across lots)
+interface OutboundInventoryItem {
+  material_code: string;
+  material_description: string;
+  total_available_amount: number;
+  uom: string;
+}
+
+// Lot-specific inventory (when lot is selected)
+interface MaterialLot {
+  lot_code: string;
+  total_available_amount: number;
+  uom: string;
+}
+
+// Order line items
+interface LineItem {
+  materialCode: string;
+  materialName: string;
+  quantity: number;
+  uom: string;
+  batchNumber?: string;        // Lot code when selected
+  availableAmount?: number;    // For tracking purposes
+}
+```
+
+### Real-Time Validation System
+
+#### Multi-Level Validation Logic
+1. **Material Level**: Validates against total material inventory when no lot selected
+2. **Lot Level**: When lot selected, validates against specific lot availability  
+3. **Dynamic Tracking**: Considers quantities already used in current order
+4. **Granular Feedback**: Specific error messages for material vs lot validation
+
+#### Inventory Tracking Patterns
+```typescript
+// Calculate remaining quantity considering current order usage
+const getRemainingQuantity = (materialCode: string, totalAvailable: number): number => {
+  const usedQuantity = formData.lineItems
+    .filter(item => item.materialCode === materialCode)
+    .reduce((sum, item) => sum + item.quantity, 0);
+  return Math.max(0, totalAvailable - usedQuantity);
+};
+
+// Lot-specific validation
+const usedFromLot = formData.lineItems
+  .filter(item => item.materialCode === materialCode && item.batchNumber === lotCode)
+  .reduce((sum, item) => sum + item.quantity, 0);
+```
+
+### UI/UX Implementation Patterns
+
+#### Professional Form Layout
+**Field Order**: Material → Lot (Optional) → Quantity → UOM + Add Button
+- **Grid System**: `grid-cols-6` with responsive column spans
+- **Compact Add Button**: Circular icon button (`rounded-full`) instead of full-width button
+- **Consistent Spacing**: `gap-3` for optimal field spacing
+
+#### Single-Line Display Optimization
+**Selected Item Display**: Compact format to fit field widths
+```typescript
+// Material selection display (18-character truncation)
+MAT-001 • Steel pipe for c... • 1,500 EACH
+
+// Lot selection display (no "Available:" prefix)
+LOT001 • 500 EACH
+```
+
+#### Number Formatting Standards
+- **All Quantities**: Use `.toLocaleString()` for thousands separators
+- **Consistent Application**: Dropdowns, selected displays, badges, validation messages
+- **Professional Appearance**: `10,000 EACH` instead of `10000 EACH`
+
+#### Dynamic Visual Feedback
+- **Used Quantities**: Orange text `(500 used)` in dropdown options
+- **Real-Time Updates**: Available amounts update as materials are added
+- **Toast Notifications**: Professional success/error messages using `useToast()`
+
+### Form Workflow Architecture
+
+#### 3-Step Progressive Validation
+1. **Order Information**: Type, project, addresses, shipping details with Google Places integration
+2. **Material Selection**: Real-time inventory management with lot-specific options
+3. **Review & Submit**: Final confirmation with all details formatted
+
+#### Step Validation Logic
+```typescript
+const isStep1Valid = () => {
+  const isRecipientAddressValid = formData.recipientAddress.line1 && 
+                                 formData.recipientAddress.city && 
+                                 formData.recipientAddress.state && 
+                                 formData.recipientAddress.zipCode;
+  // ... additional validations
+};
+
+const isStep2Valid = () => {
+  return formData.lineItems.length > 0;
+};
+
+const canGoToStep = (step: number) => {
+  if (step === 1) return true;
+  if (step === 2) return isStep1Valid();
+  if (step === 3) return isStep1Valid() && isStep2Valid();
+  return false;
+};
+```
+
+#### Header Integration Pattern
+```typescript
+// Step indicator in center header position
+const { setCenterContent } = useHeaderControls();
+
+useEffect(() => {
+  setCenterContent(
+    <OrderStepIndicator 
+      currentStep={currentStep}
+      canGoToStep={canGoToStep}
+      onStepClick={handleStepClick}
+    />
+  );
+  return () => setCenterContent(null); // Cleanup
+}, [currentStep, formData]);
+```
+
+### Owner ID Security Integration
+**All inventory queries filtered by `owner_id`** ensuring client data isolation:
+```typescript
+// Server action with mandatory owner filtering
+export async function getOutboundInventory(ownerId: number, projectId?: string) {
+  const query = `
+    SELECT ... FROM wms_licenseplatecontents lpc
+    ... WHERE o.id = $1 AND lpc.amount > 0
+  `;
+  return await db.query(query, [ownerId]);
+}
+
+// Hook usage with client authentication
+const { ownerId } = useClientInfo();
+const { inventory } = useOutboundInventory(ownerId, projectId);
+```
+
+### Database Query Optimization
+- **Grouped Aggregation**: `GROUP BY` with `SUM()` for material-level totals
+- **Owner Filtering**: Automatic `WHERE owner_id = $1` for all client queries
+- **Project Scoping**: Optional project filtering for multi-project clients
+- **Status Filtering**: Only active inventory (`statusid = 1`, `archived = false`)
+
 ### Current System Status
-- **Production Ready**: Authentication, AI assistant, dashboard views, dark mode
-- **In Development**: Create order form (materials integration pending), additional reports
+- **Production Ready**: Authentication, AI assistant, dashboard views, dark mode, order creation with inventory
+- **Recently Added**: Real-time inventory validation, lot-specific selection, dynamic quantity tracking
+- **Testing**: 33 AI test cases with dynamic date handling, real API integration
+
+## Order Management System (Added August 2025)
+
+**Create Orders Feature**: Complete order creation system with intelligent material selection and real-time inventory validation.
+
+### Order Creation Architecture
+
+#### Two-Mode Operation
+- **Outbound Orders**: Sales orders with real-time PostgreSQL inventory validation
+- **Inbound Orders**: Purchase orders with manual material entry (no inventory constraints)
+
+#### Smart Material Selection System
+**Key Files**:
+- `src/app/actions.ts`: `getOutboundInventory()`, `getLotsForMaterial()` server actions
+- `src/hooks/use-outbound-inventory.ts`: Material inventory data with dynamic updates
+- `src/hooks/use-material-lots.ts`: Lot-specific inventory data
+- `src/components/dashboard/create-order-form.tsx`: Complete order creation form
+
+**Material Selection Flow**:
+1. **Material Dropdown**: Shows available materials with total quantities
+2. **Lot Selection**: Conditional dropdown (outbound) filtered by selected material
+3. **Quantity Validation**: Real-time checking against available inventory
+4. **Dynamic Updates**: All displays update as items are added/removed
+
+#### Data Structures
+```typescript
+// Outbound inventory (materials aggregated across lots)
+interface OutboundInventoryItem {
+  material_code: string;
+  material_description: string;
+  total_available_amount: number;
+  uom: string;
+}
+
+// Lot-specific inventory (when lot is selected)
+interface MaterialLot {
+  lot_code: string;
+  total_available_amount: number;
+  uom: string;
+}
+
+// Order line items
+interface LineItem {
+  materialCode: string;
+  materialName: string;
+  quantity: number;
+  uom: string;
+  batchNumber?: string;        // Lot code when selected
+  availableAmount?: number;    // For tracking purposes
+}
+```
+
+### Real-Time Validation System
+
+#### Multi-Level Validation Logic
+1. **Material Level**: Validates against total material inventory when no lot selected
+2. **Lot Level**: When lot selected, validates against specific lot availability  
+3. **Dynamic Tracking**: Considers quantities already used in current order
+4. **Granular Feedback**: Specific error messages for material vs lot validation
+
+#### Inventory Tracking Patterns
+```typescript
+// Calculate remaining quantity considering current order usage
+const getRemainingQuantity = (materialCode: string, totalAvailable: number): number => {
+  const usedQuantity = formData.lineItems
+    .filter(item => item.materialCode === materialCode)
+    .reduce((sum, item) => sum + item.quantity, 0);
+  return Math.max(0, totalAvailable - usedQuantity);
+};
+
+// Lot-specific validation
+const usedFromLot = formData.lineItems
+  .filter(item => item.materialCode === materialCode && item.batchNumber === lotCode)
+  .reduce((sum, item) => sum + item.quantity, 0);
+```
+
+### UI/UX Implementation Patterns
+
+#### Professional Form Layout
+**Field Order**: Material → Lot (Optional) → Quantity → UOM + Add Button
+- **Grid System**: `grid-cols-6` with responsive column spans
+- **Compact Add Button**: Circular icon button (`rounded-full`) instead of full-width button
+- **Consistent Spacing**: `gap-3` for optimal field spacing
+
+#### Single-Line Display Optimization
+**Selected Item Display**: Compact format to fit field widths
+```typescript
+// Material selection display (18-character truncation)
+MAT-001 • Steel pipe for c... • 1,500 EACH
+
+// Lot selection display (no "Available:" prefix)
+LOT001 • 500 EACH
+```
+
+#### Number Formatting Standards
+- **All Quantities**: Use `.toLocaleString()` for thousands separators
+- **Consistent Application**: Dropdowns, selected displays, badges, validation messages
+- **Professional Appearance**: `10,000 EACH` instead of `10000 EACH`
+
+#### Dynamic Visual Feedback
+- **Used Quantities**: Orange text `(500 used)` in dropdown options
+- **Real-Time Updates**: Available amounts update as materials are added
+- **Toast Notifications**: Professional success/error messages using `useToast()`
+
+### Form Workflow Architecture
+
+#### 3-Step Progressive Validation
+1. **Order Information**: Type, project, addresses, shipping details with Google Places integration
+2. **Material Selection**: Real-time inventory management with lot-specific options
+3. **Review & Submit**: Final confirmation with all details formatted
+
+#### Step Validation Logic
+```typescript
+const isStep1Valid = () => {
+  const isRecipientAddressValid = formData.recipientAddress.line1 && 
+                                 formData.recipientAddress.city && 
+                                 formData.recipientAddress.state && 
+                                 formData.recipientAddress.zipCode;
+  // ... additional validations
+};
+
+const isStep2Valid = () => {
+  return formData.lineItems.length > 0;
+};
+
+const canGoToStep = (step: number) => {
+  if (step === 1) return true;
+  if (step === 2) return isStep1Valid();
+  if (step === 3) return isStep1Valid() && isStep2Valid();
+  return false;
+};
+```
+
+#### Header Integration Pattern
+```typescript
+// Step indicator in center header position
+const { setCenterContent } = useHeaderControls();
+
+useEffect(() => {
+  setCenterContent(
+    <OrderStepIndicator 
+      currentStep={currentStep}
+      canGoToStep={canGoToStep}
+      onStepClick={handleStepClick}
+    />
+  );
+  return () => setCenterContent(null); // Cleanup
+}, [currentStep, formData]);
+```
+
+### Owner ID Security Integration
+**All inventory queries filtered by `owner_id`** ensuring client data isolation:
+```typescript
+// Server action with mandatory owner filtering
+export async function getOutboundInventory(ownerId: number, projectId?: string) {
+  const query = `
+    SELECT ... FROM wms_licenseplatecontents lpc
+    ... WHERE o.id = $1 AND lpc.amount > 0
+  `;
+  return await db.query(query, [ownerId]);
+}
+
+// Hook usage with client authentication
+const { ownerId } = useClientInfo();
+const { inventory } = useOutboundInventory(ownerId, projectId);
+```
+
+### Database Query Optimization
+- **Grouped Aggregation**: `GROUP BY` with `SUM()` for material-level totals
+- **Owner Filtering**: Automatic `WHERE owner_id = $1` for all client queries
+- **Project Scoping**: Optional project filtering for multi-project clients
+- **Status Filtering**: Only active inventory (`statusid = 1`, `archived = false`)
+
+### Current System Status
+- **Production Ready**: Authentication, AI assistant, dashboard views, dark mode, order creation with inventory
+- **Recently Added**: Real-time inventory validation, lot-specific selection, dynamic quantity tracking
 - **Testing**: 33 AI test cases with dynamic date handling, real API integration
