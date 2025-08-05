@@ -18,6 +18,7 @@ import { useCarriersForOrders } from '@/hooks/use-carriers-for-orders';
 import { useCarrierServiceTypesForOrders } from '@/hooks/use-carrier-service-types-for-orders';
 import { useClientInfo } from '@/hooks/use-client-info';
 import { useOutboundInventory } from '@/hooks/use-outbound-inventory';
+import { useMaterialLots } from '@/hooks/use-material-lots';
 import { useToast } from '@/hooks/use-toast';
 
 interface LineItem {
@@ -325,6 +326,13 @@ export function CreateOrderForm() {
     serialNumber: ''
   });
 
+  // Load lots for selected material (for outbound orders)
+  const { lots, loading: lotsLoading, error: lotsError } = useMaterialLots(
+    ownerId,
+    formData.orderType === 'outbound' && newLineItem.materialCode ? newLineItem.materialCode : undefined,
+    formData.orderType === 'outbound' ? formData.projectId : undefined
+  );
+
   // Validation functions for each step
   const isStep1Valid = () => {
     const isRecipientAddressValid = formData.recipientAddress.line1 && 
@@ -412,18 +420,42 @@ export function CreateOrderForm() {
       const inventoryItem = inventory.find(item => item.material_code === newLineItem.materialCode);
       if (!inventoryItem) return;
 
-      // Check if requested quantity is available (considering already used in this order)
+      // Check if requested quantity is available
       const requestedQty = newLineItem.quantity || 1;
-      const remainingQty = getRemainingQuantity(inventoryItem.material_code, inventoryItem.total_available_amount);
       
-      if (requestedQty > remainingQty) {
-        const usedQty = inventoryItem.total_available_amount - remainingQty;
-        toast({
-          variant: "destructive",
-          title: "Insufficient Inventory",
-          description: `Only ${remainingQty.toLocaleString()} ${inventoryItem.uom} remaining for ${inventoryItem.material_code}${usedQty > 0 ? ` (${usedQty.toLocaleString()} already used in this order)` : ''}`,
-        });
-        return;
+      // If lot is selected, validate against lot-specific quantity
+      if (newLineItem.batchNumber) {
+        const selectedLot = lots.find(lot => lot.lot_code === newLineItem.batchNumber);
+        if (selectedLot) {
+          // Calculate remaining quantity for this specific lot
+          const usedFromLot = formData.lineItems
+            .filter(item => item.materialCode === inventoryItem.material_code && item.batchNumber === newLineItem.batchNumber)
+            .reduce((sum, item) => sum + item.quantity, 0);
+          
+          const remainingLotQty = Math.max(0, selectedLot.total_available_amount - usedFromLot);
+          
+          if (requestedQty > remainingLotQty) {
+            toast({
+              variant: "destructive",
+              title: "Insufficient Lot Inventory",
+              description: `Only ${remainingLotQty.toLocaleString()} ${inventoryItem.uom} remaining in lot ${newLineItem.batchNumber}${usedFromLot > 0 ? ` (${usedFromLot.toLocaleString()} already used from this lot)` : ''}`,
+            });
+            return;
+          }
+        }
+      } else {
+        // If no lot selected, validate against total material quantity
+        const remainingQty = getRemainingQuantity(inventoryItem.material_code, inventoryItem.total_available_amount);
+        
+        if (requestedQty > remainingQty) {
+          const usedQty = inventoryItem.total_available_amount - remainingQty;
+          toast({
+            variant: "destructive",
+            title: "Insufficient Inventory",
+            description: `Only ${remainingQty.toLocaleString()} ${inventoryItem.uom} remaining for ${inventoryItem.material_code}${usedQty > 0 ? ` (${usedQty.toLocaleString()} already used in this order)` : ''}`,
+          });
+          return;
+        }
       }
 
       const lineItem: LineItem = {
@@ -890,12 +922,81 @@ export function CreateOrderForm() {
 
                 <div>
                   <Label htmlFor="lot">Lot (Optional)</Label>
-                  <Input
-                    id="lot"
-                    value={newLineItem.batchNumber || ''}
-                    onChange={(e) => setNewLineItem(prev => ({ ...prev, batchNumber: e.target.value }))}
-                    placeholder="Lot #"
-                  />
+                  {formData.orderType === 'outbound' && newLineItem.materialCode ? (
+                    <Select 
+                      value={newLineItem.batchNumber || ''} 
+                      onValueChange={(value) => setNewLineItem(prev => ({ ...prev, batchNumber: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={
+                          lotsLoading ? "Loading lots..." : "Select lot"
+                        }>
+                          {newLineItem.batchNumber && (() => {
+                            const selectedLot = lots.find(lot => lot.lot_code === newLineItem.batchNumber);
+                            if (!selectedLot) return null;
+                            
+                            // Calculate remaining quantity for this specific lot
+                            const usedFromLot = formData.lineItems
+                              .filter(item => item.materialCode === newLineItem.materialCode && item.batchNumber === selectedLot.lot_code)
+                              .reduce((sum, item) => sum + item.quantity, 0);
+                            
+                            const remainingLotQty = Math.max(0, selectedLot.total_available_amount - usedFromLot);
+                            
+                            return (
+                              <div className="flex items-center gap-2 text-sm">
+                                <span className="font-medium">{selectedLot.lot_code}</span>
+                                <span className="text-muted-foreground">•</span>
+                                <span className="text-blue-600 text-xs">
+                                  {remainingLotQty.toLocaleString()} {selectedLot.uom}
+                                </span>
+                              </div>
+                            );
+                          })()}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {lotsLoading ? (
+                          <SelectItem value="loading" disabled>Loading lots...</SelectItem>
+                        ) : lotsError ? (
+                          <SelectItem value="error" disabled>Error loading lots</SelectItem>
+                        ) : lots.length === 0 ? (
+                          <SelectItem value="empty" disabled>No lots available</SelectItem>
+                        ) : (
+                          lots.map(lot => {
+                            // Calculate used quantity for this specific lot
+                            const usedFromLot = formData.lineItems
+                              .filter(item => item.materialCode === newLineItem.materialCode && item.batchNumber === lot.lot_code)
+                              .reduce((sum, item) => sum + item.quantity, 0);
+                            
+                            const remainingLotQty = Math.max(0, lot.total_available_amount - usedFromLot);
+                            
+                            return (
+                              <SelectItem key={lot.lot_code} value={lot.lot_code}>
+                                <div>
+                                  <div className="font-medium">{lot.lot_code}</div>
+                                  <div className="text-xs text-blue-600">
+                                    Available: {remainingLotQty.toLocaleString()} {lot.uom}
+                                    {usedFromLot > 0 && (
+                                      <span className="text-orange-600 ml-1">
+                                        ({usedFromLot.toLocaleString()} used)
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </SelectItem>
+                            );
+                          })
+                        )}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      id="lot"
+                      value={newLineItem.batchNumber || ''}
+                      onChange={(e) => setNewLineItem(prev => ({ ...prev, batchNumber: e.target.value }))}
+                      placeholder="Lot #"
+                    />
+                  )}
                 </div>
 
                 <div>

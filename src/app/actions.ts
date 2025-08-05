@@ -360,6 +360,58 @@ export async function getCarrierServiceTypesForOrders(carrierId: string): Promis
   }
 }
 
+// Get lots for a specific material (filtered by owner_id and project)
+export async function getLotsForMaterial(ownerId: number, materialCode: string, projectId?: string): Promise<{
+  lot_code: string;
+  total_available_amount: number;
+  uom: string;
+}[]> {
+  try {
+    let query = `
+      SELECT
+        l.lookupcode AS lot_code,
+        imu.name AS uom,
+        SUM(lpc.amount) AS total_available_amount
+      FROM
+        wms_licenseplatecontents lpc
+        INNER JOIN wms_licenseplates lp ON lp.id = lpc.licenseplateid
+        INNER JOIN wms_lots l ON l.id = lpc.lotid
+        INNER JOIN wms_materials m ON m.id = l.materialid
+        INNER JOIN wms_projects p ON p.id = m.projectid
+        INNER JOIN wms_owners o ON o.id = p.ownerid
+        INNER JOIN wms_inventorymeasurementunits imu ON imu.id = lpc.packagedid
+      WHERE
+        lp.statusid = 1
+        AND lp.archived = false
+        AND l.statusid = 1
+        AND lpc.amount > 0
+        AND o.id = $1
+        AND m.lookupcode = $2`;
+    
+    const params = [ownerId, materialCode];
+    
+    if (projectId) {
+      query += ` AND p.id = $3`;
+      params.push(parseInt(projectId));
+    }
+    
+    query += ` 
+      GROUP BY l.lookupcode, imu.name
+      ORDER BY l.lookupcode`;
+
+    const result = await db.query(query, params);
+
+    return result.rows.map(row => ({
+      lot_code: row.lot_code,
+      total_available_amount: parseFloat(row.total_available_amount || '0'),
+      uom: row.uom
+    }));
+  } catch (error) {
+    console.error('Error fetching lots for material:', error);
+    throw new Error('Failed to fetch lots for material');
+  }
+}
+
 // Get available inventory for outbound orders (filtered by owner_id and project)
 export async function getOutboundInventory(ownerId: number, projectId?: string): Promise<{
   owner_id: number;
