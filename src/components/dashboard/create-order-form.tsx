@@ -17,6 +17,7 @@ import { useProjectsForOrders } from '@/hooks/use-projects-for-orders';
 import { useCarriersForOrders } from '@/hooks/use-carriers-for-orders';
 import { useCarrierServiceTypesForOrders } from '@/hooks/use-carrier-service-types-for-orders';
 import { useClientInfo } from '@/hooks/use-client-info';
+import { useOutboundInventory } from '@/hooks/use-outbound-inventory';
 
 interface LineItem {
   id: string;
@@ -26,6 +27,9 @@ interface LineItem {
   uom: string;
   batchNumber?: string;
   serialNumber?: string;
+  availableAmount?: number;
+  licensePlate?: string;
+  lot?: string;
 }
 
 interface AddressData {
@@ -53,12 +57,6 @@ interface OrderFormData {
   status: 'draft' | 'submitted';
 }
 
-const mockMaterials = [
-  { code: 'MAT-001', name: 'Steel Pipe 6"', uom: 'EA' },
-  { code: 'MAT-002', name: 'Copper Wire 12AWG', uom: 'FT' },
-  { code: 'MAT-003', name: 'Concrete Mix 80lb', uom: 'BAG' },
-  { code: 'MAT-004', name: 'PVC Fitting 2"', uom: 'EA' }
-];
 
 const AddressInput = ({ 
   value, 
@@ -309,6 +307,12 @@ export function CreateOrderForm() {
   // Load carrier service types from database (filtered by selected carrier)
   const { serviceTypes, loading: serviceTypesLoading, error: serviceTypesError } = useCarrierServiceTypesForOrders(formData.carrierId);
 
+  // Load available inventory for outbound orders (filtered by project)
+  const { inventory, loading: inventoryLoading, error: inventoryError } = useOutboundInventory(
+    ownerId, 
+    formData.orderType === 'outbound' ? formData.projectId : undefined
+  );
+
   const [newLineItem, setNewLineItem] = useState<Partial<LineItem>>({
     materialCode: '',
     quantity: 1,
@@ -399,23 +403,50 @@ export function CreateOrderForm() {
   const addLineItem = () => {
     if (!newLineItem.materialCode || !newLineItem.quantity) return;
     
-    const material = mockMaterials.find(m => m.code === newLineItem.materialCode);
-    if (!material) return;
+    // For outbound orders, find material in inventory
+    if (formData.orderType === 'outbound') {
+      const inventoryItem = inventory.find(item => item.material_code === newLineItem.materialCode);
+      if (!inventoryItem) return;
 
-    const lineItem: LineItem = {
-      id: Date.now().toString(),
-      materialCode: newLineItem.materialCode,
-      materialName: material.name,
-      quantity: newLineItem.quantity || 1,
-      uom: newLineItem.uom || material.uom,
-      batchNumber: newLineItem.batchNumber || undefined,
-      serialNumber: newLineItem.serialNumber || undefined
-    };
+      // Check if requested quantity is available
+      const requestedQty = newLineItem.quantity || 1;
+      if (requestedQty > inventoryItem.total_available_amount) {
+        alert(`Only ${inventoryItem.total_available_amount} ${inventoryItem.uom} available for ${inventoryItem.material_name}`);
+        return;
+      }
 
-    setFormData(prev => ({
-      ...prev,
-      lineItems: [...prev.lineItems, lineItem]
-    }));
+      const lineItem: LineItem = {
+        id: Date.now().toString(),
+        materialCode: newLineItem.materialCode,
+        materialName: inventoryItem.material_name,
+        quantity: requestedQty,
+        uom: newLineItem.uom || inventoryItem.uom,
+        batchNumber: newLineItem.batchNumber || undefined,
+        serialNumber: newLineItem.serialNumber || undefined,
+        availableAmount: inventoryItem.total_available_amount
+      };
+
+      setFormData(prev => ({
+        ...prev,
+        lineItems: [...prev.lineItems, lineItem]
+      }));
+    } else {
+      // For inbound orders, we'll handle this later (no inventory check needed)
+      const lineItem: LineItem = {
+        id: Date.now().toString(),
+        materialCode: newLineItem.materialCode,
+        materialName: newLineItem.materialCode, // For now, use code as name for inbound
+        quantity: newLineItem.quantity || 1,
+        uom: newLineItem.uom || 'EA',
+        batchNumber: newLineItem.batchNumber || undefined,
+        serialNumber: newLineItem.serialNumber || undefined
+      };
+
+      setFormData(prev => ({
+        ...prev,
+        lineItems: [...prev.lineItems, lineItem]
+      }));
+    }
 
     // Reset new line item
     setNewLineItem({
@@ -737,27 +768,80 @@ export function CreateOrderForm() {
                 <div className="md:col-span-2">
                   <Label htmlFor="materialCode">Material *</Label>
                   <Select value={newLineItem.materialCode} onValueChange={(value) => {
-                    const material = mockMaterials.find(m => m.code === value);
-                    setNewLineItem(prev => ({ 
-                      ...prev, 
-                      materialCode: value,
-                      uom: material?.uom || prev.uom
-                    }));
+                    if (formData.orderType === 'outbound') {
+                      const inventoryItem = inventory.find(item => item.material_code === value);
+                      setNewLineItem(prev => ({ 
+                        ...prev, 
+                        materialCode: value,
+                        uom: inventoryItem?.uom || prev.uom
+                      }));
+                    } else {
+                      // For inbound, just set the code
+                      setNewLineItem(prev => ({ 
+                        ...prev, 
+                        materialCode: value
+                      }));
+                    }
                   }}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select material" />
+                      <SelectValue placeholder={
+                        formData.orderType === 'outbound' 
+                          ? (inventoryLoading ? "Loading inventory..." : "Select material")
+                          : "Enter material code"
+                      }>
+                        {newLineItem.materialCode && formData.orderType === 'outbound' && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-medium">{newLineItem.materialCode}</span>
+                            <span className="text-muted-foreground">•</span>
+                            <span className="text-muted-foreground truncate">
+                              {inventory.find(item => item.material_code === newLineItem.materialCode)?.material_description}
+                            </span>
+                            <span className="text-muted-foreground">•</span>
+                            <span className="text-blue-600 text-xs">
+                              {inventory.find(item => item.material_code === newLineItem.materialCode)?.total_available_amount} {inventory.find(item => item.material_code === newLineItem.materialCode)?.uom}
+                            </span>
+                          </div>
+                        )}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      {mockMaterials.map(material => (
-                        <SelectItem key={material.code} value={material.code}>
-                          <div>
-                            <div className="font-medium">{material.code}</div>
-                            <div className="text-sm text-muted-foreground">{material.name}</div>
-                          </div>
-                        </SelectItem>
-                      ))}
+                      {formData.orderType === 'outbound' ? (
+                        inventoryLoading ? (
+                          <SelectItem value="loading" disabled>Loading inventory...</SelectItem>
+                        ) : inventoryError ? (
+                          <SelectItem value="error" disabled>Error loading inventory</SelectItem>
+                        ) : inventory.length === 0 ? (
+                          <SelectItem value="empty" disabled>No inventory available</SelectItem>
+                        ) : (
+                          inventory.map(item => (
+                            <SelectItem key={item.material_code} value={item.material_code}>
+                              <div>
+                                <div className="font-medium">{item.material_code}</div>
+                                <div className="text-sm text-muted-foreground">{item.material_description}</div>
+                                <div className="text-xs text-blue-600">
+                                  Available: {item.total_available_amount} {item.uom}
+                                </div>
+                              </div>
+                            </SelectItem>
+                          ))
+                        )
+                      ) : (
+                        <SelectItem value="manual" disabled>Enter material code manually below</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
+                  
+                  {formData.orderType === 'inbound' && (
+                    <Input
+                      className="mt-2"
+                      placeholder="Enter material code"
+                      value={newLineItem.materialCode || ''}
+                      onChange={(e) => setNewLineItem(prev => ({ 
+                        ...prev, 
+                        materialCode: e.target.value 
+                      }))}
+                    />
+                  )}
                 </div>
 
                 <div>
@@ -814,6 +898,11 @@ export function CreateOrderForm() {
                           <div>
                             <div className="font-medium">{item.materialCode}</div>
                             <div className="text-sm text-muted-foreground">{item.materialName}</div>
+                            {formData.orderType === 'outbound' && item.availableAmount && (
+                              <div className="text-xs text-blue-600">
+                                Available: {item.availableAmount} {item.uom}
+                              </div>
+                            )}
                           </div>
                           <Badge variant="outline">
                             {item.quantity} {item.uom}
@@ -947,6 +1036,11 @@ export function CreateOrderForm() {
                       <div>
                         <div className="font-medium">{item.materialCode}</div>
                         <div className="text-sm text-muted-foreground">{item.materialName}</div>
+                        {formData.orderType === 'outbound' && item.availableAmount && (
+                          <div className="text-xs text-blue-600">
+                            Available: {item.availableAmount} {item.uom}
+                          </div>
+                        )}
                       </div>
                       <Badge variant="outline">
                         {item.quantity} {item.uom}

@@ -359,3 +359,66 @@ export async function getCarrierServiceTypesForOrders(carrierId: string): Promis
     throw new Error('Failed to fetch carrier service types');
   }
 }
+
+// Get available inventory for outbound orders (filtered by owner_id and project)
+export async function getOutboundInventory(ownerId: number, projectId?: string): Promise<{
+  owner_id: number;
+  project_id: number;
+  material_name: string;
+  material_description: string;
+  material_code: string;
+  total_available_amount: number;
+  uom: string;
+}[]> {
+  try {
+    let query = `
+      SELECT
+        o.id AS owner_id,
+        p.id AS project_id,
+        m.name AS material_name,
+        m.description AS material_description,
+        m.lookupcode AS material_code,
+        imu.name AS uom,
+        SUM(lpc.amount) AS total_available_amount
+      FROM
+        wms_licenseplatecontents lpc
+        INNER JOIN wms_licenseplates lp ON lp.id = lpc.licenseplateid
+        INNER JOIN wms_lots l ON l.id = lpc.lotid
+        INNER JOIN wms_materials m ON m.id = l.materialid
+        INNER JOIN wms_projects p ON p.id = m.projectid
+        INNER JOIN wms_owners o ON o.id = p.ownerid
+        INNER JOIN wms_inventorymeasurementunits imu ON imu.id = lpc.packagedid
+      WHERE
+        lp.statusid = 1
+        AND lp.archived = false
+        AND l.statusid = 1
+        AND lpc.amount > 0
+        AND o.id = $1`;
+    
+    const params = [ownerId];
+    
+    if (projectId) {
+      query += ` AND p.id = $2`;
+      params.push(parseInt(projectId));
+    }
+    
+    query += ` 
+      GROUP BY o.id, p.id, m.name, m.description, m.lookupcode, imu.name
+      ORDER BY m.name`;
+
+    const result = await db.query(query, params);
+
+    return result.rows.map(row => ({
+      owner_id: row.owner_id,
+      project_id: row.project_id,
+      material_name: row.material_name,
+      material_description: row.material_description,
+      material_code: row.material_code,
+      total_available_amount: parseFloat(row.total_available_amount || '0'),
+      uom: row.uom
+    }));
+  } catch (error) {
+    console.error('Error fetching outbound inventory:', error);
+    throw new Error('Failed to fetch outbound inventory');
+  }
+}
