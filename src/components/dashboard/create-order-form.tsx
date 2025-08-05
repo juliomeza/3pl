@@ -411,7 +411,7 @@ export function CreateOrderForm() {
       // Check if requested quantity is available
       const requestedQty = newLineItem.quantity || 1;
       if (requestedQty > inventoryItem.total_available_amount) {
-        alert(`Only ${inventoryItem.total_available_amount} ${inventoryItem.uom} available for ${inventoryItem.material_name}`);
+        alert(`Only ${inventoryItem.total_available_amount.toLocaleString()} ${inventoryItem.uom} available for ${inventoryItem.material_name}`);
         return;
       }
 
@@ -789,19 +789,26 @@ export function CreateOrderForm() {
                           ? (inventoryLoading ? "Loading inventory..." : "Select material")
                           : "Enter material code"
                       }>
-                        {newLineItem.materialCode && formData.orderType === 'outbound' && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <span className="font-medium">{newLineItem.materialCode}</span>
-                            <span className="text-muted-foreground">•</span>
-                            <span className="text-muted-foreground truncate">
-                              {inventory.find(item => item.material_code === newLineItem.materialCode)?.material_description}
-                            </span>
-                            <span className="text-muted-foreground">•</span>
-                            <span className="text-blue-600 text-xs">
-                              {inventory.find(item => item.material_code === newLineItem.materialCode)?.total_available_amount} {inventory.find(item => item.material_code === newLineItem.materialCode)?.uom}
-                            </span>
-                          </div>
-                        )}
+                        {newLineItem.materialCode && formData.orderType === 'outbound' && (() => {
+                          const selectedItem = inventory.find(item => item.material_code === newLineItem.materialCode);
+                          const truncatedDescription = selectedItem?.material_description && selectedItem.material_description.length > 18 
+                            ? selectedItem.material_description.substring(0, 18) + '...'
+                            : selectedItem?.material_description;
+                          
+                          return (
+                            <div className="flex items-center gap-2 text-sm">
+                              <span className="font-medium">{newLineItem.materialCode}</span>
+                              <span className="text-muted-foreground">•</span>
+                              <span className="text-muted-foreground">
+                                {truncatedDescription}
+                              </span>
+                              <span className="text-muted-foreground">•</span>
+                              <span className="text-blue-600 text-xs">
+                                {selectedItem?.total_available_amount?.toLocaleString()} {selectedItem?.uom}
+                              </span>
+                            </div>
+                          );
+                        })()}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
@@ -819,7 +826,7 @@ export function CreateOrderForm() {
                                 <div className="font-medium">{item.material_code}</div>
                                 <div className="text-sm text-muted-foreground">{item.material_description}</div>
                                 <div className="text-xs text-blue-600">
-                                  Available: {item.total_available_amount} {item.uom}
+                                  Available: {item.total_available_amount.toLocaleString()} {item.uom}
                                 </div>
                               </div>
                             </SelectItem>
@@ -900,7 +907,7 @@ export function CreateOrderForm() {
                             <div className="text-sm text-muted-foreground">{item.materialName}</div>
                             {formData.orderType === 'outbound' && item.availableAmount && (
                               <div className="text-xs text-blue-600">
-                                Available: {item.availableAmount} {item.uom}
+                                Available: {item.availableAmount.toLocaleString()} {item.uom}
                               </div>
                             )}
                           </div>
@@ -1038,7 +1045,7 @@ export function CreateOrderForm() {
                         <div className="text-sm text-muted-foreground">{item.materialName}</div>
                         {formData.orderType === 'outbound' && item.availableAmount && (
                           <div className="text-xs text-blue-600">
-                            Available: {item.availableAmount} {item.uom}
+                            Available: {item.availableAmount.toLocaleString()} {item.uom}
                           </div>
                         )}
                       </div>
