@@ -438,11 +438,143 @@ useEffect(() => {
 - **Code Language**: All code must be in English
 - **Testing Required**: All AI features need real integration tests
 
+## Google Places API Integration (Added August 2025)
+
+**Professional Address Input System**: Comprehensive address autocomplete with intelligent field separation for superior UX.
+
+### Core Implementation
+- **Script Loading**: Google Maps JavaScript API via `beforeInteractive` strategy in `src/app/layout.tsx`
+- **Component Location**: `AddressInput` embedded in `src/components/dashboard/create-order-form.tsx`
+- **Field Structure**: Line 1 (autocomplete), Line 2 (manual), City, State, ZIP (auto-populated)
+- **Multiple Instance Support**: Independent recipient and billing address components
+
+### Critical Technical Patterns
+
+#### useEffect Dependency Management (CRITICAL)
+```typescript
+// WRONG - Causes infinite re-creation
+useEffect(() => {
+  // autocomplete initialization
+}, [onChange, value.line2]); // ❌ Recreates constantly
+
+// CORRECT - Single initialization
+useEffect(() => {
+  // autocomplete initialization  
+}, []); // ✅ Empty dependencies
+```
+
+#### Address Data Structure
+```typescript
+interface AddressData {
+  line1: string;      // Street + number from Google Places
+  line2: string;      // Apt/Suite (user input preserved)
+  city: string;       // Auto-populated from Google Places
+  state: string;      // Auto-populated (short name: "FL")
+  zipCode: string;    // Auto-populated from Google Places
+  country: string;    // Auto-populated from Google Places
+}
+```
+
+#### Google Places Component Parsing
+```typescript
+// Maps Google Places components to structured address data
+components.forEach((component: any) => {
+  const types = component.types;
+  if (types.includes('street_number')) streetNumber = component.long_name;
+  else if (types.includes('route')) route = component.long_name;
+  else if (types.includes('locality')) city = component.long_name;
+  else if (types.includes('administrative_area_level_1')) state = component.short_name;
+  else if (types.includes('postal_code')) zipCode = component.long_name;
+  else if (types.includes('country')) country = component.long_name;
+});
+```
+
+### Form Integration Patterns
+
+#### Order Form Data Structure Update
+```typescript
+interface OrderFormData {
+  // OLD: Single string fields
+  // recipientAddress: string;
+  // billingAddress: string;
+  
+  // NEW: Structured address objects
+  recipientAddress: AddressData;
+  billingAddress: AddressData;
+  // ... other fields
+}
+```
+
+#### Validation Pattern
+```typescript
+const isAddressValid = (address: AddressData) => {
+  return !!(address.line1 && address.city && address.state && address.zipCode);
+  // line2 is optional for apartments/suites
+};
+
+const isStep1Valid = () => {
+  const isRecipientAddressValid = isAddressValid(formData.recipientAddress);
+  const isBillingAddressValid = isAddressValid(formData.billingAddress);
+  return !!(formData.orderType && formData.projectId && 
+           formData.recipientName && isRecipientAddressValid &&
+           formData.billingAccountName && isBillingAddressValid &&
+           formData.carrierId && formData.carrierServiceTypeId);
+};
+```
+
+#### Usage Pattern in Forms
+```typescript
+<AddressInput
+  id="recipient"                    // Unique ID for multiple instances
+  label="Ship To Address"           // Display label
+  value={formData.recipientAddress} // AddressData object
+  onChange={(value) => setFormData(prev => ({ 
+    ...prev, 
+    recipientAddress: value 
+  }))}
+/>
+```
+
+### Review Display Pattern
+```typescript
+// Enhanced address display in review/confirmation sections
+<div className="text-sm space-y-1">
+  <p className="font-medium">{recipientName}</p>
+  <div className="text-muted-foreground">
+    <p>{address.line1}</p>
+    {address.line2 && <p>{address.line2}</p>}
+    <p>{address.city}, {address.state} {address.zipCode}</p>
+    <p>{address.country}</p>
+  </div>
+</div>
+```
+
+### TypeScript Considerations
+```typescript
+// Avoid Google Maps type conflicts
+const autocompleteRef = useRef<any>(null);
+
+// Event listener cleanup
+return () => {
+  if ((window as any).google && autocompleteRef.current) {
+    (window as any).google.maps.event.clearInstanceListeners(autocompleteRef.current);
+  }
+};
+```
+
+### UX Design Principles
+- **Familiar Layout**: Standard e-commerce address form pattern
+- **Progressive Enhancement**: Works without JavaScript, enhanced with autocomplete
+- **Independent Components**: Multiple address inputs don't interfere
+- **Apartment-Friendly**: Dedicated Line 2 for suite/apt details
+- **Professional Appearance**: Grid layout with responsive design
+
 ### Environment Setup
 ```bash
 # Required environment variables
 POSTGRES_URL=postgresql://...
 OPENAI_API_KEY=your_openai_api_key
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key  # NEW: Required for address autocomplete
 
 # Firebase config hardcoded in src/lib/firebase/config.ts 
 # Note: Firebase project ID remains "synapse3pl" for compatibility, 

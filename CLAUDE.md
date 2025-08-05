@@ -242,11 +242,143 @@ export function useHookName(ownerId: number | null, ...params) {
 }
 ```
 
+## Google Places API Integration (Added August 2025)
+
+**Professional Address Input System**: Smart address autocomplete with separate field population for enhanced UX and data integrity.
+
+### Architecture Overview
+- **Google Maps JavaScript API**: Integrated via `beforeInteractive` script loading in `src/app/layout.tsx`
+- **Professional Layout**: Separate fields for Line 1, Line 2, City, State, ZIP Code
+- **Smart Autocomplete**: Google Places populates all fields automatically when user selects from dropdown
+- **No Field Interference**: Each address component (recipient/billing) operates independently
+
+### Implementation Details
+
+#### Script Loading Configuration
+```typescript
+// src/app/layout.tsx
+<Script
+  src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
+  strategy="beforeInteractive"
+/>
+```
+
+#### AddressInput Component Architecture
+**Location**: `src/components/dashboard/create-order-form.tsx` (embedded component)
+
+**Data Structure**:
+```typescript
+interface AddressData {
+  line1: string;      // Street number + route (from Google Places)
+  line2: string;      // Apt, Suite, Unit (user editable)
+  city: string;       // Locality (from Google Places)
+  state: string;      // Administrative area level 1, short name (from Google Places)
+  zipCode: string;    // Postal code (from Google Places)
+  country: string;    // Country (from Google Places)
+}
+```
+
+#### Google Places Component Mapping
+```typescript
+// Google Places API → AddressData mapping
+components.forEach((component: any) => {
+  const types = component.types;
+  if (types.includes('street_number')) streetNumber = component.long_name;
+  else if (types.includes('route')) route = component.long_name;
+  else if (types.includes('locality')) city = component.long_name;
+  else if (types.includes('administrative_area_level_1')) state = component.short_name;
+  else if (types.includes('postal_code')) zipCode = component.long_name;
+  else if (types.includes('country')) country = component.long_name;
+});
+
+// Final address object
+const newAddress: AddressData = {
+  line1: `${streetNumber} ${route}`.trim(),
+  line2: value.line2, // Preserved from user input
+  city,
+  state,
+  zipCode,
+  country
+};
+```
+
+### Key Technical Solutions
+
+#### useEffect Dependency Management
+**Critical Fix**: Empty dependency array `[]` prevents infinite autocomplete recreation
+```typescript
+useEffect(() => {
+  // Autocomplete initialization logic
+}, []); // Empty dependencies - only run once on mount
+```
+
+#### Event Listener Management
+```typescript
+const handlePlaceChanged = () => {
+  const place = autocomplete.getPlace();
+  if (place.address_components) {
+    // Parse and populate all address fields automatically
+    onChange(newAddressData);
+  }
+};
+
+autocomplete.addListener('place_changed', handlePlaceChanged);
+```
+
+#### TypeScript Integration
+```typescript
+// Avoid Google Maps type conflicts
+const autocompleteRef = useRef<any>(null);
+```
+
+### Form Integration Pattern
+
+#### Order Form Data Structure
+```typescript
+interface OrderFormData {
+  recipientAddress: AddressData;
+  billingAddress: AddressData;
+  // ... other fields
+}
+```
+
+#### Validation Logic
+```typescript
+const isAddressValid = (address: AddressData) => {
+  return !!(address.line1 && address.city && address.state && address.zipCode);
+};
+```
+
+#### Usage Example
+```typescript
+<AddressInput
+  id="recipient"
+  label="Ship To Address"
+  value={formData.recipientAddress}
+  onChange={(value) => setFormData(prev => ({ ...prev, recipientAddress: value }))}
+/>
+```
+
+### UX Benefits
+- **Professional Layout**: Standard e-commerce address form familiar to users
+- **Smart Autocomplete**: Start typing in Line 1, Google suggests addresses
+- **Automatic Population**: All fields (city, state, zip) fill automatically when address selected
+- **Apartment Support**: Line 2 dedicated for apt, suite, unit details
+- **Independent Operation**: Recipient and billing addresses don't interfere with each other
+- **Validation Ready**: Separate fields enable granular validation
+
+### Files Modified
+- `src/app/layout.tsx`: Google Maps script loading
+- `src/components/dashboard/create-order-form.tsx`: AddressInput component and form integration
+- Updated form validation logic for separate address fields
+- Enhanced review step display for structured address presentation
+
 ## Environment Variables
 
 ```bash
-POSTGRES_URL=postgresql://...    # Required for database connection
-OPENAI_API_KEY=your_api_key     # Required for AI assistant
+POSTGRES_URL=postgresql://...              # Required for database connection
+OPENAI_API_KEY=your_api_key               # Required for AI assistant
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_key  # Required for address autocomplete
 ```
 
 ## Configuration Notes
