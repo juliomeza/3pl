@@ -19,6 +19,7 @@ import { useCarrierServiceTypesForOrders } from '@/hooks/use-carrier-service-typ
 import { useClientInfo } from '@/hooks/use-client-info';
 import { useOutboundInventory } from '@/hooks/use-outbound-inventory';
 import { useMaterialLots } from '@/hooks/use-material-lots';
+import { useLicensePlates } from '@/hooks/use-license-plates';
 import { useToast } from '@/hooks/use-toast';
 
 interface LineItem {
@@ -320,16 +321,25 @@ export function CreateOrderForm() {
 
   const [newLineItem, setNewLineItem] = useState<Partial<LineItem>>({
     materialCode: '',
-    quantity: 1,
+    quantity: undefined,
     uom: '',
     batchNumber: '',
-    serialNumber: ''
+    serialNumber: '',
+    licensePlate: ''
   });
 
   // Load lots for selected material (for outbound orders)
   const { lots, loading: lotsLoading, error: lotsError } = useMaterialLots(
     ownerId,
     formData.orderType === 'outbound' && newLineItem.materialCode ? newLineItem.materialCode : undefined,
+    formData.orderType === 'outbound' ? formData.projectId : undefined
+  );
+
+  // Load license plates for selected material and lot (for outbound orders)
+  const { licensePlates, loading: licensePlatesLoading, error: licensePlatesError } = useLicensePlates(
+    ownerId,
+    formData.orderType === 'outbound' && newLineItem.materialCode ? newLineItem.materialCode : undefined,
+    formData.orderType === 'outbound' && newLineItem.batchNumber ? newLineItem.batchNumber : undefined,
     formData.orderType === 'outbound' ? formData.projectId : undefined
   );
 
@@ -423,8 +433,29 @@ export function CreateOrderForm() {
       // Check if requested quantity is available
       const requestedQty = newLineItem.quantity || 1;
       
-      // If lot is selected, validate against lot-specific quantity
-      if (newLineItem.batchNumber) {
+      // Hierarchical validation: License Plate > Lot > Material
+      if (newLineItem.licensePlate) {
+        // If license plate is selected, validate against license plate-specific quantity
+        const selectedLicensePlate = licensePlates.find(lp => lp.license_plate_code === newLineItem.licensePlate);
+        if (selectedLicensePlate) {
+          // Calculate remaining quantity for this specific license plate
+          const usedFromLicensePlate = formData.lineItems
+            .filter(item => item.materialCode === inventoryItem.material_code && item.licensePlate === newLineItem.licensePlate)
+            .reduce((sum, item) => sum + item.quantity, 0);
+          
+          const remainingLicensePlateQty = Math.max(0, selectedLicensePlate.total_available_amount - usedFromLicensePlate);
+          
+          if (requestedQty > remainingLicensePlateQty) {
+            toast({
+              variant: "destructive",
+              title: "Insufficient License Plate Inventory",
+              description: `Only ${remainingLicensePlateQty.toLocaleString()} ${inventoryItem.uom} remaining in license plate ${newLineItem.licensePlate}${usedFromLicensePlate > 0 ? ` (${usedFromLicensePlate.toLocaleString()} already used from this license plate)` : ''}`,
+            });
+            return;
+          }
+        }
+      } else if (newLineItem.batchNumber) {
+        // If lot is selected but no license plate, validate against lot-specific quantity
         const selectedLot = lots.find(lot => lot.lot_code === newLineItem.batchNumber);
         if (selectedLot) {
           // Calculate remaining quantity for this specific lot
@@ -444,7 +475,7 @@ export function CreateOrderForm() {
           }
         }
       } else {
-        // If no lot selected, validate against total material quantity
+        // If no lot or license plate selected, validate against total material quantity
         const remainingQty = getRemainingQuantity(inventoryItem.material_code, inventoryItem.total_available_amount);
         
         if (requestedQty > remainingQty) {
@@ -466,6 +497,7 @@ export function CreateOrderForm() {
         uom: newLineItem.uom || inventoryItem.uom,
         batchNumber: newLineItem.batchNumber || undefined,
         serialNumber: newLineItem.serialNumber || undefined,
+        licensePlate: newLineItem.licensePlate || undefined,
         availableAmount: inventoryItem.total_available_amount
       };
 
@@ -499,10 +531,11 @@ export function CreateOrderForm() {
     // Reset new line item
     setNewLineItem({
       materialCode: '',
-      quantity: 1,
+      quantity: undefined,
       uom: '',
       batchNumber: '',
-      serialNumber: ''
+      serialNumber: '',
+      licensePlate: ''
     });
   };
 
@@ -1000,6 +1033,85 @@ export function CreateOrderForm() {
                 </div>
 
                 <div>
+                  <Label htmlFor="licensePlate">License Plate (Optional)</Label>
+                  {formData.orderType === 'outbound' && newLineItem.materialCode ? (
+                    <Select 
+                      value={newLineItem.licensePlate || ''} 
+                      onValueChange={(value) => setNewLineItem(prev => ({ ...prev, licensePlate: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={
+                          licensePlatesLoading ? "Loading license plates..." : "Select license plate"
+                        }>
+                          {newLineItem.licensePlate && (() => {
+                            const selectedLicensePlate = licensePlates.find(lp => lp.license_plate_code === newLineItem.licensePlate);
+                            if (!selectedLicensePlate) return null;
+                            
+                            // Calculate remaining quantity for this specific license plate
+                            const usedFromLicensePlate = formData.lineItems
+                              .filter(item => item.materialCode === newLineItem.materialCode && item.licensePlate === selectedLicensePlate.license_plate_code)
+                              .reduce((sum, item) => sum + item.quantity, 0);
+                            
+                            const remainingLicensePlateQty = Math.max(0, selectedLicensePlate.total_available_amount - usedFromLicensePlate);
+                            
+                            return (
+                              <div className="flex items-center gap-2 text-sm">
+                                <span className="font-medium">{selectedLicensePlate.license_plate_code}</span>
+                                <span className="text-muted-foreground">•</span>
+                                <span className="text-blue-600 text-xs">
+                                  {remainingLicensePlateQty.toLocaleString()} {selectedLicensePlate.uom}
+                                </span>
+                              </div>
+                            );
+                          })()}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {licensePlatesLoading ? (
+                          <SelectItem value="loading" disabled>Loading license plates...</SelectItem>
+                        ) : licensePlatesError ? (
+                          <SelectItem value="error" disabled>Error loading license plates</SelectItem>
+                        ) : licensePlates.length === 0 ? (
+                          <SelectItem value="empty" disabled>No license plates available</SelectItem>
+                        ) : (
+                          licensePlates.map(licensePlate => {
+                            // Calculate used quantity for this specific license plate
+                            const usedFromLicensePlate = formData.lineItems
+                              .filter(item => item.materialCode === newLineItem.materialCode && item.licensePlate === licensePlate.license_plate_code)
+                              .reduce((sum, item) => sum + item.quantity, 0);
+                            
+                            const remainingLicensePlateQty = Math.max(0, licensePlate.total_available_amount - usedFromLicensePlate);
+                            
+                            return (
+                              <SelectItem key={licensePlate.license_plate_code} value={licensePlate.license_plate_code}>
+                                <div>
+                                  <div className="font-medium">{licensePlate.license_plate_code}</div>
+                                  <div className="text-xs text-blue-600">
+                                    Available: {remainingLicensePlateQty.toLocaleString()} {licensePlate.uom}
+                                    {usedFromLicensePlate > 0 && (
+                                      <span className="text-orange-600 ml-1">
+                                        ({usedFromLicensePlate.toLocaleString()} used)
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </SelectItem>
+                            );
+                          })
+                        )}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      id="licensePlate"
+                      value={newLineItem.licensePlate || ''}
+                      onChange={(e) => setNewLineItem(prev => ({ ...prev, licensePlate: e.target.value }))}
+                      placeholder="License Plate #"
+                    />
+                  )}
+                </div>
+
+                <div>
                   <Label htmlFor="quantity">Quantity *</Label>
                   <Input
                     id="quantity"
@@ -1008,8 +1120,9 @@ export function CreateOrderForm() {
                     value={newLineItem.quantity || ''}
                     onChange={(e) => setNewLineItem(prev => ({ 
                       ...prev, 
-                      quantity: parseInt(e.target.value) || 1 
+                      quantity: e.target.value ? parseInt(e.target.value) : undefined 
                     }))}
+                    placeholder="Enter quantity"
                   />
                 </div>
 
@@ -1064,6 +1177,11 @@ export function CreateOrderForm() {
                           {item.batchNumber && (
                             <Badge variant="secondary">
                               Lot: {item.batchNumber}
+                            </Badge>
+                          )}
+                          {item.licensePlate && (
+                            <Badge variant="secondary">
+                              LP: {item.licensePlate}
                             </Badge>
                           )}
                         </div>
@@ -1207,6 +1325,11 @@ export function CreateOrderForm() {
                       {item.batchNumber && (
                         <Badge variant="secondary">
                           Lot: {item.batchNumber}
+                        </Badge>
+                      )}
+                      {item.licensePlate && (
+                        <Badge variant="secondary">
+                          LP: {item.licensePlate}
                         </Badge>
                       )}
                     </div>

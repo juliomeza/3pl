@@ -412,6 +412,63 @@ export async function getLotsForMaterial(ownerId: number, materialCode: string, 
   }
 }
 
+// Get license plates for a specific material and lot (filtered by owner_id and project)
+export async function getLicensePlatesForMaterial(ownerId: number, materialCode: string, lotCode?: string, projectId?: string): Promise<{
+  license_plate_code: string;
+  total_available_amount: number;
+  uom: string;
+}[]> {
+  try {
+    let query = `
+      SELECT
+        lp.lookupcode AS license_plate_code,
+        imu.name AS uom,
+        SUM(lpc.amount) AS total_available_amount
+      FROM
+        wms_licenseplatecontents lpc
+        INNER JOIN wms_licenseplates lp ON lp.id = lpc.licenseplateid
+        INNER JOIN wms_lots l ON l.id = lpc.lotid
+        INNER JOIN wms_materials m ON m.id = l.materialid
+        INNER JOIN wms_projects p ON p.id = m.projectid
+        INNER JOIN wms_owners o ON o.id = p.ownerid
+        INNER JOIN wms_inventorymeasurementunits imu ON imu.id = lpc.packagedid
+      WHERE
+        lp.statusid = 1
+        AND lp.archived = false
+        AND l.statusid = 1
+        AND lpc.amount > 0
+        AND o.id = $1
+        AND m.lookupcode = $2`;
+    
+    const params = [ownerId, materialCode];
+    
+    if (lotCode) {
+      query += ` AND l.lookupcode = $${params.length + 1}`;
+      params.push(lotCode);
+    }
+    
+    if (projectId) {
+      query += ` AND p.id = $${params.length + 1}`;
+      params.push(parseInt(projectId));
+    }
+    
+    query += ` 
+      GROUP BY lp.lookupcode, imu.name
+      ORDER BY lp.lookupcode`;
+
+    const result = await db.query(query, params);
+
+    return result.rows.map(row => ({
+      license_plate_code: row.license_plate_code,
+      total_available_amount: parseFloat(row.total_available_amount || '0'),
+      uom: row.uom
+    }));
+  } catch (error) {
+    console.error('Error fetching license plates for material:', error);
+    throw new Error('Failed to fetch license plates for material');
+  }
+}
+
 // Get available inventory for outbound orders (filtered by owner_id and project)
 export async function getOutboundInventory(ownerId: number, projectId?: string): Promise<{
   owner_id: number;
