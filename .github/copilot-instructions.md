@@ -605,16 +605,21 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key  # NEW: Required for ad
 
 #### Smart Material Selection System
 **Key Files**:
-- `src/app/actions.ts`: `getOutboundInventory()`, `getLotsForMaterial()` server actions
+- `src/app/actions.ts`: `getOutboundInventory()`, `getLotsForMaterial()`, `getLicensePlatesForMaterial()` server actions
 - `src/hooks/use-outbound-inventory.ts`: Material inventory data with dynamic updates
 - `src/hooks/use-material-lots.ts`: Lot-specific inventory data
+- `src/hooks/use-license-plates.ts`: License plate-specific inventory data
 - `src/components/dashboard/create-order-form.tsx`: Complete order creation form
 
-**Material Selection Flow**:
-1. **Material Dropdown**: Shows available materials with total quantities
-2. **Lot Selection**: Conditional dropdown (outbound) filtered by selected material
-3. **Quantity Validation**: Real-time checking against available inventory
-4. **Dynamic Updates**: All displays update as items are added/removed
+**Hierarchical Material Selection Flow**:
+1. **Material Dropdown**: Shows available materials with total quantities (2 columns)
+2. **Lot Selection**: Conditional dropdown (outbound) filtered by selected material (1 column)
+3. **License Plate Selection**: Conditional dropdown (outbound) filtered by material + lot (1 column)
+4. **Quantity Input**: Starts blank, validates against most specific selection (1 column)
+5. **UOM Field**: Auto-populated from material/lot/license plate data (1 column)
+6. **Add Button**: Right-aligned in 7th column for clean layout
+7. **Hierarchical Validation**: License Plate > Lot > Material (most specific takes precedence)
+8. **Dynamic Updates**: All displays update as items are added/removed
 
 #### Data Structures
 ```typescript
@@ -633,6 +638,13 @@ interface MaterialLot {
   uom: string;
 }
 
+// License plate-specific inventory (when license plate is selected)
+interface LicensePlate {
+  license_plate_code: string;
+  total_available_amount: number;
+  uom: string;
+}
+
 // Order line items
 interface LineItem {
   materialCode: string;
@@ -640,6 +652,7 @@ interface LineItem {
   quantity: number;
   uom: string;
   batchNumber?: string;        // Lot code when selected
+  licensePlate?: string;       // License plate code when selected
   availableAmount?: number;    // For tracking purposes
 }
 ```
@@ -782,16 +795,21 @@ const { inventory } = useOutboundInventory(ownerId, projectId);
 
 #### Smart Material Selection System
 **Key Files**:
-- `src/app/actions.ts`: `getOutboundInventory()`, `getLotsForMaterial()` server actions
+- `src/app/actions.ts`: `getOutboundInventory()`, `getLotsForMaterial()`, `getLicensePlatesForMaterial()` server actions
 - `src/hooks/use-outbound-inventory.ts`: Material inventory data with dynamic updates
 - `src/hooks/use-material-lots.ts`: Lot-specific inventory data
+- `src/hooks/use-license-plates.ts`: License plate-specific inventory data
 - `src/components/dashboard/create-order-form.tsx`: Complete order creation form
 
-**Material Selection Flow**:
-1. **Material Dropdown**: Shows available materials with total quantities
-2. **Lot Selection**: Conditional dropdown (outbound) filtered by selected material
-3. **Quantity Validation**: Real-time checking against available inventory
-4. **Dynamic Updates**: All displays update as items are added/removed
+**Hierarchical Material Selection Flow**:
+1. **Material Dropdown**: Shows available materials with total quantities (2 columns)
+2. **Lot Selection**: Conditional dropdown (outbound) filtered by selected material (1 column)
+3. **License Plate Selection**: Conditional dropdown (outbound) filtered by material + lot (1 column)
+4. **Quantity Input**: Starts blank, validates against most specific selection (1 column)
+5. **UOM Field**: Auto-populated from material/lot/license plate data (1 column)
+6. **Add Button**: Right-aligned in 7th column for clean layout
+7. **Hierarchical Validation**: License Plate > Lot > Material (most specific takes precedence)
+8. **Dynamic Updates**: All displays update as items are added/removed
 
 #### Data Structures
 ```typescript
@@ -810,6 +828,13 @@ interface MaterialLot {
   uom: string;
 }
 
+// License plate-specific inventory (when license plate is selected)
+interface LicensePlate {
+  license_plate_code: string;
+  total_available_amount: number;
+  uom: string;
+}
+
 // Order line items
 interface LineItem {
   materialCode: string;
@@ -817,6 +842,7 @@ interface LineItem {
   quantity: number;
   uom: string;
   batchNumber?: string;        // Lot code when selected
+  licensePlate?: string;       // License plate code when selected
   availableAmount?: number;    // For tracking purposes
 }
 ```

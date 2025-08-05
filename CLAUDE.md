@@ -420,18 +420,37 @@ interface MaterialLot {
 }
 ```
 
-**Lot Validation Logic**:
-- Validates quantity against specific lot availability
-- Tracks usage per lot across multiple line items
-- Shows remaining quantity per lot in real-time
+#### License Plate Selection System (Added August 2025)
+**Key Files**:
+- `src/app/actions.ts`: `getLicensePlatesForMaterial()` - License plates filtered by material, lot, and owner
+- `src/hooks/use-license-plates.ts`: Hook for license plate-specific data
+- License plate dropdown activated when material (and optionally lot) is selected
+
+**License Plate Data Structure**:
+```typescript
+interface LicensePlate {
+  license_plate_code: string;
+  total_available_amount: number;
+  uom: string;
+}
+```
+
+**Hierarchical Validation Logic**:
+- **Material Only**: Validates against total material inventory
+- **Material + Lot**: Validates against lot-specific availability
+- **Material + Lot + License Plate**: Validates against license plate-specific availability
+- Tracks usage per license plate across multiple line items
+- Shows remaining quantity per license plate in real-time
 
 ### Form Field Architecture
 
-**Field Order**: Material → Lot (Optional) → Quantity → UOM
-- Material: Dropdown with description truncated to 18 characters
-- Lot: Conditional dropdown (outbound) or manual input (inbound)
-- Quantity: Numeric input with validation
-- UOM: Auto-populated from material/lot selection
+**Field Order**: Material → Lot (Optional) → License Plate (Optional) → Quantity → UOM
+- Material: Dropdown with description truncated to 18 characters (2 columns)
+- Lot: Conditional dropdown (outbound) or manual input (inbound) (1 column)
+- License Plate: Conditional dropdown (outbound) or manual input (inbound) (1 column)
+- Quantity: Numeric input with validation (1 column, starts blank)
+- UOM: Auto-populated from material/lot/license plate selection (1 column)
+- Add Button: Right-aligned in 7th column
 
 ### UI/UX Patterns
 
@@ -441,6 +460,7 @@ interface MaterialLot {
 ```
 MAT-001 • Steel pipe for c... • 1,500 EACH
 LOT001 • 500 EACH
+LP: LICENSE123 • 250 EACH
 ```
 
 **Dynamic Updates**: All displays update in real-time as items are added/removed
@@ -448,9 +468,11 @@ LOT001 • 500 EACH
 ### Validation Rules
 
 1. **Material Level**: Validates against total available inventory
-2. **Lot Level**: When lot selected, validates against lot-specific availability
-3. **Dynamic Tracking**: Considers quantities already used in current order
-4. **Error Messages**: Specific messages for material vs lot validation
+2. **Lot Level**: When lot selected, validates against lot-specific availability  
+3. **License Plate Level**: When license plate selected, validates against license plate-specific availability
+4. **Hierarchical Priority**: License Plate > Lot > Material (most specific level takes precedence)
+5. **Dynamic Tracking**: Considers quantities already used in current order across all levels
+6. **Error Messages**: Specific messages for material vs lot vs license plate validation
 
 ### Order Creation Workflow
 

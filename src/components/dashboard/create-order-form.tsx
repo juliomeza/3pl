@@ -854,7 +854,7 @@ export function CreateOrderForm() {
 
             <div className="space-y-4 p-4 border border-dashed border-gray-300 rounded-lg">
               <h4 className="font-medium text-sm">Add Material</h4>
-              <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
                 <div className="md:col-span-2">
                   <Label htmlFor="materialCode">Material *</Label>
                   <Select value={newLineItem.materialCode} onValueChange={(value) => {
@@ -1136,7 +1136,7 @@ export function CreateOrderForm() {
                   />
                 </div>
 
-                <div className="flex items-end">
+                <div className="flex items-end justify-end">
                   <Button
                     onClick={addLineItem}
                     variant="ghost"
