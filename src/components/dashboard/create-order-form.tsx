@@ -18,6 +18,7 @@ import { useCarriersForOrders } from '@/hooks/use-carriers-for-orders';
 import { useCarrierServiceTypesForOrders } from '@/hooks/use-carrier-service-types-for-orders';
 import { useClientInfo } from '@/hooks/use-client-info';
 import { useOutboundInventory } from '@/hooks/use-outbound-inventory';
+import { useToast } from '@/hooks/use-toast';
 
 interface LineItem {
   id: string;
@@ -267,6 +268,9 @@ export function CreateOrderForm() {
   // Get client info for owner filtering
   const { ownerId } = useClientInfo();
   
+  // Toast notifications
+  const { toast } = useToast();
+  
   // Load projects from database
   const { projects, loading: projectsLoading, error: projectsError } = useProjectsForOrders(ownerId);
   
@@ -408,10 +412,17 @@ export function CreateOrderForm() {
       const inventoryItem = inventory.find(item => item.material_code === newLineItem.materialCode);
       if (!inventoryItem) return;
 
-      // Check if requested quantity is available
+      // Check if requested quantity is available (considering already used in this order)
       const requestedQty = newLineItem.quantity || 1;
-      if (requestedQty > inventoryItem.total_available_amount) {
-        alert(`Only ${inventoryItem.total_available_amount.toLocaleString()} ${inventoryItem.uom} available for ${inventoryItem.material_name}`);
+      const remainingQty = getRemainingQuantity(inventoryItem.material_code, inventoryItem.total_available_amount);
+      
+      if (requestedQty > remainingQty) {
+        const usedQty = inventoryItem.total_available_amount - remainingQty;
+        toast({
+          variant: "destructive",
+          title: "Insufficient Inventory",
+          description: `Only ${remainingQty.toLocaleString()} ${inventoryItem.uom} remaining for ${inventoryItem.material_code}${usedQty > 0 ? ` (${usedQty.toLocaleString()} already used in this order)` : ''}`,
+        });
         return;
       }
 
@@ -430,6 +441,11 @@ export function CreateOrderForm() {
         ...prev,
         lineItems: [...prev.lineItems, lineItem]
       }));
+
+      toast({
+        title: "Material Added",
+        description: `${lineItem.quantity} ${lineItem.uom} of ${lineItem.materialCode} added to order`,
+      });
     } else {
       // For inbound orders, we'll handle this later (no inventory check needed)
       const lineItem: LineItem = {
@@ -463,6 +479,15 @@ export function CreateOrderForm() {
       ...prev,
       lineItems: prev.lineItems.filter(item => item.id !== id)
     }));
+  };
+
+  // Calculate remaining available quantity for a material considering already added line items
+  const getRemainingQuantity = (materialCode: string, totalAvailable: number): number => {
+    const usedQuantity = formData.lineItems
+      .filter(item => item.materialCode === materialCode)
+      .reduce((sum, item) => sum + item.quantity, 0);
+    
+    return Math.max(0, totalAvailable - usedQuantity);
   };
 
   const handleSave = (status: 'draft' | 'submitted') => {
@@ -795,6 +820,8 @@ export function CreateOrderForm() {
                             ? selectedItem.material_description.substring(0, 18) + '...'
                             : selectedItem?.material_description;
                           
+                          const remainingQty = selectedItem ? getRemainingQuantity(selectedItem.material_code, selectedItem.total_available_amount) : 0;
+                          
                           return (
                             <div className="flex items-center gap-2 text-sm">
                               <span className="font-medium">{newLineItem.materialCode}</span>
@@ -804,7 +831,7 @@ export function CreateOrderForm() {
                               </span>
                               <span className="text-muted-foreground">•</span>
                               <span className="text-blue-600 text-xs">
-                                {selectedItem?.total_available_amount?.toLocaleString()} {selectedItem?.uom}
+                                {remainingQty.toLocaleString()} {selectedItem?.uom}
                               </span>
                             </div>
                           );
@@ -820,17 +847,27 @@ export function CreateOrderForm() {
                         ) : inventory.length === 0 ? (
                           <SelectItem value="empty" disabled>No inventory available</SelectItem>
                         ) : (
-                          inventory.map(item => (
-                            <SelectItem key={item.material_code} value={item.material_code}>
-                              <div>
-                                <div className="font-medium">{item.material_code}</div>
-                                <div className="text-sm text-muted-foreground">{item.material_description}</div>
-                                <div className="text-xs text-blue-600">
-                                  Available: {item.total_available_amount.toLocaleString()} {item.uom}
+                          inventory.map(item => {
+                            const remainingQty = getRemainingQuantity(item.material_code, item.total_available_amount);
+                            const usedQty = item.total_available_amount - remainingQty;
+                            
+                            return (
+                              <SelectItem key={item.material_code} value={item.material_code}>
+                                <div>
+                                  <div className="font-medium">{item.material_code}</div>
+                                  <div className="text-sm text-muted-foreground">{item.material_description}</div>
+                                  <div className="text-xs text-blue-600">
+                                    Available: {remainingQty.toLocaleString()} {item.uom}
+                                    {usedQty > 0 && (
+                                      <span className="text-orange-600 ml-1">
+                                        ({usedQty.toLocaleString()} used)
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            </SelectItem>
-                          ))
+                              </SelectItem>
+                            );
+                          })
                         )
                       ) : (
                         <SelectItem value="manual" disabled>Enter material code manually below</SelectItem>
