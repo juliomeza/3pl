@@ -275,7 +275,9 @@ npm run test:chat -- --testNamePattern="date-"  # Date tests
 
 #### Refactored Components
 - **DashboardLayout** (`src/components/dashboard/dashboard-layout.tsx`): Unified layout system
-  - Role-based logo rendering (client: dynamic logo, employee: company branding)
+  - Role-based logo rendering (client: large 160px dynamic logo, employee: company branding)
+  - Client logo optimization: Eliminates client name text, centers large logo in full sidebar space
+  - Collapse button positioned at `-right-20` for proper spacing from large logo
   - Configurable menu items and responsive behavior
   - Header controls context for dynamic content injection
 

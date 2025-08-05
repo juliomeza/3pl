@@ -202,6 +202,13 @@ setCenterContent(<OrderStepIndicator currentStep={currentStep} />);
 **Component Sharing Strategy**: Client and employee interfaces share UI/UX patterns through shared components for consistency and maintainability.
 
 ### Shared Components
+- **DashboardLayout** (`src/components/dashboard/dashboard-layout.tsx`): Unified layout system
+  - Role-based logo rendering (client: large 160px dynamic logo, employee: company branding)
+  - Client logo optimization: Eliminates client name text, centers large logo in full sidebar space
+  - Collapse button positioned at `-right-20` for proper spacing from large logo
+  - Configurable menu items and responsive behavior
+  - Header controls context for dynamic content injection
+
 - **SharedDashboardPage** (`src/components/dashboard/shared-dashboard-page.tsx`): Role-based dashboard
   - Client: Uses `owner_id` filtering for client-specific data
   - Employee: Full access to all operational data (no filtering)

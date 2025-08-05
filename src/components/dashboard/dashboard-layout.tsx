@@ -62,27 +62,19 @@ function DashboardSidebarContent({ menuItems, logoConfig }: { menuItems: MenuIte
     if (logoConfig.type === 'client') {
       return (
         <div className="relative flex items-center justify-between">
-          <div className="flex items-start gap-2 flex-1 min-w-0">
+          <div className="flex items-center justify-center flex-1 min-w-0">
             {logoConfig.clientInfoLoading ? (
-              <>
-                <Skeleton className="w-8 h-8 rounded-full" />
-                <Skeleton className="w-24 h-4" />
-              </>
-            ) : logoConfig.clientInfo && (
-              <>
-                {logoConfig.clientInfo.logo_url && (
-                  <Image
-                    src={logoConfig.clientInfo.logo_url}
-                    alt={`${logoConfig.clientInfo.name} logo`}
-                    width={32}
-                    height={32}
-                    style={{ width: '32px', height: 'auto' }}
-                    className="rounded-full object-contain"
-                    data-ai-hint="logo"
-                  />
-                )}
-                <span className="font-semibold text-md pr-10">{logoConfig.clientInfo.name}</span>
-              </>
+              <Skeleton className="w-40 h-40 rounded-full" />
+            ) : logoConfig.clientInfo && logoConfig.clientInfo.logo_url && (
+              <Image
+                src={logoConfig.clientInfo.logo_url}
+                alt={`${logoConfig.clientInfo.name} logo`}
+                width={160}
+                height={160}
+                style={{ width: '160px', height: 'auto' }}
+                className="rounded-full object-contain"
+                data-ai-hint="logo"
+              />
             )}
           </div>
           <button 
@@ -90,7 +82,7 @@ function DashboardSidebarContent({ menuItems, logoConfig }: { menuItems: MenuIte
               const trigger = document.querySelector('[data-sidebar="trigger"]') as HTMLElement;
               trigger?.click();
             }}
-            className="absolute -right-4 top-1/2 transform -translate-y-1/2 h-12 w-12 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md z-10 flex items-center justify-center"
+            className="absolute -right-20 top-1/2 transform -translate-y-1/2 h-12 w-12 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md z-10 flex items-center justify-center"
           >
             <PanelLeftClose className="w-6 h-6 text-gray-400 hover:text-gray-600" />
           </button>
