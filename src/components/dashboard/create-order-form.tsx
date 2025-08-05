@@ -789,7 +789,7 @@ export function CreateOrderForm() {
 
             <div className="space-y-4 p-4 border border-dashed border-gray-300 rounded-lg">
               <h4 className="font-medium text-sm">Add Material</h4>
-              <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
                 <div className="md:col-span-2">
                   <Label htmlFor="materialCode">Material *</Label>
                   <Select value={newLineItem.materialCode} onValueChange={(value) => {
@@ -889,12 +889,12 @@ export function CreateOrderForm() {
                 </div>
 
                 <div>
-                  <Label htmlFor="batch">Batch (Optional)</Label>
+                  <Label htmlFor="lot">Lot (Optional)</Label>
                   <Input
-                    id="batch"
+                    id="lot"
                     value={newLineItem.batchNumber || ''}
                     onChange={(e) => setNewLineItem(prev => ({ ...prev, batchNumber: e.target.value }))}
-                    placeholder="Batch #"
+                    placeholder="Lot #"
                   />
                 </div>
 
@@ -962,7 +962,7 @@ export function CreateOrderForm() {
                           </Badge>
                           {item.batchNumber && (
                             <Badge variant="secondary">
-                              Batch: {item.batchNumber}
+                              Lot: {item.batchNumber}
                             </Badge>
                           )}
                         </div>
@@ -1105,7 +1105,7 @@ export function CreateOrderForm() {
                       </Badge>
                       {item.batchNumber && (
                         <Badge variant="secondary">
-                          Batch: {item.batchNumber}
+                          Lot: {item.batchNumber}
                         </Badge>
                       )}
                     </div>
