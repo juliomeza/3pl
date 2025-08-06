@@ -21,6 +21,7 @@ import { useOutboundInventory } from '@/hooks/use-outbound-inventory';
 import { useMaterialLots } from '@/hooks/use-material-lots';
 import { useLicensePlates } from '@/hooks/use-license-plates';
 import { useToast } from '@/hooks/use-toast';
+import { saveOrder } from '@/app/actions';
 
 interface LineItem {
   id: string;
@@ -573,44 +574,72 @@ export function CreateOrderForm() {
     return Math.max(0, totalAvailable - usedQuantity);
   };
 
-  const handleSave = (status: 'draft' | 'submitted') => {
-    const updatedData = { ...formData, status };
-    console.log('Saving order:', updatedData);
-    // TODO: Implement actual save logic
-    alert(`Order ${status} successfully!`);
-    
-    if (status === 'submitted') {
-      // Reset form after successful submission
-      setFormData({
-        orderType: '',
-        projectId: '',
-        orderNumber: '',
-        shipmentNumber: '',
-        recipientName: '',
-        recipientAddress: {
-          line1: '',
-          line2: '',
-          city: '',
-          state: '',
-          zipCode: '',
-          country: 'United States'
-        },
-        billingAccountName: '',
-        billingAddress: {
-          line1: '',
-          line2: '',
-          city: '',
-          state: '',
-          zipCode: '',
-          country: 'United States'
-        },
-        carrierId: '',
-        carrierServiceTypeId: '',
-        estimatedDeliveryDate: '',
-        lineItems: [],
-        status: 'draft'
+  const handleSave = async (status: 'draft' | 'submitted') => {
+    if (!ownerId) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Unable to determine client ownership. Please refresh and try again.",
       });
-      setCurrentStep(1);
+      return;
+    }
+
+    try {
+      const result = await saveOrder(formData, formData.lineItems, ownerId, status);
+      
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: `Order ${status === 'draft' ? 'saved as draft' : 'submitted'} successfully! Order ID: ${result.orderId}`,
+        });
+        
+        if (status === 'submitted') {
+          // Reset form after successful submission
+          setFormData({
+            orderType: '',
+            projectId: '',
+            orderNumber: '',
+            shipmentNumber: '',
+            recipientName: '',
+            recipientAddress: {
+              line1: '',
+              line2: '',
+              city: '',
+              state: '',
+              zipCode: '',
+              country: 'United States'
+            },
+            billingAccountName: '',
+            billingAddress: {
+              line1: '',
+              line2: '',
+              city: '',
+              state: '',
+              zipCode: '',
+              country: 'United States'
+            },
+            carrierId: '',
+            carrierServiceTypeId: '',
+            estimatedDeliveryDate: '',
+            lineItems: [],
+            status: 'draft'
+          });
+          setCurrentStep(1);
+        }
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: result.error || "Failed to save order. Please try again.",
+        });
+      }
+    } catch (error) {
+      console.error('Error saving order:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+      });
     }
   };
 

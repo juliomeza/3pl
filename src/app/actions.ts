@@ -531,3 +531,116 @@ export async function getOutboundInventory(ownerId: number, projectId?: string):
     throw new Error('Failed to fetch outbound inventory');
   }
 }
+
+// Save order as draft or submit order
+export async function saveOrder(
+  orderData: any,
+  lineItems: any[],
+  ownerId: number,
+  status: 'draft' | 'submitted' = 'draft'
+): Promise<{ success: boolean; orderId?: number; error?: string }> {
+  try {
+    // Generate order number if not provided
+    let orderNumber = orderData.orderNumber;
+    if (!orderNumber) {
+      const result = await db.query(
+        'SELECT COUNT(*) + 1 as next_number FROM portal_orders WHERE owner_id = $1',
+        [ownerId]
+      );
+      const nextNumber = result.rows[0].next_number;
+      orderNumber = `ORD-${ownerId}-${String(nextNumber).padStart(4, '0')}`;
+    }
+
+    // Insert order header
+    const orderInsertQuery = `
+      INSERT INTO portal_orders (
+        order_number, order_date, order_type, status, owner_id, project_id,
+        shipment_number, estimated_delivery_date, recipient_name,
+        addr1, addr2, city, state, zip, country,
+        account_name, billing_addr1, billing_addr2, billing_city, billing_state,
+        billing_zip, billing_country, carrier, service_type, carrier_id, service_type_id,
+        created_by, updated_by
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
+        $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28
+      ) RETURNING id
+    `;
+
+    const orderValues = [
+      orderNumber,
+      new Date(),
+      orderData.orderType,
+      status,
+      ownerId,
+      orderData.projectId,
+      orderData.shipmentNumber || null,
+      orderData.estimatedDeliveryDate || null,
+      orderData.recipientName,
+      orderData.recipientAddress.line1,
+      orderData.recipientAddress.line2 || null,
+      orderData.recipientAddress.city,
+      orderData.recipientAddress.state,
+      orderData.recipientAddress.zipCode,
+      orderData.recipientAddress.country || 'United States',
+      orderData.billingAccountName,
+      orderData.billingAddress.line1,
+      orderData.billingAddress.line2 || null,
+      orderData.billingAddress.city,
+      orderData.billingAddress.state,
+      orderData.billingAddress.zipCode,
+      orderData.billingAddress.country || 'United States',
+      orderData.carrierId, // We'll need to resolve this to carrier name
+      orderData.carrierServiceTypeId, // We'll need to resolve this to service type name
+      orderData.carrierId,
+      orderData.carrierServiceTypeId,
+      'system', // created_by
+      'system'  // updated_by
+    ];
+
+    const orderResult = await db.query(orderInsertQuery, orderValues);
+    const orderId = orderResult.rows[0].id;
+
+    // Insert line items
+    if (lineItems && lineItems.length > 0) {
+      const lineInsertQuery = `
+        INSERT INTO portal_order_lines (
+          order_id, line_number, material_code, material_description,
+          quantity, uom, lot, license_plate, serial_number, batch_number,
+          created_by, updated_by
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      `;
+
+      for (let i = 0; i < lineItems.length; i++) {
+        const item = lineItems[i];
+        const lineValues = [
+          orderId,
+          i + 1, // line_number
+          item.materialCode,
+          item.materialName,
+          item.quantity,
+          item.uom,
+          item.batchNumber || item.lot || null,
+          item.licensePlate || null,
+          item.serialNumber || null,
+          item.batchNumber || null,
+          'system', // created_by
+          'system'  // updated_by
+        ];
+
+        await db.query(lineInsertQuery, lineValues);
+      }
+    }
+
+    return {
+      success: true,
+      orderId: orderId
+    };
+
+  } catch (error) {
+    console.error('Error saving order:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
+  }
+}
