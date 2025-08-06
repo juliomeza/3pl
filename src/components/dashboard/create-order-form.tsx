@@ -51,7 +51,7 @@ interface OrderFormData {
   orderType: 'inbound' | 'outbound' | '';
   projectId: string;
   orderNumber: string;
-  shipmentNumber: string;
+  referenceNumber: string;
   recipientName: string;
   recipientAddress: AddressData;
   billingAccountName: string;
@@ -291,7 +291,7 @@ export function CreateOrderForm() {
     orderType: '',
     projectId: '',
     orderNumber: '',
-    shipmentNumber: '',
+    referenceNumber: '',
     recipientName: '',
     recipientAddress: {
       line1: '',
@@ -612,7 +612,7 @@ export function CreateOrderForm() {
             orderType: '',
             projectId: '',
             orderNumber: '',
-            shipmentNumber: '',
+            referenceNumber: '',
             recipientName: '',
             recipientAddress: {
               line1: '',
@@ -739,12 +739,12 @@ export function CreateOrderForm() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="shipmentNumber">Shipment Number</Label>
+                  <Label htmlFor="referenceNumber">Reference Number (PO Number)</Label>
                   <Input
-                    id="shipmentNumber"
-                    value={formData.shipmentNumber}
-                    onChange={(e) => setFormData(prev => ({ ...prev, shipmentNumber: e.target.value }))}
-                    placeholder="Enter shipment number"
+                    id="referenceNumber"
+                    value={formData.referenceNumber}
+                    onChange={(e) => setFormData(prev => ({ ...prev, referenceNumber: e.target.value }))}
+                    placeholder="Enter reference or PO number"
                   />
                 </div>
               </div>
@@ -1300,8 +1300,8 @@ export function CreateOrderForm() {
                     <span>{formData.orderNumber || 'Auto-generated'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Shipment Number:</span>
-                    <span>{formData.shipmentNumber || 'Not specified'}</span>
+                    <span className="text-muted-foreground">Reference Number:</span>
+                    <span>{formData.referenceNumber || 'Not specified'}</span>
                   </div>
                 </div>
               </div>

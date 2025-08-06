@@ -572,7 +572,7 @@ export async function saveOrder(
       
       const orderUpdateQuery = `
         UPDATE portal_orders SET
-          order_type = $2, project_id = $3, project_lookupcode = $4, shipment_number = $5,
+          order_type = $2, project_id = $3, project_lookupcode = $4, reference_number = $5,
           estimated_delivery_date = $6, recipient_name = $7,
           addr1 = $8, addr2 = $9, city = $10, state = $11, zip = $12, country = $13,
           account_name = $14, billing_addr1 = $15, billing_addr2 = $16,
@@ -588,7 +588,7 @@ export async function saveOrder(
         orderData.orderType, // $2
         orderData.projectId, // $3
         lookupData.project_lookupcode || null, // $4
-        orderData.shipmentNumber || null, // $5
+        orderData.referenceNumber || null, // $5
         orderData.estimatedDeliveryDate || null, // $6
         orderData.recipientName, // $7
         orderData.recipientAddress.line1, // $8
@@ -664,7 +664,7 @@ export async function saveOrder(
       const orderInsertQuery = `
         INSERT INTO portal_orders (
           order_number, order_date, order_type, status, owner_id, owner_lookupcode,
-          project_id, project_lookupcode, shipment_number, estimated_delivery_date, 
+          project_id, project_lookupcode, reference_number, estimated_delivery_date, 
           recipient_name, addr1, addr2, city, state, zip, country,
           account_name, billing_addr1, billing_addr2, billing_city, billing_state,
           billing_zip, billing_country, carrier, service_type, carrier_id, service_type_id,
@@ -684,7 +684,7 @@ export async function saveOrder(
         lookupData.owner_lookupcode || null, // $6
         orderData.projectId, // $7
         lookupData.project_lookupcode || null, // $8
-        orderData.shipmentNumber || null, // $9
+        orderData.referenceNumber || null, // $9
         orderData.estimatedDeliveryDate || null, // $10
         orderData.recipientName, // $11
         orderData.recipientAddress.line1, // $12
