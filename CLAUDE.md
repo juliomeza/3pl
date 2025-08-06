@@ -451,13 +451,21 @@ interface LicensePlate {
 
 ### Form Field Architecture
 
-**Field Order**: Material → Lot (Optional) → License Plate (Optional) → Quantity → UOM
-- Material: Dropdown with description truncated to 18 characters (2 columns)
-- Lot: Conditional dropdown (outbound) or manual input (inbound) (1 column)
-- License Plate: Conditional dropdown (outbound) or manual input (inbound) (1 column)
+**Grid Layout**: 10-column responsive grid (`md:grid-cols-10`) for optimal field distribution
+**Field Order**: Material → Lot (Optional) → License Plate (Optional) → Quantity → UOM → Add Button
+
+**Column Distribution**:
+- Material: Dropdown with description truncated to 18 characters (3 columns)
+- Lot: Conditional dropdown (outbound) or manual input (inbound) (2 columns)
+- License Plate: Conditional dropdown (outbound) or manual input (inbound) (2 columns)
 - Quantity: Numeric input with validation (1 column, starts blank)
 - UOM: Auto-populated from material/lot/license plate selection (1 column)
-- Add Button: Right-aligned in 7th column
+- Add Button: Right-aligned in final column (1 column)
+
+**Input Validation**:
+- Material selection required with toast notification if missing
+- Quantity validation: Must be greater than 0 with specific error messaging
+- Real-time inventory validation with detailed error descriptions
 
 ### UI/UX Patterns
 
@@ -474,12 +482,18 @@ LP: LICENSE123 • 250 EACH
 
 ### Validation Rules
 
-1. **Material Level**: Validates against total available inventory
-2. **Lot Level**: When lot selected, validates against lot-specific availability  
-3. **License Plate Level**: When license plate selected, validates against license plate-specific availability
-4. **Hierarchical Priority**: License Plate > Lot > Material (most specific level takes precedence)
-5. **Dynamic Tracking**: Considers quantities already used in current order across all levels
-6. **Error Messages**: Specific messages for material vs lot vs license plate validation
+1. **Input Validation**:
+   - Material selection required before adding line items
+   - Quantity must be greater than 0 (prevents empty/zero quantity entries)
+   - Toast notifications provide clear error messaging for validation failures
+
+2. **Inventory Validation**:
+   - **Material Level**: Validates against total available inventory
+   - **Lot Level**: When lot selected, validates against lot-specific availability  
+   - **License Plate Level**: When license plate selected, validates against license plate-specific availability
+   - **Hierarchical Priority**: License Plate > Lot > Material (most specific level takes precedence)
+   - **Dynamic Tracking**: Considers quantities already used in current order across all levels
+   - **Error Messages**: Specific messages for material vs lot vs license plate validation
 
 ### Order Creation Workflow
 

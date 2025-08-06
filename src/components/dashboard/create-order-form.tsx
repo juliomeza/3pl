@@ -423,7 +423,25 @@ export function CreateOrderForm() {
   };
 
   const addLineItem = () => {
-    if (!newLineItem.materialCode || !newLineItem.quantity) return;
+    // Validate material code
+    if (!newLineItem.materialCode) {
+      toast({
+        variant: "destructive",
+        title: "Material Required",
+        description: "Please select a material before adding to the order.",
+      });
+      return;
+    }
+
+    // Validate quantity
+    if (!newLineItem.quantity || newLineItem.quantity <= 0) {
+      toast({
+        variant: "destructive",
+        title: "Quantity Required",
+        description: "Please enter a valid quantity greater than 0.",
+      });
+      return;
+    }
     
     // For outbound orders, find material in inventory
     if (formData.orderType === 'outbound') {

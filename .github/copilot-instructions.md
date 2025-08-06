@@ -30,6 +30,7 @@ npm run test:watch        # Watch mode
 ```bash
 POSTGRES_URL=postgresql://...
 OPENAI_API_KEY=your_openai_api_key
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key  # Required for address autocomplete
 ```
 
 ## Code Standards
@@ -345,7 +346,7 @@ className="hover:bg-gray-100 dark:hover:bg-gray-800"
 - **Consistent Experience**: Unified theming across all dashboard areas
 - **Performance**: Client-side switching with no server round-trips
 
-## Interactive Welcome Message System (NEW - August 2025)
+## Interactive Welcome Message System (Added August 2025)
 
 **Time-Based Personalized Greetings**: Dynamic header messages that adapt throughout the day.
 
@@ -429,16 +430,6 @@ useEffect(() => {
 - **Professional Feel**: Maintains business application aesthetics
 - **Perfect Centering**: Step indicators professionally centered in header
 - **Single-Line Steps**: Clean, readable step progression without text wrapping
-
-## Development Guidelines
-
-### Critical Notes
-- **TypeScript errors ignored in builds** (`ignoreBuildErrors: true`)
-- **Development server runs on port 9002** (not 3000)
-- **Firebase Studio compatibility** - Reliable3PL project
-- **AI Performance**: Schema caching, reduced tokens, efficient conversation handling
-- **Code Language**: All code must be in English
-- **Testing Required**: All AI features need real integration tests
 
 ## Google Places API Integration (Added August 2025)
 
@@ -571,17 +562,258 @@ return () => {
 - **Apartment-Friendly**: Dedicated Line 2 for suite/apt details
 - **Professional Appearance**: Grid layout with responsive design
 
-### Environment Setup
-```bash
-# Required environment variables
-POSTGRES_URL=postgresql://...
-OPENAI_API_KEY=your_openai_api_key
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key  # NEW: Required for address autocomplete
+## Order Management System (Updated August 2025)
 
-# Firebase config hardcoded in src/lib/firebase/config.ts 
-# Note: Firebase project ID remains "synapse3pl" for compatibility, 
-# but all UI/branding uses "Reliable 3PL"
+**Create Orders Feature**: Complete order creation system with intelligent material selection and real-time inventory validation.
+
+### Order Creation Architecture
+
+#### Two-Mode Operation
+- **Outbound Orders**: Sales orders with real-time PostgreSQL inventory validation
+- **Inbound Orders**: Purchase orders with manual material entry (no inventory constraints)
+
+#### Smart Material Selection System
+**Key Files**:
+- `src/app/actions.ts`: `getOutboundInventory()`, `getLotsForMaterial()`, `getLicensePlatesForMaterial()` server actions
+- `src/hooks/use-outbound-inventory.ts`: Material inventory data with dynamic updates
+- `src/hooks/use-material-lots.ts`: Lot-specific inventory data
+- `src/hooks/use-license-plates.ts`: License plate-specific inventory data
+- `src/components/dashboard/create-order-form.tsx`: Complete order creation form
+
+**Hierarchical Material Selection Flow** (Updated August 2025):
+1. **Material Dropdown**: Shows available materials with total quantities (3 columns - expanded for better readability)
+2. **Lot Selection**: Conditional dropdown (outbound) filtered by selected material (2 columns - expanded)
+3. **License Plate Selection**: Conditional dropdown (outbound) filtered by material + lot (2 columns - expanded)
+4. **Quantity Input**: Starts blank, validates against most specific selection (1 column)
+5. **UOM Field**: Auto-populated from material/lot/license plate data (1 column)
+6. **Add Button**: Right-aligned in final column for clean layout (1 column)
+7. **Grid System**: 10-column responsive grid (`md:grid-cols-10`) for optimal field distribution
+8. **Input Validation**: Material selection required, quantity must be > 0, with toast notifications
+9. **Hierarchical Validation**: License Plate > Lot > Material (most specific takes precedence)
+10. **Dynamic Updates**: All displays update as items are added/removed
+
+#### Data Structures
+```typescript
+// Outbound inventory (materials aggregated across lots)
+interface OutboundInventoryItem {
+  material_code: string;
+  material_description: string;
+  total_available_amount: number;
+  uom: string;
+}
+
+// Lot-specific inventory (when lot is selected)
+interface MaterialLot {
+  lot_code: string;
+  total_available_amount: number;
+  uom: string;
+}
+
+// License plate-specific inventory (when license plate is selected)
+interface LicensePlate {
+  license_plate_code: string;
+  total_available_amount: number;
+  uom: string;
+}
+
+// Order line items
+interface LineItem {
+  materialCode: string;
+  materialName: string;
+  quantity: number;
+  uom: string;
+  batchNumber?: string;        // Lot code when selected
+  licensePlate?: string;       // License plate code when selected
+  availableAmount?: number;    // For tracking purposes
+}
 ```
+
+### Real-Time Validation System (Updated August 2025)
+
+#### Multi-Level Validation Logic
+1. **Input Validation** (NEW):
+   - Material selection required before adding line items
+   - Quantity must be greater than 0 (prevents empty/zero quantity entries)
+   - Toast notifications provide clear error messaging for validation failures
+
+2. **Inventory Validation**:
+   - **Material Level**: Validates against total available inventory when no lot/license plate selected
+   - **Lot Level**: When lot selected, validates against lot-specific availability  
+   - **License Plate Level**: When license plate selected, validates against license plate-specific availability
+   - **Hierarchical Priority**: License Plate > Lot > Material (most specific takes precedence)
+   - **Dynamic Tracking**: Considers quantities already used in current order across all levels
+   - **Error Messages**: Specific messages for material vs lot vs license plate validation
+
+#### Inventory Tracking Patterns
+```typescript
+// Calculate remaining quantity considering current order usage
+const getRemainingQuantity = (materialCode: string, totalAvailable: number): number => {
+  const usedQuantity = formData.lineItems
+    .filter(item => item.materialCode === materialCode)
+    .reduce((sum, item) => sum + item.quantity, 0);
+  return Math.max(0, totalAvailable - usedQuantity);
+};
+
+// License plate-specific validation (NEW)
+const usedFromLicensePlate = formData.lineItems
+  .filter(item => item.materialCode === materialCode && item.licensePlate === licensePlateCode)
+  .reduce((sum, item) => sum + item.quantity, 0);
+
+// Lot-specific validation
+const usedFromLot = formData.lineItems
+  .filter(item => item.materialCode === materialCode && item.batchNumber === lotCode)
+  .reduce((sum, item) => sum + item.quantity, 0);
+```
+
+### UI/UX Implementation Patterns
+
+#### Professional Form Layout (Updated August 2025)
+**Field Order**: Material → Lot (Optional) → License Plate (Optional) → Quantity → UOM → Add Button
+- **Grid System**: 10-column responsive grid (`md:grid-cols-10`) for optimal spacing
+- **Column Distribution**: Material (3), Lot (2), License Plate (2), Quantity (1), UOM (1), Add Button (1)
+- **Compact Add Button**: Circular icon button (`rounded-full`) instead of full-width button
+- **Consistent Spacing**: `gap-3` for optimal field spacing
+- **Enhanced Readability**: Expanded fields prevent truncation of material descriptions and license plate codes
+
+#### Single-Line Display Optimization
+**Selected Item Display**: Compact format to fit field widths
+```typescript
+// Material selection display (18-character truncation)
+MAT-001 • Steel pipe for c... • 1,500 EACH
+
+// Lot selection display (no "Available:" prefix)
+LOT001 • 500 EACH
+
+// License Plate selection display (NEW)
+LP: LICENSE123 • 250 EACH
+```
+
+#### Toast Notification System (NEW - August 2025)
+**Comprehensive Input Validation**:
+```typescript
+// Material validation toast
+toast({
+  variant: "destructive",
+  title: "Material Required",
+  description: "Please select a material before adding to the order.",
+});
+
+// Quantity validation toast
+toast({
+  variant: "destructive", 
+  title: "Quantity Required",
+  description: "Please enter a valid quantity greater than 0.",
+});
+
+// Inventory validation toasts
+toast({
+  variant: "destructive",
+  title: "Insufficient License Plate Inventory",
+  description: `Only ${remainingQty.toLocaleString()} ${uom} remaining in license plate ${licensePlateCode}`,
+});
+```
+
+#### Number Formatting Standards
+- **All Quantities**: Use `.toLocaleString()` for thousands separators
+- **Consistent Application**: Dropdowns, selected displays, badges, validation messages
+- **Professional Appearance**: `10,000 EACH` instead of `10000 EACH`
+
+#### Dynamic Visual Feedback
+- **Used Quantities**: Orange text `(500 used)` in dropdown options
+- **Real-Time Updates**: Available amounts update as materials are added
+- **Toast Notifications**: Professional success/error messages using `useToast()`
+
+### Form Workflow Architecture
+
+#### 3-Step Progressive Validation
+1. **Order Information**: Type, project, addresses, shipping details with Google Places integration
+2. **Material Selection**: Real-time inventory management with hierarchical lot/license plate options
+3. **Review & Submit**: Final confirmation with all details formatted
+
+#### Step Validation Logic
+```typescript
+const isStep1Valid = () => {
+  const isRecipientAddressValid = formData.recipientAddress.line1 && 
+                                 formData.recipientAddress.city && 
+                                 formData.recipientAddress.state && 
+                                 formData.recipientAddress.zipCode;
+  const isBillingAddressValid = formData.billingAddress.line1 && 
+                               formData.billingAddress.city && 
+                               formData.billingAddress.state && 
+                               formData.billingAddress.zipCode;
+  return !!(formData.orderType && formData.projectId && 
+           formData.recipientName && isRecipientAddressValid &&
+           formData.billingAccountName && isBillingAddressValid &&
+           formData.carrierId && formData.carrierServiceTypeId);
+};
+
+const isStep2Valid = () => {
+  return formData.lineItems.length > 0;
+};
+
+const canGoToStep = (step: number) => {
+  if (step === 1) return true;
+  if (step === 2) return isStep1Valid();
+  if (step === 3) return isStep1Valid() && isStep2Valid();
+  return false;
+};
+```
+
+#### Header Integration Pattern
+```typescript
+// Step indicator in center header position
+const { setCenterContent } = useHeaderControls();
+
+useEffect(() => {
+  setCenterContent(
+    <OrderStepIndicator 
+      currentStep={currentStep}
+      canGoToStep={canGoToStep}
+      onStepClick={handleStepClick}
+    />
+  );
+  return () => setCenterContent(null); // Cleanup
+}, [currentStep, formData]);
+```
+
+### Owner ID Security Integration
+**All inventory queries filtered by `owner_id`** ensuring client data isolation:
+```typescript
+// Server action with mandatory owner filtering
+export async function getOutboundInventory(ownerId: number, projectId?: string) {
+  const query = `
+    SELECT ... FROM wms_licenseplatecontents lpc
+    ... WHERE o.id = $1 AND lpc.amount > 0
+  `;
+  return await db.query(query, [ownerId]);
+}
+
+// Hook usage with client authentication
+const { ownerId } = useClientInfo();
+const { inventory } = useOutboundInventory(ownerId, projectId);
+```
+
+### Database Query Optimization
+- **Grouped Aggregation**: `GROUP BY` with `SUM()` for material-level totals
+- **Owner Filtering**: Automatic `WHERE owner_id = $1` for all client queries
+- **Project Scoping**: Optional project filtering for multi-project clients
+- **Status Filtering**: Only active inventory (`statusid = 1`, `archived = false`)
+
+## Development Guidelines
+
+### Critical Notes
+- **TypeScript errors ignored in builds** (`ignoreBuildErrors: true`)
+- **Development server runs on port 9002** (not 3000)
+- **Firebase Studio compatibility** - Reliable3PL project
+- **AI Performance**: Schema caching, reduced tokens, efficient conversation handling
+- **Code Language**: All code must be in English
+- **Testing Required**: All AI features need real integration tests
+
+### Configuration Notes
+
+#### Pricing Configuration (Updated August 2025)
+- **Professional Plan**: $30/month (updated from $29/month)
+- Located in: `src/components/landing/pricing.tsx`
 
 ### Integration Points
 - **Firebase Auth** → Firestore profiles → Role-based routing
@@ -589,388 +821,7 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key  # NEW: Required for ad
 - **OpenAI API** → Server actions → Client components
 - **shadcn/ui** → Custom styling → Consistent design
 
-## Configuration Notes
-
-### Pricing Configuration (Updated August 2025)
-- **Professional Plan**: $30/month (updated from $29/month)
-- Located in: `src/components/landing/pricing.tsx`
-
-## Order Management System (Added August 2025)
-
-**Create Orders Feature**: Complete order creation system with intelligent material selection and real-time inventory validation.
-
-### Order Creation Architecture
-
-#### Two-Mode Operation
-- **Outbound Orders**: Sales orders with real-time PostgreSQL inventory validation
-- **Inbound Orders**: Purchase orders with manual material entry (no inventory constraints)
-
-#### Smart Material Selection System
-**Key Files**:
-- `src/app/actions.ts`: `getOutboundInventory()`, `getLotsForMaterial()`, `getLicensePlatesForMaterial()` server actions
-- `src/hooks/use-outbound-inventory.ts`: Material inventory data with dynamic updates
-- `src/hooks/use-material-lots.ts`: Lot-specific inventory data
-- `src/hooks/use-license-plates.ts`: License plate-specific inventory data
-- `src/components/dashboard/create-order-form.tsx`: Complete order creation form
-
-**Hierarchical Material Selection Flow**:
-1. **Material Dropdown**: Shows available materials with total quantities (2 columns)
-2. **Lot Selection**: Conditional dropdown (outbound) filtered by selected material (1 column)
-3. **License Plate Selection**: Conditional dropdown (outbound) filtered by material + lot (1 column)
-4. **Quantity Input**: Starts blank, validates against most specific selection (1 column)
-5. **UOM Field**: Auto-populated from material/lot/license plate data (1 column)
-6. **Add Button**: Right-aligned in 7th column for clean layout
-7. **Hierarchical Validation**: License Plate > Lot > Material (most specific takes precedence)
-8. **Dynamic Updates**: All displays update as items are added/removed
-
-#### Data Structures
-```typescript
-// Outbound inventory (materials aggregated across lots)
-interface OutboundInventoryItem {
-  material_code: string;
-  material_description: string;
-  total_available_amount: number;
-  uom: string;
-}
-
-// Lot-specific inventory (when lot is selected)
-interface MaterialLot {
-  lot_code: string;
-  total_available_amount: number;
-  uom: string;
-}
-
-// License plate-specific inventory (when license plate is selected)
-interface LicensePlate {
-  license_plate_code: string;
-  total_available_amount: number;
-  uom: string;
-}
-
-// Order line items
-interface LineItem {
-  materialCode: string;
-  materialName: string;
-  quantity: number;
-  uom: string;
-  batchNumber?: string;        // Lot code when selected
-  licensePlate?: string;       // License plate code when selected
-  availableAmount?: number;    // For tracking purposes
-}
-```
-
-### Real-Time Validation System
-
-#### Multi-Level Validation Logic
-1. **Material Level**: Validates against total material inventory when no lot selected
-2. **Lot Level**: When lot selected, validates against specific lot availability  
-3. **Dynamic Tracking**: Considers quantities already used in current order
-4. **Granular Feedback**: Specific error messages for material vs lot validation
-
-#### Inventory Tracking Patterns
-```typescript
-// Calculate remaining quantity considering current order usage
-const getRemainingQuantity = (materialCode: string, totalAvailable: number): number => {
-  const usedQuantity = formData.lineItems
-    .filter(item => item.materialCode === materialCode)
-    .reduce((sum, item) => sum + item.quantity, 0);
-  return Math.max(0, totalAvailable - usedQuantity);
-};
-
-// Lot-specific validation
-const usedFromLot = formData.lineItems
-  .filter(item => item.materialCode === materialCode && item.batchNumber === lotCode)
-  .reduce((sum, item) => sum + item.quantity, 0);
-```
-
-### UI/UX Implementation Patterns
-
-#### Professional Form Layout
-**Field Order**: Material → Lot (Optional) → Quantity → UOM + Add Button
-- **Grid System**: `grid-cols-6` with responsive column spans
-- **Compact Add Button**: Circular icon button (`rounded-full`) instead of full-width button
-- **Consistent Spacing**: `gap-3` for optimal field spacing
-
-#### Single-Line Display Optimization
-**Selected Item Display**: Compact format to fit field widths
-```typescript
-// Material selection display (18-character truncation)
-MAT-001 • Steel pipe for c... • 1,500 EACH
-
-// Lot selection display (no "Available:" prefix)
-LOT001 • 500 EACH
-```
-
-#### Number Formatting Standards
-- **All Quantities**: Use `.toLocaleString()` for thousands separators
-- **Consistent Application**: Dropdowns, selected displays, badges, validation messages
-- **Professional Appearance**: `10,000 EACH` instead of `10000 EACH`
-
-#### Dynamic Visual Feedback
-- **Used Quantities**: Orange text `(500 used)` in dropdown options
-- **Real-Time Updates**: Available amounts update as materials are added
-- **Toast Notifications**: Professional success/error messages using `useToast()`
-
-### Form Workflow Architecture
-
-#### 3-Step Progressive Validation
-1. **Order Information**: Type, project, addresses, shipping details with Google Places integration
-2. **Material Selection**: Real-time inventory management with lot-specific options
-3. **Review & Submit**: Final confirmation with all details formatted
-
-#### Step Validation Logic
-```typescript
-const isStep1Valid = () => {
-  const isRecipientAddressValid = formData.recipientAddress.line1 && 
-                                 formData.recipientAddress.city && 
-                                 formData.recipientAddress.state && 
-                                 formData.recipientAddress.zipCode;
-  // ... additional validations
-};
-
-const isStep2Valid = () => {
-  return formData.lineItems.length > 0;
-};
-
-const canGoToStep = (step: number) => {
-  if (step === 1) return true;
-  if (step === 2) return isStep1Valid();
-  if (step === 3) return isStep1Valid() && isStep2Valid();
-  return false;
-};
-```
-
-#### Header Integration Pattern
-```typescript
-// Step indicator in center header position
-const { setCenterContent } = useHeaderControls();
-
-useEffect(() => {
-  setCenterContent(
-    <OrderStepIndicator 
-      currentStep={currentStep}
-      canGoToStep={canGoToStep}
-      onStepClick={handleStepClick}
-    />
-  );
-  return () => setCenterContent(null); // Cleanup
-}, [currentStep, formData]);
-```
-
-### Owner ID Security Integration
-**All inventory queries filtered by `owner_id`** ensuring client data isolation:
-```typescript
-// Server action with mandatory owner filtering
-export async function getOutboundInventory(ownerId: number, projectId?: string) {
-  const query = `
-    SELECT ... FROM wms_licenseplatecontents lpc
-    ... WHERE o.id = $1 AND lpc.amount > 0
-  `;
-  return await db.query(query, [ownerId]);
-}
-
-// Hook usage with client authentication
-const { ownerId } = useClientInfo();
-const { inventory } = useOutboundInventory(ownerId, projectId);
-```
-
-### Database Query Optimization
-- **Grouped Aggregation**: `GROUP BY` with `SUM()` for material-level totals
-- **Owner Filtering**: Automatic `WHERE owner_id = $1` for all client queries
-- **Project Scoping**: Optional project filtering for multi-project clients
-- **Status Filtering**: Only active inventory (`statusid = 1`, `archived = false`)
-
 ### Current System Status
 - **Production Ready**: Authentication, AI assistant, dashboard views, dark mode, order creation with inventory
-- **Recently Added**: Real-time inventory validation, lot-specific selection, dynamic quantity tracking
-- **Testing**: 33 AI test cases with dynamic date handling, real API integration
-
-## Order Management System (Added August 2025)
-
-**Create Orders Feature**: Complete order creation system with intelligent material selection and real-time inventory validation.
-
-### Order Creation Architecture
-
-#### Two-Mode Operation
-- **Outbound Orders**: Sales orders with real-time PostgreSQL inventory validation
-- **Inbound Orders**: Purchase orders with manual material entry (no inventory constraints)
-
-#### Smart Material Selection System
-**Key Files**:
-- `src/app/actions.ts`: `getOutboundInventory()`, `getLotsForMaterial()`, `getLicensePlatesForMaterial()` server actions
-- `src/hooks/use-outbound-inventory.ts`: Material inventory data with dynamic updates
-- `src/hooks/use-material-lots.ts`: Lot-specific inventory data
-- `src/hooks/use-license-plates.ts`: License plate-specific inventory data
-- `src/components/dashboard/create-order-form.tsx`: Complete order creation form
-
-**Hierarchical Material Selection Flow**:
-1. **Material Dropdown**: Shows available materials with total quantities (2 columns)
-2. **Lot Selection**: Conditional dropdown (outbound) filtered by selected material (1 column)
-3. **License Plate Selection**: Conditional dropdown (outbound) filtered by material + lot (1 column)
-4. **Quantity Input**: Starts blank, validates against most specific selection (1 column)
-5. **UOM Field**: Auto-populated from material/lot/license plate data (1 column)
-6. **Add Button**: Right-aligned in 7th column for clean layout
-7. **Hierarchical Validation**: License Plate > Lot > Material (most specific takes precedence)
-8. **Dynamic Updates**: All displays update as items are added/removed
-
-#### Data Structures
-```typescript
-// Outbound inventory (materials aggregated across lots)
-interface OutboundInventoryItem {
-  material_code: string;
-  material_description: string;
-  total_available_amount: number;
-  uom: string;
-}
-
-// Lot-specific inventory (when lot is selected)
-interface MaterialLot {
-  lot_code: string;
-  total_available_amount: number;
-  uom: string;
-}
-
-// License plate-specific inventory (when license plate is selected)
-interface LicensePlate {
-  license_plate_code: string;
-  total_available_amount: number;
-  uom: string;
-}
-
-// Order line items
-interface LineItem {
-  materialCode: string;
-  materialName: string;
-  quantity: number;
-  uom: string;
-  batchNumber?: string;        // Lot code when selected
-  licensePlate?: string;       // License plate code when selected
-  availableAmount?: number;    // For tracking purposes
-}
-```
-
-### Real-Time Validation System
-
-#### Multi-Level Validation Logic
-1. **Material Level**: Validates against total material inventory when no lot selected
-2. **Lot Level**: When lot selected, validates against specific lot availability  
-3. **Dynamic Tracking**: Considers quantities already used in current order
-4. **Granular Feedback**: Specific error messages for material vs lot validation
-
-#### Inventory Tracking Patterns
-```typescript
-// Calculate remaining quantity considering current order usage
-const getRemainingQuantity = (materialCode: string, totalAvailable: number): number => {
-  const usedQuantity = formData.lineItems
-    .filter(item => item.materialCode === materialCode)
-    .reduce((sum, item) => sum + item.quantity, 0);
-  return Math.max(0, totalAvailable - usedQuantity);
-};
-
-// Lot-specific validation
-const usedFromLot = formData.lineItems
-  .filter(item => item.materialCode === materialCode && item.batchNumber === lotCode)
-  .reduce((sum, item) => sum + item.quantity, 0);
-```
-
-### UI/UX Implementation Patterns
-
-#### Professional Form Layout
-**Field Order**: Material → Lot (Optional) → Quantity → UOM + Add Button
-- **Grid System**: `grid-cols-6` with responsive column spans
-- **Compact Add Button**: Circular icon button (`rounded-full`) instead of full-width button
-- **Consistent Spacing**: `gap-3` for optimal field spacing
-
-#### Single-Line Display Optimization
-**Selected Item Display**: Compact format to fit field widths
-```typescript
-// Material selection display (18-character truncation)
-MAT-001 • Steel pipe for c... • 1,500 EACH
-
-// Lot selection display (no "Available:" prefix)
-LOT001 • 500 EACH
-```
-
-#### Number Formatting Standards
-- **All Quantities**: Use `.toLocaleString()` for thousands separators
-- **Consistent Application**: Dropdowns, selected displays, badges, validation messages
-- **Professional Appearance**: `10,000 EACH` instead of `10000 EACH`
-
-#### Dynamic Visual Feedback
-- **Used Quantities**: Orange text `(500 used)` in dropdown options
-- **Real-Time Updates**: Available amounts update as materials are added
-- **Toast Notifications**: Professional success/error messages using `useToast()`
-
-### Form Workflow Architecture
-
-#### 3-Step Progressive Validation
-1. **Order Information**: Type, project, addresses, shipping details with Google Places integration
-2. **Material Selection**: Real-time inventory management with lot-specific options
-3. **Review & Submit**: Final confirmation with all details formatted
-
-#### Step Validation Logic
-```typescript
-const isStep1Valid = () => {
-  const isRecipientAddressValid = formData.recipientAddress.line1 && 
-                                 formData.recipientAddress.city && 
-                                 formData.recipientAddress.state && 
-                                 formData.recipientAddress.zipCode;
-  // ... additional validations
-};
-
-const isStep2Valid = () => {
-  return formData.lineItems.length > 0;
-};
-
-const canGoToStep = (step: number) => {
-  if (step === 1) return true;
-  if (step === 2) return isStep1Valid();
-  if (step === 3) return isStep1Valid() && isStep2Valid();
-  return false;
-};
-```
-
-#### Header Integration Pattern
-```typescript
-// Step indicator in center header position
-const { setCenterContent } = useHeaderControls();
-
-useEffect(() => {
-  setCenterContent(
-    <OrderStepIndicator 
-      currentStep={currentStep}
-      canGoToStep={canGoToStep}
-      onStepClick={handleStepClick}
-    />
-  );
-  return () => setCenterContent(null); // Cleanup
-}, [currentStep, formData]);
-```
-
-### Owner ID Security Integration
-**All inventory queries filtered by `owner_id`** ensuring client data isolation:
-```typescript
-// Server action with mandatory owner filtering
-export async function getOutboundInventory(ownerId: number, projectId?: string) {
-  const query = `
-    SELECT ... FROM wms_licenseplatecontents lpc
-    ... WHERE o.id = $1 AND lpc.amount > 0
-  `;
-  return await db.query(query, [ownerId]);
-}
-
-// Hook usage with client authentication
-const { ownerId } = useClientInfo();
-const { inventory } = useOutboundInventory(ownerId, projectId);
-```
-
-### Database Query Optimization
-- **Grouped Aggregation**: `GROUP BY` with `SUM()` for material-level totals
-- **Owner Filtering**: Automatic `WHERE owner_id = $1` for all client queries
-- **Project Scoping**: Optional project filtering for multi-project clients
-- **Status Filtering**: Only active inventory (`statusid = 1`, `archived = false`)
-
-### Current System Status
-- **Production Ready**: Authentication, AI assistant, dashboard views, dark mode, order creation with inventory
-- **Recently Added**: Real-time inventory validation, lot-specific selection, dynamic quantity tracking
+- **Recently Added**: Real-time inventory validation, hierarchical lot/license plate selection, dynamic quantity tracking, input validation with toast notifications, expanded grid layout
 - **Testing**: 33 AI test cases with dynamic date handling, real API integration
