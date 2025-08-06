@@ -554,43 +554,6 @@ LP: LICENSE123 • 250 EACH
 
 **Step Validation**: Progressive validation prevents invalid state transitions
 
-## Environment Variables
-
-```bash
-POSTGRES_URL=postgresql://...              # Required for database connection
-OPENAI_API_KEY=your_api_key               # Required for AI assistant
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_key  # Required for address autocomplete
-```
-
-## Configuration Notes
-
-- TypeScript and ESLint errors are ignored in builds (`ignoreBuildErrors: true`)
-- Development server uses port 9002 instead of default 3000
-- Firebase project ID: "synapse3pl" (hardcoded for compatibility)
-- SSL configuration for PostgreSQL: `rejectUnauthorized: false`
-
-## Pricing Configuration (Updated August 2025)
-
-- **Professional Plan**: $30/month (updated from $29/month)
-- Located in: `src/components/landing/pricing.tsx`
-
-## Dark Mode Implementation (Added August 2025)
-
-**Full Dark Mode Support**: Complete light/dark theme switching for dashboard areas (excludes landing page as requested).
-
-### Architecture
-- **Theme Provider**: `src/context/theme-context.tsx` - React context with localStorage persistence
-- **Toggle Location**: Avatar dropdown menu (replaced "Settings" option)
-- **CSS Variables**: Pre-configured in `globals.css` with complete light/dark variable sets
-- **Tailwind Config**: `darkMode: ['class']` with CSS variable-based color system
-
-### Usage Pattern
-```typescript
-const { theme, toggleTheme } = useTheme();
-// Components automatically adapt via CSS variables
-// Hardcoded colors use: className="bg-blue-100 dark:bg-blue-900/30"
-```
-
 ## Recent Enhancements (August 2025)
 
 ### Name Field Restructuring (CRITICAL UPDATE)
@@ -732,6 +695,43 @@ const isAddressValid = (address: AddressData) => {
 - `alter_portal_orders_names.sql`: Database migration script for new name columns
 - `.github/copilot-instructions.md`: Updated with enhancement documentation
 - `CLAUDE.md`: This file - comprehensive documentation update
+
+## Environment Variables
+
+```bash
+POSTGRES_URL=postgresql://...              # Required for database connection
+OPENAI_API_KEY=your_api_key               # Required for AI assistant
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_key  # Required for address autocomplete
+```
+
+## Configuration Notes
+
+- TypeScript and ESLint errors are ignored in builds (`ignoreBuildErrors: true`)
+- Development server uses port 9002 instead of default 3000
+- Firebase project ID: "synapse3pl" (hardcoded for compatibility)
+- SSL configuration for PostgreSQL: `rejectUnauthorized: false`
+
+## Pricing Configuration (Updated August 2025)
+
+- **Professional Plan**: $30/month (updated from $29/month)
+- Located in: `src/components/landing/pricing.tsx`
+
+## Dark Mode Implementation (Added August 2025)
+
+**Full Dark Mode Support**: Complete light/dark theme switching for dashboard areas (excludes landing page as requested).
+
+### Architecture
+- **Theme Provider**: `src/context/theme-context.tsx` - React context with localStorage persistence
+- **Toggle Location**: Avatar dropdown menu (replaced "Settings" option)
+- **CSS Variables**: Pre-configured in `globals.css` with complete light/dark variable sets
+- **Tailwind Config**: `darkMode: ['class']` with CSS variable-based color system
+
+### Usage Pattern
+```typescript
+const { theme, toggleTheme } = useTheme();
+// Components automatically adapt via CSS variables
+// Hardcoded colors use: className="bg-blue-100 dark:bg-blue-900/30"
+```
 
 ## Code Standards
 
