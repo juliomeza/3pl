@@ -480,7 +480,29 @@ useEffect(() => {
 - **Field Structure**: Line 1 (autocomplete), Line 2 (manual), City, State, ZIP (auto-populated)
 - **Multiple Instance Support**: Independent recipient and billing address components
 
-### Critical Technical Patterns
+### Critical Technical Patterns (Updated August 2025)
+
+#### Google Places Name Preservation (CRITICAL)
+```typescript
+// Problem: Google Places resets entire address object, losing manually entered names
+// Solution: Use useRef to preserve name values before Google Places executes
+const savedValuesRef = useRef<AddressData>(value);
+
+// Always keep latest values in ref
+useEffect(() => {
+  savedValuesRef.current = value;
+}, [value]);
+
+// Use saved values instead of potentially reset value prop
+const newAddress: AddressData = {
+  title: savedValues.title || '', // Preserved from ref
+  firstName: savedValues.firstName || '', // Preserved from ref
+  lastName: savedValues.lastName || '', // Preserved from ref
+  companyName: savedValues.companyName || '', // Preserved from ref
+  line1: `${streetNumber} ${route}`.trim(), // From Google Places
+  city, state, zipCode, country // From Google Places
+};
+```
 
 #### useEffect Dependency Management (CRITICAL)
 ```typescript

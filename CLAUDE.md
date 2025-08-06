@@ -389,18 +389,24 @@ const isAddressValid = (address: AddressData) => {
 - **Outbound Orders**: Sales orders with real-time inventory validation
 - **Inbound Orders**: Purchase orders with manual material entry
 
-### Database Tables
-**`portal_orders`**: Main order header information
-- Order identification: `order_number`, `reference_number`, `order_date`
+### Database Tables (Updated August 2025)
+**`portal_orders`**: Main order header information with structured name fields
+- Order identification: `order_number`, `reference_number` (replaces `shipment_number`), `order_date`
 - Order classification: `order_type` ('inbound'|'outbound'), `status` ('draft'|'submitted'|'created')
 - Client/Project info: `owner_id`, `owner_lookupcode`, `project_id`, `project_lookupcode`
-- Address info: Recipient and billing addresses with separate fields
+- **Structured Name Fields**: 
+  - Recipient: `recipient_title`, `recipient_first_name`, `recipient_last_name`, `recipient_company_name`
+  - Billing: `billing_title`, `billing_first_name`, `billing_last_name`, `billing_company_name`
+  - Legacy: `recipient_name`, `account_name` (maintained for backward compatibility)
+- Address info: `addr1`, `addr2`, `city`, `state`, `zip`, `country` (2-letter codes)
 - Carrier info: `carrier`, `service_type` (names), `carrier_id`, `service_type_id` (IDs)
 - Audit fields: `created_by`, `updated_by` (user display names), timestamps
 
-**`portal_order_lines`**: Material line items for each order
+**`portal_order_lines`**: Material line items with UOM optimization
 - Foreign key: `order_id` references `portal_orders.id`
 - Material info: `material_code`, `material_description`, `quantity`, `uom`
+- **UOM Storage**: Saves `shortname` from `wms_inventorymeasurementunits` for external system compatibility
+- **Display vs Storage**: UI shows full UOM name (e.g. "Each"), database stores short name (e.g. "EA")
 - Traceability: `lot`, `license_plate`, `serial_number`, `batch_number`
 - Auto line numbering with `line_number` field
 
@@ -584,6 +590,148 @@ const { theme, toggleTheme } = useTheme();
 // Components automatically adapt via CSS variables
 // Hardcoded colors use: className="bg-blue-100 dark:bg-blue-900/30"
 ```
+
+## Recent Enhancements (August 2025)
+
+### Name Field Restructuring (CRITICAL UPDATE)
+**Complete Migration from Single to Structured Name Fields**: Replaced single name fields with professional structured format for both recipient and billing information.
+
+#### Database Schema Updates
+**New Columns Added** (`alter_portal_orders_names.sql`):
+- **Recipient Fields**: `recipient_title`, `recipient_first_name`, `recipient_last_name`, `recipient_company_name`
+- **Billing Fields**: `billing_title`, `billing_first_name`, `billing_last_name`, `billing_company_name`
+- **Backward Compatibility**: Original `recipient_name` and `account_name` fields preserved with `buildFullName()` helper
+
+#### Address Data Interface Enhancement
+```typescript
+interface AddressData {
+  title: string;           // NEW: Mr, Mrs, Ms, Dr, etc.
+  firstName: string;       // NEW: First name
+  lastName: string;        // NEW: Last name  
+  companyName: string;     // NEW: Company name (optional)
+  line1: string;          // Street address (Google Places)
+  line2: string;          // Apt/Suite (manual entry)
+  city: string;           // City (Google Places)
+  state: string;          // State (Google Places) 
+  zipCode: string;        // ZIP code (Google Places)
+  country: string;        // Country (Google Places)
+}
+```
+
+#### Google Places Name Preservation (CRITICAL FIX)
+**Problem Solved**: Google Places was clearing manually entered name fields when address selected.
+**Solution**: `useRef` pattern to preserve name values before Google Places execution.
+
+```typescript
+// Critical implementation pattern
+const savedValuesRef = useRef<AddressData>(value);
+
+useEffect(() => {
+  savedValuesRef.current = value;
+}, [value]);
+
+const handlePlaceChanged = () => {
+  const place = autocomplete.getPlace();
+  if (place.address_components) {
+    const savedValues = savedValuesRef.current; // Preserve names
+    const newAddress: AddressData = {
+      title: savedValues.title || '',           // Preserved
+      firstName: savedValues.firstName || '',   // Preserved  
+      lastName: savedValues.lastName || '',     // Preserved
+      companyName: savedValues.companyName || '', // Preserved
+      line1: `${streetNumber} ${route}`.trim(), // From Google Places
+      city, state, zipCode, country             // From Google Places
+    };
+    onChange(newAddress);
+  }
+};
+```
+
+#### Form Layout Enhancement
+**4-Field Grid System**: Professional name entry with responsive layout
+```typescript
+// Updated grid layout in AddressInput component
+<div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+  <Select value={value.title || ''} onValueChange={(val) => updateField('title', val)}>
+    {/* Title dropdown */}
+  </Select>
+  <Input placeholder="First Name" value={value.firstName || ''} 
+         onChange={(e) => updateField('firstName', e.target.value)} />
+  <Input placeholder="Last Name" value={value.lastName || ''} 
+         onChange={(e) => updateField('lastName', e.target.value)} />
+  <Input placeholder="Company (Optional)" value={value.companyName || ''} 
+         onChange={(e) => updateField('companyName', e.target.value)} />
+</div>
+```
+
+### Controlled Input Pattern Fix
+**React Warning Resolution**: Fixed "controlled/uncontrolled input" warnings by ensuring all input values have `|| ''` fallbacks.
+
+```typescript
+// Fixed pattern applied throughout forms
+<Input value={value.firstName || ''} /> // ✅ Always controlled
+// Instead of:
+<Input value={value.firstName} />       // ❌ Can be undefined
+```
+
+### Database Integration Improvements
+
+#### UOM Optimization (Dual Storage/Display)
+**Enhanced UOM Handling**: Save `shortname` for external systems while displaying full `name` to users.
+```typescript
+// Server action query enhancement
+SELECT imu.name AS uom, imu.shortname AS uom_short
+FROM wms_inventorymeasurementunits imu
+
+// Usage in line items
+uom: item.uomShort || item.uom  // Prioritize short name for storage
+```
+
+#### Reference Number Field Update  
+**Field Rename**: Changed "Shipment Number" to "Reference Number (PO Number)" throughout system
+- **UI Label**: Updated form label and validation
+- **Database**: Updated queries to use `reference_number` column instead of `shipment_number`
+- **Backward Compatibility**: Database accepts both field names
+
+#### Country Code Standardization
+**External System Compatibility**: Updated to use 2-letter country codes (e.g., "US") instead of full names ("United States")
+```typescript
+// Address data standardization
+country: 'US' // Instead of 'United States'
+```
+
+### Form Validation Enhancements
+
+#### Progressive Validation Logic
+```typescript
+const isStep1Valid = () => {
+  const isRecipientAddressValid = isAddressValid(formData.recipientAddress);
+  const isBillingAddressValid = isAddressValid(formData.billingAddress);
+  
+  return !!(
+    formData.orderType && 
+    formData.projectId && 
+    // Name validation now handled by structured fields
+    formData.recipientAddress.firstName && formData.recipientAddress.lastName &&
+    isRecipientAddressValid &&
+    formData.billingAddress.firstName && formData.billingAddress.lastName &&
+    isBillingAddressValid &&
+    formData.carrierId && 
+    formData.carrierServiceTypeId
+  );
+};
+
+const isAddressValid = (address: AddressData) => {
+  return !!(address.line1 && address.city && address.state && address.zipCode);
+};
+```
+
+### Files Modified in This Enhancement
+- `src/components/dashboard/create-order-form.tsx`: Complete name field restructuring and Google Places fix
+- `src/app/actions.ts`: Database schema updates, UOM optimization, `buildFullName()` helper
+- `alter_portal_orders_names.sql`: Database migration script for new name columns
+- `.github/copilot-instructions.md`: Updated with enhancement documentation
+- `CLAUDE.md`: This file - comprehensive documentation update
 
 ## Code Standards
 
