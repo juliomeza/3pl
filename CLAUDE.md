@@ -66,7 +66,7 @@ src/lib/
 - `logistics_*` tables: AI query data and analytics
 - `operations_*` tables: Real-time dashboard data
 - `wms_*` tables: Warehouse management system data
-- `portal_*` tables: Order management data
+- `portal_*` tables: Order management system (orders and line items)
 
 **Security Model**: All client queries automatically filtered by `owner_id` for data isolation. Employee queries have full access.
 
@@ -382,19 +382,62 @@ const isAddressValid = (address: AddressData) => {
 
 ## Order Management System (Added August 2025)
 
-**Create Orders Feature**: Complete order creation workflow with material selection and inventory management.
+**Create Orders Feature**: Complete order creation workflow with material selection, inventory management, and PostgreSQL persistence.
 
-### Order Types
+### Order Types & Database Schema
 - **Outbound Orders**: Sales orders with real-time inventory validation
 - **Inbound Orders**: Purchase orders with manual material entry
+
+### Database Tables
+**`portal_orders`**: Main order header information
+- Order identification: `order_number`, `reference_number`, `order_date`
+- Order classification: `order_type` ('inbound'|'outbound'), `status` ('draft'|'submitted'|'created')
+- Client/Project info: `owner_id`, `owner_lookupcode`, `project_id`, `project_lookupcode`
+- Address info: Recipient and billing addresses with separate fields
+- Carrier info: `carrier`, `service_type` (names), `carrier_id`, `service_type_id` (IDs)
+- Audit fields: `created_by`, `updated_by` (user display names), timestamps
+
+**`portal_order_lines`**: Material line items for each order
+- Foreign key: `order_id` references `portal_orders.id`
+- Material info: `material_code`, `material_description`, `quantity`, `uom`
+- Traceability: `lot`, `license_plate`, `serial_number`, `batch_number`
+- Auto line numbering with `line_number` field
+
+### Order Number Generation
+- **Outbound orders**: `OUT-{ownerId}-0001`, `OUT-{ownerId}-0002`, etc.
+- **Inbound orders**: `IN-{ownerId}-0001`, `IN-{ownerId}-0002`, etc.
+- Auto-generated if not provided, incremented per owner
+
+### Order Status Workflow
+- **'draft'**: Saved but editable, not processed by external systems
+- **'submitted'**: Ready for external system processing (CSV/JSON export)
+- **'created'**: Processed by external system, no longer appears in export
+
+### Save vs Submit Logic
+- **"Save as Draft"**: Creates new order OR updates existing with status='draft'
+- **"Submit Order"**: Updates existing draft to status='submitted' OR creates new submitted order
+- Form tracks `orderData.id` to determine CREATE vs UPDATE operation
+- Prevents duplicate orders when user saves then submits
+
+### Server Actions for Order Management
+**Key Files**:
+- `src/app/actions.ts`: `saveOrder()` - Handles CREATE/UPDATE logic for orders and line items
+- `src/app/actions.ts`: `getOutboundInventory()` - Grouped inventory by material with owner filtering
+- `src/hooks/use-outbound-inventory.ts`: Hook for inventory data with dynamic updates
+- `src/components/dashboard/create-order-form.tsx`: Material selection UI with validation
+
+### Order Persistence Logic
+**`saveOrder()` Function**:
+- Parameters: `orderData`, `lineItems`, `ownerId`, `status`, `userName`
+- Automatic lookup of `owner_lookupcode`, `project_lookupcode`, `carrier` name, `service_type` name
+- Uses `orderData.id` to determine CREATE vs UPDATE
+- UPDATE: Deletes existing line items, re-inserts new ones
+- CREATE: Generates order number, inserts header + line items
+- User tracking: `created_by` and `updated_by` use authenticated user's displayName/email
 
 ### Materials Selection Architecture
 
 #### Outbound Inventory System
-**Key Files**:
-- `src/app/actions.ts`: `getOutboundInventory()` - Grouped inventory by material with owner filtering
-- `src/hooks/use-outbound-inventory.ts`: Hook for inventory data with dynamic updates
-- `src/components/dashboard/create-order-form.tsx`: Material selection UI with validation
 
 **Data Structure**:
 ```typescript

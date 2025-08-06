@@ -28,9 +28,9 @@ npm run test:watch        # Watch mode
 
 **Environment Variables**:
 ```bash
-POSTGRES_URL=postgresql://...
-OPENAI_API_KEY=your_openai_api_key
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key  # Required for address autocomplete
+POSTGRES_URL=postgresql://...                              # PostgreSQL connection
+OPENAI_API_KEY=your_openai_api_key                        # OpenAI GPT-4o integration
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key  # Address autocomplete
 ```
 
 ## Code Standards
@@ -345,6 +345,44 @@ className="hover:bg-gray-100 dark:hover:bg-gray-800"
 - **Minimal Code Changes**: Most components work without modification
 - **Consistent Experience**: Unified theming across all dashboard areas
 - **Performance**: Client-side switching with no server round-trips
+
+## Order Management System (Added August 2025)
+
+**Complete Order Creation and Management**: Full-featured order system with PostgreSQL persistence, draft/submit workflow, and inventory integration.
+
+### Database Schema
+**Portal Tables**: New `portal_*` schema for order management
+- **`portal_orders`**: Order header (addresses, carrier, status, audit fields)
+- **`portal_order_lines`**: Material line items with traceability
+
+### Key Features
+- **Order Types**: Inbound (`IN-{ownerId}-0001`) vs Outbound (`OUT-{ownerId}-0002`) with automatic numbering
+- **Status Workflow**: `draft` → `submitted` → `created` (external system processing)
+- **Save/Submit Logic**: "Save as Draft" preserves editable state, "Submit Order" finalizes for export
+- **Inventory Integration**: Real-time validation against WMS inventory for outbound orders
+- **User Tracking**: `created_by`/`updated_by` fields capture authenticated user names (not 'system')
+
+### Server Actions
+```typescript
+// Primary order persistence function
+saveOrder(orderData, lineItems, ownerId, status, userName): Promise<{success, orderId, error}>
+
+// Behavior: CREATE new order OR UPDATE existing based on orderData.id
+// - Automatic lookup of owner_lookupcode, project_lookupcode, carrier names
+// - Line item management: DELETE old + INSERT new for updates
+// - Owner filtering for security: WHERE owner_id = ownerId
+```
+
+### Implementation Files
+- **Form**: `src/components/dashboard/create-order-form.tsx`
+- **Server Actions**: `src/app/actions.ts` (saveOrder function)
+- **Database Schema**: `portal_orders.sql`, `portal_order_lines.sql`
+- **Schema Updates**: `alter_portal_orders.sql` for existing tables
+
+### Address Integration
+- **Google Places API**: Professional address autocomplete with separate fields
+- **Address Structure**: line1, line2, city, state, zipCode, country
+- **Dual Addresses**: Recipient (ship to/from) and billing addresses
 
 ## Interactive Welcome Message System (Added August 2025)
 
