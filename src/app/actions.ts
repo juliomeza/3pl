@@ -541,6 +541,15 @@ export async function getOutboundInventory(ownerId: number, projectId?: string):
   }
 }
 
+// Helper function to build full name from address data
+function buildFullName(addressData: any): string {
+  const parts = [];
+  if (addressData.title) parts.push(addressData.title);
+  if (addressData.firstName) parts.push(addressData.firstName);
+  if (addressData.lastName) parts.push(addressData.lastName);
+  return parts.join(' ').trim();
+}
+
 // Save order as draft or submit order
 export async function saveOrder(
   orderData: any,
@@ -583,12 +592,13 @@ export async function saveOrder(
         UPDATE portal_orders SET
           order_type = $2, project_id = $3, project_lookupcode = $4, reference_number = $5,
           estimated_delivery_date = $6, recipient_name = $7,
-          addr1 = $8, addr2 = $9, city = $10, state = $11, zip = $12, country = $13,
-          account_name = $14, billing_addr1 = $15, billing_addr2 = $16,
-          billing_city = $17, billing_state = $18, billing_zip = $19, billing_country = $20,
-          carrier = $21, service_type = $22, carrier_id = $23, service_type_id = $24, 
-          status = $25, updated_by = $26, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $1 AND owner_id = $27
+          recipient_title = $8, recipient_first_name = $9, recipient_last_name = $10, recipient_company_name = $11,
+          addr1 = $12, addr2 = $13, city = $14, state = $15, zip = $16, country = $17,
+          account_name = $18, billing_title = $19, billing_first_name = $20, billing_last_name = $21, billing_company_name = $22,
+          billing_addr1 = $23, billing_addr2 = $24, billing_city = $25, billing_state = $26, billing_zip = $27, billing_country = $28,
+          carrier = $29, service_type = $30, carrier_id = $31, service_type_id = $32, 
+          status = $33, updated_by = $34, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $1 AND owner_id = $35
         RETURNING id
       `;
 
@@ -599,27 +609,35 @@ export async function saveOrder(
         lookupData.project_lookupcode || null, // $4
         orderData.referenceNumber || null, // $5
         orderData.estimatedDeliveryDate || null, // $6
-        orderData.recipientName, // $7
-        orderData.recipientAddress.line1, // $8
-        orderData.recipientAddress.line2 || null, // $9
-        orderData.recipientAddress.city, // $10
-        orderData.recipientAddress.state, // $11
-        orderData.recipientAddress.zipCode, // $12
-        orderData.recipientAddress.country || 'US', // $13
-        orderData.billingAccountName, // $14
-        orderData.billingAddress.line1, // $15
-        orderData.billingAddress.line2 || null, // $16
-        orderData.billingAddress.city, // $17
-        orderData.billingAddress.state, // $18
-        orderData.billingAddress.zipCode, // $19
-        orderData.billingAddress.country || 'US', // $20
-        lookupData.carrier_name || null, // $21
-        lookupData.service_type_name || null, // $22
-        orderData.carrierId, // $23
-        orderData.carrierServiceTypeId, // $24
-        status, // $25
-        userName, // $26
-        ownerId // $27
+        buildFullName(orderData.recipientAddress), // $7 (keep for backward compatibility)
+        orderData.recipientAddress.title || null, // $8
+        orderData.recipientAddress.firstName || null, // $9
+        orderData.recipientAddress.lastName || null, // $10
+        orderData.recipientAddress.companyName || null, // $11
+        orderData.recipientAddress.line1, // $12
+        orderData.recipientAddress.line2 || null, // $13
+        orderData.recipientAddress.city, // $14
+        orderData.recipientAddress.state, // $15
+        orderData.recipientAddress.zipCode, // $16
+        orderData.recipientAddress.country || 'US', // $17
+        buildFullName(orderData.billingAddress), // $18 (keep for backward compatibility)
+        orderData.billingAddress.title || null, // $19
+        orderData.billingAddress.firstName || null, // $20
+        orderData.billingAddress.lastName || null, // $21
+        orderData.billingAddress.companyName || null, // $22
+        orderData.billingAddress.line1, // $23
+        orderData.billingAddress.line2 || null, // $24
+        orderData.billingAddress.city, // $25
+        orderData.billingAddress.state, // $26
+        orderData.billingAddress.zipCode, // $27
+        orderData.billingAddress.country || 'US', // $28
+        lookupData.carrier_name || null, // $29
+        lookupData.service_type_name || null, // $30
+        orderData.carrierId, // $31
+        orderData.carrierServiceTypeId, // $32
+        status, // $33
+        userName, // $34
+        ownerId // $35
       ];
 
       const orderResult = await db.query(orderUpdateQuery, orderValues);
@@ -674,13 +692,14 @@ export async function saveOrder(
         INSERT INTO portal_orders (
           order_number, order_date, order_type, status, owner_id, owner_lookupcode,
           project_id, project_lookupcode, reference_number, estimated_delivery_date, 
-          recipient_name, addr1, addr2, city, state, zip, country,
-          account_name, billing_addr1, billing_addr2, billing_city, billing_state,
-          billing_zip, billing_country, carrier, service_type, carrier_id, service_type_id,
-          created_by, updated_by
+          recipient_name, recipient_title, recipient_first_name, recipient_last_name, recipient_company_name,
+          addr1, addr2, city, state, zip, country,
+          account_name, billing_title, billing_first_name, billing_last_name, billing_company_name,
+          billing_addr1, billing_addr2, billing_city, billing_state, billing_zip, billing_country, 
+          carrier, service_type, carrier_id, service_type_id, created_by, updated_by
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17,
-          $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21,
+          $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38
         ) RETURNING id
       `;
 
@@ -695,26 +714,34 @@ export async function saveOrder(
         lookupData.project_lookupcode || null, // $8
         orderData.referenceNumber || null, // $9
         orderData.estimatedDeliveryDate || null, // $10
-        orderData.recipientName, // $11
-        orderData.recipientAddress.line1, // $12
-        orderData.recipientAddress.line2 || null, // $13
-        orderData.recipientAddress.city, // $14
-        orderData.recipientAddress.state, // $15
-        orderData.recipientAddress.zipCode, // $16
-        orderData.recipientAddress.country || 'US', // $17
-        orderData.billingAccountName, // $18
-        orderData.billingAddress.line1, // $19
-        orderData.billingAddress.line2 || null, // $20
-        orderData.billingAddress.city, // $21
-        orderData.billingAddress.state, // $22
-        orderData.billingAddress.zipCode, // $23
-        orderData.billingAddress.country || 'US', // $24
-        lookupData.carrier_name || null, // $25
-        lookupData.service_type_name || null, // $26
-        orderData.carrierId, // $27
-        orderData.carrierServiceTypeId, // $28
-        userName, // $29 - created_by
-        userName  // $30 - updated_by
+        buildFullName(orderData.recipientAddress), // $11 (keep for backward compatibility)
+        orderData.recipientAddress.title || null, // $12
+        orderData.recipientAddress.firstName || null, // $13
+        orderData.recipientAddress.lastName || null, // $14
+        orderData.recipientAddress.companyName || null, // $15
+        orderData.recipientAddress.line1, // $16
+        orderData.recipientAddress.line2 || null, // $17
+        orderData.recipientAddress.city, // $18
+        orderData.recipientAddress.state, // $19
+        orderData.recipientAddress.zipCode, // $20
+        orderData.recipientAddress.country || 'US', // $21
+        buildFullName(orderData.billingAddress), // $22 (keep for backward compatibility)
+        orderData.billingAddress.title || null, // $23
+        orderData.billingAddress.firstName || null, // $24
+        orderData.billingAddress.lastName || null, // $25
+        orderData.billingAddress.companyName || null, // $26
+        orderData.billingAddress.line1, // $27
+        orderData.billingAddress.line2 || null, // $28
+        orderData.billingAddress.city, // $29
+        orderData.billingAddress.state, // $30
+        orderData.billingAddress.zipCode, // $31
+        orderData.billingAddress.country || 'US', // $32
+        lookupData.carrier_name || null, // $33
+        lookupData.service_type_name || null, // $34
+        orderData.carrierId, // $35
+        orderData.carrierServiceTypeId, // $36
+        userName, // $37 - created_by
+        userName  // $38 - updated_by
       ];
 
       const orderResult = await db.query(orderInsertQuery, orderValues);

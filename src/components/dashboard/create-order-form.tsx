@@ -39,6 +39,10 @@ interface LineItem {
 }
 
 interface AddressData {
+  title: string;
+  firstName: string;
+  lastName: string;
+  companyName: string;
   line1: string;
   line2: string;
   city: string;
@@ -53,9 +57,7 @@ interface OrderFormData {
   projectId: string;
   orderNumber: string;
   referenceNumber: string;
-  recipientName: string;
   recipientAddress: AddressData;
-  billingAccountName: string;
   billingAddress: AddressData;
   carrierId: string;
   carrierServiceTypeId: string;
@@ -78,27 +80,28 @@ const AddressInput = ({
 }) => {
   const autocompleteRef = useRef<any>(null);
   const line1Ref = useRef<HTMLInputElement>(null);
+  const savedValuesRef = useRef<AddressData>(value);
+  
+  // Always keep the latest values in the ref
+  useEffect(() => {
+    savedValuesRef.current = value;
+  }, [value, id]);
 
   useEffect(() => {
     const initAutocomplete = () => {
-      console.log('🚀 Initializing autocomplete for', id); // Debug log
       if (!line1Ref.current) {
-        console.log('❌ No line1Ref.current'); 
         return;
       }
       if (!(window as any).google?.maps?.places) {
-        console.log('❌ Google Maps Places not available');
         return;
       }
 
       // Clear any existing autocomplete
       if (autocompleteRef.current) {
-        console.log('🧹 Clearing existing autocomplete');
         (window as any).google.maps.event.clearInstanceListeners(autocompleteRef.current);
         autocompleteRef.current = null;
       }
 
-      console.log('✅ Creating Google Places Autocomplete'); // Debug log
 
       const autocomplete = new (window as any).google.maps.places.Autocomplete(line1Ref.current, {
         types: ['address'],
@@ -106,25 +109,19 @@ const AddressInput = ({
         fields: ['address_components', 'formatted_address']
       });
 
-      console.log('✅ Autocomplete created:', autocomplete); // Debug log
 
       const handlePlaceChanged = () => {
-        console.log('🎯 PLACE CHANGED EVENT FIRED!'); // Debug log
         const place = autocomplete.getPlace();
-        console.log('📍 Place selected:', place); // Debug log
         
         if (!place) {
-          console.log('❌ No place object');
           return;
         }
         
         if (!place.address_components) {
-          console.log('❌ No address_components in place');
           return;
         }
 
         const components = place.address_components;
-        console.log('🏠 Address components:', components); // Debug log
         
         // Parse Google Places components
         let streetNumber = '';
@@ -136,7 +133,6 @@ const AddressInput = ({
 
         components.forEach((component: any) => {
           const types = component.types;
-          console.log('🔍 Component:', component.long_name, 'Types:', types); // Debug log
           
           if (types.includes('street_number')) {
             streetNumber = component.long_name;
@@ -153,36 +149,35 @@ const AddressInput = ({
           }
         });
 
+        // Use the saved values from ref instead of the current (potentially reset) value prop
+        const savedValues = savedValuesRef.current;
+        
         const newAddress: AddressData = {
+          title: savedValues.title || '', // Keep existing title from saved ref
+          firstName: savedValues.firstName || '', // Keep existing firstName from saved ref
+          lastName: savedValues.lastName || '', // Keep existing lastName from saved ref
+          companyName: savedValues.companyName || '', // Keep existing companyName from saved ref
           line1: `${streetNumber} ${route}`.trim(),
-          line2: value.line2, // Keep existing line2
+          line2: savedValues.line2 || '', // Keep existing line2 from saved ref
           city,
           state,
           zipCode,
           country
         };
 
-        console.log('🏡 New address data:', newAddress); // Debug log
-        console.log('📞 Calling onChange...'); // Debug log
         onChange(newAddress);
-        console.log('✅ onChange called!'); // Debug log
       };
 
       autocomplete.addListener('place_changed', handlePlaceChanged);
-      console.log('👂 Event listener added'); // Debug log
       autocompleteRef.current = autocomplete;
     };
 
     // Only initialize once when component mounts
-    console.log('🔍 Checking if Google Maps is available...');
     if ((window as any).google?.maps?.places) {
-      console.log('✅ Google Maps available immediately');
       initAutocomplete();
     } else {
-      console.log('⏳ Waiting for Google Maps to load...');
       const checkGoogle = setInterval(() => {
         if ((window as any).google?.maps?.places) {
-          console.log('✅ Google Maps loaded!');
           clearInterval(checkGoogle);
           initAutocomplete();
         }
@@ -208,13 +203,58 @@ const AddressInput = ({
   return (
     <div className="space-y-3">
       <h4 className="font-medium text-sm text-muted-foreground">{label}</h4>
+      
+      {/* Name Fields */}
       <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div className="space-y-2">
+            <Label htmlFor={`${id}-title`}>Title</Label>
+            <Input
+              id={`${id}-title`}
+              value={value.title || ''}
+              onChange={(e) => handleFieldChange('title', e.target.value)}
+              placeholder="Mr/Mrs/Ms/Dr"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor={`${id}-firstName`}>First Name *</Label>
+            <Input
+              id={`${id}-firstName`}
+              value={value.firstName || ''}
+              onChange={(e) => handleFieldChange('firstName', e.target.value)}
+              placeholder="First name"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor={`${id}-lastName`}>Last Name *</Label>
+            <Input
+              id={`${id}-lastName`}
+              value={value.lastName || ''}
+              onChange={(e) => handleFieldChange('lastName', e.target.value)}
+              placeholder="Last name"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor={`${id}-companyName`}>Company Name</Label>
+            <Input
+              id={`${id}-companyName`}
+              value={value.companyName || ''}
+              onChange={(e) => handleFieldChange('companyName', e.target.value)}
+              placeholder="Company (optional)"
+            />
+          </div>
+        </div>
+        
+        {/* Address Fields */}
         <div className="space-y-2">
           <Label htmlFor={`${id}-line1`}>Address Line 1 *</Label>
           <Input
             ref={line1Ref}
             id={`${id}-line1`}
-            value={value.line1}
+            value={value.line1 || ''}
             onChange={(e) => handleFieldChange('line1', e.target.value)}
             placeholder="Start typing an address..."
             autoComplete="off"
@@ -225,7 +265,7 @@ const AddressInput = ({
           <Label htmlFor={`${id}-line2`}>Address Line 2</Label>
           <Input
             id={`${id}-line2`}
-            value={value.line2}
+            value={value.line2 || ''}
             onChange={(e) => handleFieldChange('line2', e.target.value)}
             placeholder="Apt, Suite, Unit, etc. (optional)"
           />
@@ -236,7 +276,7 @@ const AddressInput = ({
             <Label htmlFor={`${id}-city`}>City *</Label>
             <Input
               id={`${id}-city`}
-              value={value.city}
+              value={value.city || ''}
               onChange={(e) => handleFieldChange('city', e.target.value)}
               placeholder="City"
             />
@@ -246,7 +286,7 @@ const AddressInput = ({
             <Label htmlFor={`${id}-state`}>State *</Label>
             <Input
               id={`${id}-state`}
-              value={value.state}
+              value={value.state || ''}
               onChange={(e) => handleFieldChange('state', e.target.value)}
               placeholder="State"
               maxLength={2}
@@ -257,7 +297,7 @@ const AddressInput = ({
             <Label htmlFor={`${id}-zip`}>ZIP Code *</Label>
             <Input
               id={`${id}-zip`}
-              value={value.zipCode}
+              value={value.zipCode || ''}
               onChange={(e) => handleFieldChange('zipCode', e.target.value)}
               placeholder="ZIP Code"
               maxLength={10}
@@ -293,8 +333,11 @@ export function CreateOrderForm() {
     projectId: '',
     orderNumber: '',
     referenceNumber: '',
-    recipientName: '',
     recipientAddress: {
+      title: '',
+      firstName: '',
+      lastName: '',
+      companyName: '',
       line1: '',
       line2: '',
       city: '',
@@ -302,8 +345,11 @@ export function CreateOrderForm() {
       zipCode: '',
       country: 'US'
     },
-    billingAccountName: '',
     billingAddress: {
+      title: '',
+      firstName: '',
+      lastName: '',
+      companyName: '',
       line1: '',
       line2: '',
       city: '',
@@ -354,10 +400,16 @@ export function CreateOrderForm() {
 
   // Validation functions for each step
   const isStep1Valid = () => {
+    const isRecipientNameValid = formData.recipientAddress.firstName && 
+                                formData.recipientAddress.lastName;
+    
     const isRecipientAddressValid = formData.recipientAddress.line1 && 
                                    formData.recipientAddress.city && 
                                    formData.recipientAddress.state && 
                                    formData.recipientAddress.zipCode;
+    
+    const isBillingNameValid = formData.billingAddress.firstName && 
+                              formData.billingAddress.lastName;
     
     const isBillingAddressValid = formData.billingAddress.line1 && 
                                  formData.billingAddress.city && 
@@ -366,9 +418,9 @@ export function CreateOrderForm() {
 
     return !!(formData.orderType && 
            formData.projectId && 
-           formData.recipientName && 
+           isRecipientNameValid &&
            isRecipientAddressValid &&
-           formData.billingAccountName && 
+           isBillingNameValid && 
            isBillingAddressValid &&
            formData.carrierId && 
            formData.carrierServiceTypeId);
@@ -617,8 +669,11 @@ export function CreateOrderForm() {
             projectId: '',
             orderNumber: '',
             referenceNumber: '',
-            recipientName: '',
             recipientAddress: {
+              title: '',
+              firstName: '',
+              lastName: '',
+              companyName: '',
               line1: '',
               line2: '',
               city: '',
@@ -626,8 +681,11 @@ export function CreateOrderForm() {
               zipCode: '',
               country: 'US'
             },
-            billingAccountName: '',
             billingAddress: {
+              title: '',
+              firstName: '',
+              lastName: '',
+              companyName: '',
               line1: '',
               line2: '',
               city: '',
@@ -736,7 +794,7 @@ export function CreateOrderForm() {
                   <Label htmlFor="orderNumber">Order Number</Label>
                   <Input
                     id="orderNumber"
-                    value={formData.orderNumber}
+                    value={formData.orderNumber || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, orderNumber: e.target.value }))}
                     placeholder="Auto-generated if empty"
                   />
@@ -746,7 +804,7 @@ export function CreateOrderForm() {
                   <Label htmlFor="referenceNumber">Reference Number (PO Number)</Label>
                   <Input
                     id="referenceNumber"
-                    value={formData.referenceNumber}
+                    value={formData.referenceNumber || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, referenceNumber: e.target.value }))}
                     placeholder="Enter reference or PO number"
                   />
@@ -765,15 +823,6 @@ export function CreateOrderForm() {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="recipientName">Recipient Name *</Label>
-                    <Input
-                      id="recipientName"
-                      value={formData.recipientName}
-                      onChange={(e) => setFormData(prev => ({ ...prev, recipientName: e.target.value }))}
-                      placeholder="Enter recipient name"
-                    />
-                  </div>
                   <AddressInput
                     id="recipient"
                     label={formData.orderType === 'inbound' ? 'Ship From Address' : 'Ship To Address'}
@@ -783,18 +832,9 @@ export function CreateOrderForm() {
                 </div>
 
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="billingAccountName">Billing Account Name *</Label>
-                    <Input
-                      id="billingAccountName"
-                      value={formData.billingAccountName}
-                      onChange={(e) => setFormData(prev => ({ ...prev, billingAccountName: e.target.value }))}
-                      placeholder="Enter billing account name"
-                    />
-                  </div>
                   <AddressInput
                     id="billing"
-                    label="Billing Address"
+                    label="Billing Name"
                     value={formData.billingAddress}
                     onChange={(value) => setFormData(prev => ({ ...prev, billingAddress: value }))}
                   />
@@ -881,7 +921,7 @@ export function CreateOrderForm() {
                   <Input
                     id="estimatedDeliveryDate"
                     type="date"
-                    value={formData.estimatedDeliveryDate}
+                    value={formData.estimatedDeliveryDate || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, estimatedDeliveryDate: e.target.value }))}
                   />
                 </div>
@@ -1338,7 +1378,13 @@ export function CreateOrderForm() {
                   {formData.orderType === 'inbound' ? 'Ship From' : 'Ship To'} Address
                 </h4>
                 <div className="text-sm space-y-1">
-                  <p className="font-medium">{formData.recipientName}</p>
+                  <p className="font-medium">
+                    {formData.recipientAddress.title && `${formData.recipientAddress.title} `}
+                    {formData.recipientAddress.firstName} {formData.recipientAddress.lastName}
+                  </p>
+                  {formData.recipientAddress.companyName && (
+                    <p className="text-muted-foreground">{formData.recipientAddress.companyName}</p>
+                  )}
                   <div className="text-muted-foreground">
                     <p>{formData.recipientAddress.line1}</p>
                     {formData.recipientAddress.line2 && <p>{formData.recipientAddress.line2}</p>}
@@ -1349,9 +1395,15 @@ export function CreateOrderForm() {
               </div>
 
               <div className="space-y-2">
-                <h4 className="font-medium">Billing Address</h4>
+                <h4 className="font-medium">Billing Name</h4>
                 <div className="text-sm space-y-1">
-                  <p className="font-medium">{formData.billingAccountName}</p>
+                  <p className="font-medium">
+                    {formData.billingAddress.title && `${formData.billingAddress.title} `}
+                    {formData.billingAddress.firstName} {formData.billingAddress.lastName}
+                  </p>
+                  {formData.billingAddress.companyName && (
+                    <p className="text-muted-foreground">{formData.billingAddress.companyName}</p>
+                  )}
                   <div className="text-muted-foreground">
                     <p>{formData.billingAddress.line1}</p>
                     {formData.billingAddress.line2 && <p>{formData.billingAddress.line2}</p>}
