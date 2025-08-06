@@ -17,7 +17,9 @@ CREATE TABLE portal_orders (
     
     -- Client and Project Information
     owner_id INTEGER NOT NULL,  -- Links to client ownership for data filtering
+    owner_lookupcode VARCHAR(100), -- Owner lookup code from wms_owners
     project_id VARCHAR(50),
+    project_lookupcode VARCHAR(100), -- Project lookup code from wms_projects
     
     -- Shipment Information
     shipment_number VARCHAR(100),

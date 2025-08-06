@@ -546,16 +546,39 @@ export async function saveOrder(
       // UPDATE existing order
       console.log(`Updating existing order ${orderId} with status: ${status}`);
       
+      // Get owner and project lookupcode, carrier and service type names for UPDATE too
+      const lookupDataQuery = `
+        SELECT 
+          o.lookupcode as owner_lookupcode,
+          p.lookupcode as project_lookupcode,
+          c.name as carrier_name,
+          cs.name as service_type_name
+        FROM wms_owners o
+        LEFT JOIN wms_projects p ON p.ownerid = o.id AND p.id = $2
+        LEFT JOIN wms_carriers c ON c.id = $3
+        LEFT JOIN wms_carrierservicetypes cs ON cs.id = $4
+        WHERE o.id = $1
+      `;
+      
+      const lookupResult = await db.query(lookupDataQuery, [
+        ownerId, 
+        parseInt(orderData.projectId), 
+        parseInt(orderData.carrierId),
+        parseInt(orderData.carrierServiceTypeId)
+      ]);
+      
+      const lookupData = lookupResult.rows[0] || {};
+      
       const orderUpdateQuery = `
         UPDATE portal_orders SET
-          order_type = $2, project_id = $3, shipment_number = $4,
-          estimated_delivery_date = $5, recipient_name = $6,
-          addr1 = $7, addr2 = $8, city = $9, state = $10, zip = $11, country = $12,
-          account_name = $13, billing_addr1 = $14, billing_addr2 = $15,
-          billing_city = $16, billing_state = $17, billing_zip = $18, billing_country = $19,
-          carrier_id = $20, service_type_id = $21, status = $22, updated_by = $23,
-          updated_at = CURRENT_TIMESTAMP
-        WHERE id = $1 AND owner_id = $24
+          order_type = $2, project_id = $3, project_lookupcode = $4, shipment_number = $5,
+          estimated_delivery_date = $6, recipient_name = $7,
+          addr1 = $8, addr2 = $9, city = $10, state = $11, zip = $12, country = $13,
+          account_name = $14, billing_addr1 = $15, billing_addr2 = $16,
+          billing_city = $17, billing_state = $18, billing_zip = $19, billing_country = $20,
+          carrier = $21, service_type = $22, carrier_id = $23, service_type_id = $24, 
+          status = $25, updated_by = $26, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $1 AND owner_id = $27
         RETURNING id
       `;
 
@@ -563,27 +586,30 @@ export async function saveOrder(
         orderId, // $1
         orderData.orderType, // $2
         orderData.projectId, // $3
-        orderData.shipmentNumber || null, // $4
-        orderData.estimatedDeliveryDate || null, // $5
-        orderData.recipientName, // $6
-        orderData.recipientAddress.line1, // $7
-        orderData.recipientAddress.line2 || null, // $8
-        orderData.recipientAddress.city, // $9
-        orderData.recipientAddress.state, // $10
-        orderData.recipientAddress.zipCode, // $11
-        orderData.recipientAddress.country || 'United States', // $12
-        orderData.billingAccountName, // $13
-        orderData.billingAddress.line1, // $14
-        orderData.billingAddress.line2 || null, // $15
-        orderData.billingAddress.city, // $16
-        orderData.billingAddress.state, // $17
-        orderData.billingAddress.zipCode, // $18
-        orderData.billingAddress.country || 'United States', // $19
-        orderData.carrierId, // $20
-        orderData.carrierServiceTypeId, // $21
-        status, // $22
-        'system', // $23
-        ownerId // $24
+        lookupData.project_lookupcode || null, // $4
+        orderData.shipmentNumber || null, // $5
+        orderData.estimatedDeliveryDate || null, // $6
+        orderData.recipientName, // $7
+        orderData.recipientAddress.line1, // $8
+        orderData.recipientAddress.line2 || null, // $9
+        orderData.recipientAddress.city, // $10
+        orderData.recipientAddress.state, // $11
+        orderData.recipientAddress.zipCode, // $12
+        orderData.recipientAddress.country || 'United States', // $13
+        orderData.billingAccountName, // $14
+        orderData.billingAddress.line1, // $15
+        orderData.billingAddress.line2 || null, // $16
+        orderData.billingAddress.city, // $17
+        orderData.billingAddress.state, // $18
+        orderData.billingAddress.zipCode, // $19
+        orderData.billingAddress.country || 'United States', // $20
+        lookupData.carrier_name || null, // $21
+        lookupData.service_type_name || null, // $22
+        orderData.carrierId, // $23
+        orderData.carrierServiceTypeId, // $24
+        status, // $25
+        'system', // $26
+        ownerId // $27
       ];
 
       const orderResult = await db.query(orderUpdateQuery, orderValues);
@@ -607,20 +633,44 @@ export async function saveOrder(
           [ownerId]
         );
         const nextNumber = result.rows[0].next_number;
-        orderNumber = `ORD-${ownerId}-${String(nextNumber).padStart(4, '0')}`;
+        const prefix = orderData.orderType === 'outbound' ? 'OUT' : 'IN';
+        orderNumber = `${prefix}-${ownerId}-${String(nextNumber).padStart(4, '0')}`;
       }
+
+      // Get owner and project lookupcode, carrier and service type names
+      const lookupDataQuery = `
+        SELECT 
+          o.lookupcode as owner_lookupcode,
+          p.lookupcode as project_lookupcode,
+          c.name as carrier_name,
+          cs.name as service_type_name
+        FROM wms_owners o
+        LEFT JOIN wms_projects p ON p.ownerid = o.id AND p.id = $2
+        LEFT JOIN wms_carriers c ON c.id = $3
+        LEFT JOIN wms_carrierservicetypes cs ON cs.id = $4
+        WHERE o.id = $1
+      `;
+      
+      const lookupResult = await db.query(lookupDataQuery, [
+        ownerId, 
+        parseInt(orderData.projectId), 
+        parseInt(orderData.carrierId),
+        parseInt(orderData.carrierServiceTypeId)
+      ]);
+      
+      const lookupData = lookupResult.rows[0] || {};
 
       const orderInsertQuery = `
         INSERT INTO portal_orders (
-          order_number, order_date, order_type, status, owner_id, project_id,
-          shipment_number, estimated_delivery_date, recipient_name,
-          addr1, addr2, city, state, zip, country,
+          order_number, order_date, order_type, status, owner_id, owner_lookupcode,
+          project_id, project_lookupcode, shipment_number, estimated_delivery_date, 
+          recipient_name, addr1, addr2, city, state, zip, country,
           account_name, billing_addr1, billing_addr2, billing_city, billing_state,
-          billing_zip, billing_country, carrier_id, service_type_id,
+          billing_zip, billing_country, carrier, service_type, carrier_id, service_type_id,
           created_by, updated_by
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-          $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17,
+          $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30
         ) RETURNING id
       `;
 
@@ -630,27 +680,31 @@ export async function saveOrder(
         orderData.orderType, // $3
         status, // $4
         ownerId, // $5
-        orderData.projectId, // $6
-        orderData.shipmentNumber || null, // $7
-        orderData.estimatedDeliveryDate || null, // $8
-        orderData.recipientName, // $9
-        orderData.recipientAddress.line1, // $10
-        orderData.recipientAddress.line2 || null, // $11
-        orderData.recipientAddress.city, // $12
-        orderData.recipientAddress.state, // $13
-        orderData.recipientAddress.zipCode, // $14
-        orderData.recipientAddress.country || 'United States', // $15
-        orderData.billingAccountName, // $16
-        orderData.billingAddress.line1, // $17
-        orderData.billingAddress.line2 || null, // $18
-        orderData.billingAddress.city, // $19
-        orderData.billingAddress.state, // $20
-        orderData.billingAddress.zipCode, // $21
-        orderData.billingAddress.country || 'United States', // $22
-        orderData.carrierId, // $23
-        orderData.carrierServiceTypeId, // $24
-        'system', // $25
-        'system'  // $26
+        lookupData.owner_lookupcode || null, // $6
+        orderData.projectId, // $7
+        lookupData.project_lookupcode || null, // $8
+        orderData.shipmentNumber || null, // $9
+        orderData.estimatedDeliveryDate || null, // $10
+        orderData.recipientName, // $11
+        orderData.recipientAddress.line1, // $12
+        orderData.recipientAddress.line2 || null, // $13
+        orderData.recipientAddress.city, // $14
+        orderData.recipientAddress.state, // $15
+        orderData.recipientAddress.zipCode, // $16
+        orderData.recipientAddress.country || 'United States', // $17
+        orderData.billingAccountName, // $18
+        orderData.billingAddress.line1, // $19
+        orderData.billingAddress.line2 || null, // $20
+        orderData.billingAddress.city, // $21
+        orderData.billingAddress.state, // $22
+        orderData.billingAddress.zipCode, // $23
+        orderData.billingAddress.country || 'United States', // $24
+        lookupData.carrier_name || null, // $25
+        lookupData.service_type_name || null, // $26
+        orderData.carrierId, // $27
+        orderData.carrierServiceTypeId, // $28
+        'system', // $29
+        'system'  // $30
       ];
 
       const orderResult = await db.query(orderInsertQuery, orderValues);
