@@ -854,8 +854,8 @@ export function CreateOrderForm() {
 
             <div className="space-y-4 p-4 border border-dashed border-gray-300 rounded-lg">
               <h4 className="font-medium text-sm">Add Material</h4>
-              <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
-                <div className="md:col-span-2">
+              <div className="grid grid-cols-1 md:grid-cols-10 gap-3">
+                <div className="md:col-span-3">
                   <Label htmlFor="materialCode">Material *</Label>
                   <Select value={newLineItem.materialCode} onValueChange={(value) => {
                     if (formData.orderType === 'outbound') {
@@ -953,7 +953,7 @@ export function CreateOrderForm() {
                   )}
                 </div>
 
-                <div>
+                <div className="md:col-span-2">
                   <Label htmlFor="lot">Lot (Optional)</Label>
                   {formData.orderType === 'outbound' && newLineItem.materialCode ? (
                     <Select 
@@ -1032,7 +1032,7 @@ export function CreateOrderForm() {
                   )}
                 </div>
 
-                <div>
+                <div className="md:col-span-2">
                   <Label htmlFor="licensePlate">License Plate (Optional)</Label>
                   {formData.orderType === 'outbound' && newLineItem.materialCode ? (
                     <Select 
