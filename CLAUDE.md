@@ -205,6 +205,7 @@ setCenterContent(<OrderStepIndicator currentStep={currentStep} />);
 - **DashboardLayout** (`src/components/dashboard/dashboard-layout.tsx`): Unified layout system
   - Role-based logo rendering (client: large 160px dynamic logo, employee: company branding)
   - Client logo optimization: Eliminates client name text, centers large logo in full sidebar space
+  - Client logo display: Preserves original logo shape without rounded corners for better visual fidelity
   - Collapse button positioned at `-right-20` for proper spacing from large logo
   - Configurable menu items and responsive behavior
   - Header controls context for dynamic content injection

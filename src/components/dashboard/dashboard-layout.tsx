@@ -72,7 +72,7 @@ function DashboardSidebarContent({ menuItems, logoConfig }: { menuItems: MenuIte
                 width={160}
                 height={160}
                 style={{ width: '160px', height: 'auto' }}
-                className="rounded-full object-contain"
+                className="object-contain"
                 data-ai-hint="logo"
               />
             )}
@@ -125,7 +125,7 @@ function DashboardSidebarContent({ menuItems, logoConfig }: { menuItems: MenuIte
                 width={32}
                 height={32}
                 style={{ width: '32px', height: 'auto' }}
-                className="rounded-full object-contain transition-opacity duration-200 group-hover:opacity-20"
+                className="object-contain transition-opacity duration-200 group-hover:opacity-20"
                 onClick={() => {
                   const trigger = document.querySelector('[data-sidebar="trigger"]') as HTMLElement;
                   trigger?.click();
