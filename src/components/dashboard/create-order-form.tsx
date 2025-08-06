@@ -22,6 +22,7 @@ import { useMaterialLots } from '@/hooks/use-material-lots';
 import { useLicensePlates } from '@/hooks/use-license-plates';
 import { useToast } from '@/hooks/use-toast';
 import { saveOrder } from '@/app/actions';
+import { useAuth } from '@/context/auth-context';
 
 interface LineItem {
   id: string;
@@ -271,6 +272,9 @@ const AddressInput = ({
 export function CreateOrderForm() {
   // Get client info for owner filtering
   const { ownerId } = useClientInfo();
+  
+  // Get authenticated user info
+  const { user } = useAuth();
   
   // Toast notifications
   const { toast } = useToast();
@@ -587,7 +591,8 @@ export function CreateOrderForm() {
     }
 
     try {
-      const result = await saveOrder(formData, formData.lineItems, ownerId, status);
+      const userName = user?.displayName || user?.email || 'Unknown User';
+      const result = await saveOrder(formData, formData.lineItems, ownerId, status, userName);
       
       if (result.success) {
         toast({

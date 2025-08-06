@@ -537,7 +537,8 @@ export async function saveOrder(
   orderData: any,
   lineItems: any[],
   ownerId: number,
-  status: 'draft' | 'submitted' = 'draft'
+  status: 'draft' | 'submitted' = 'draft',
+  userName: string = 'system'
 ): Promise<{ success: boolean; orderId?: number; error?: string }> {
   try {
     let orderId = orderData.id;
@@ -608,7 +609,7 @@ export async function saveOrder(
         orderData.carrierId, // $23
         orderData.carrierServiceTypeId, // $24
         status, // $25
-        'system', // $26
+        userName, // $26
         ownerId // $27
       ];
 
@@ -703,8 +704,8 @@ export async function saveOrder(
         lookupData.service_type_name || null, // $26
         orderData.carrierId, // $27
         orderData.carrierServiceTypeId, // $28
-        'system', // $29
-        'system'  // $30
+        userName, // $29 - created_by
+        userName  // $30 - updated_by
       ];
 
       const orderResult = await db.query(orderInsertQuery, orderValues);
@@ -734,8 +735,8 @@ export async function saveOrder(
           item.licensePlate || null,
           item.serialNumber || null,
           item.batchNumber || null,
-          'system', // created_by
-          'system'  // updated_by
+          userName, // created_by
+          userName  // updated_by
         ];
 
         await db.query(lineInsertQuery, lineValues);
