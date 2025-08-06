@@ -596,14 +596,14 @@ export async function saveOrder(
         orderData.recipientAddress.city, // $10
         orderData.recipientAddress.state, // $11
         orderData.recipientAddress.zipCode, // $12
-        orderData.recipientAddress.country || 'United States', // $13
+        orderData.recipientAddress.country || 'US', // $13
         orderData.billingAccountName, // $14
         orderData.billingAddress.line1, // $15
         orderData.billingAddress.line2 || null, // $16
         orderData.billingAddress.city, // $17
         orderData.billingAddress.state, // $18
         orderData.billingAddress.zipCode, // $19
-        orderData.billingAddress.country || 'United States', // $20
+        orderData.billingAddress.country || 'US', // $20
         lookupData.carrier_name || null, // $21
         lookupData.service_type_name || null, // $22
         orderData.carrierId, // $23
@@ -692,14 +692,14 @@ export async function saveOrder(
         orderData.recipientAddress.city, // $14
         orderData.recipientAddress.state, // $15
         orderData.recipientAddress.zipCode, // $16
-        orderData.recipientAddress.country || 'United States', // $17
+        orderData.recipientAddress.country || 'US', // $17
         orderData.billingAccountName, // $18
         orderData.billingAddress.line1, // $19
         orderData.billingAddress.line2 || null, // $20
         orderData.billingAddress.city, // $21
         orderData.billingAddress.state, // $22
         orderData.billingAddress.zipCode, // $23
-        orderData.billingAddress.country || 'United States', // $24
+        orderData.billingAddress.country || 'US', // $24
         lookupData.carrier_name || null, // $25
         lookupData.service_type_name || null, // $26
         orderData.carrierId, // $27

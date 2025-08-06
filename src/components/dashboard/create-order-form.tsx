@@ -148,7 +148,7 @@ const AddressInput = ({
           } else if (types.includes('postal_code')) {
             zipCode = component.long_name;
           } else if (types.includes('country')) {
-            country = component.long_name;
+            country = component.short_name;
           }
         });
 
@@ -299,7 +299,7 @@ export function CreateOrderForm() {
       city: '',
       state: '',
       zipCode: '',
-      country: 'United States'
+      country: 'US'
     },
     billingAccountName: '',
     billingAddress: {
@@ -308,7 +308,7 @@ export function CreateOrderForm() {
       city: '',
       state: '',
       zipCode: '',
-      country: 'United States'
+      country: 'US'
     },
     carrierId: '',
     carrierServiceTypeId: '',
@@ -620,7 +620,7 @@ export function CreateOrderForm() {
               city: '',
               state: '',
               zipCode: '',
-              country: 'United States'
+              country: 'US'
             },
             billingAccountName: '',
             billingAddress: {
@@ -629,7 +629,7 @@ export function CreateOrderForm() {
               city: '',
               state: '',
               zipCode: '',
-              country: 'United States'
+              country: 'US'
             },
             carrierId: '',
             carrierServiceTypeId: '',
