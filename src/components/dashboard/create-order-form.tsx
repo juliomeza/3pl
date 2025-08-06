@@ -30,6 +30,7 @@ interface LineItem {
   materialName: string;
   quantity: number;
   uom: string;
+  uomShort?: string;
   batchNumber?: string;
   serialNumber?: string;
   availableAmount?: number;
@@ -330,6 +331,7 @@ export function CreateOrderForm() {
     materialCode: '',
     quantity: undefined,
     uom: '',
+    uomShort: '',
     batchNumber: '',
     serialNumber: '',
     licensePlate: ''
@@ -520,6 +522,7 @@ export function CreateOrderForm() {
         materialName: inventoryItem.material_name,
         quantity: requestedQty,
         uom: newLineItem.uom || inventoryItem.uom,
+        uomShort: inventoryItem.uom_short,
         batchNumber: newLineItem.batchNumber || undefined,
         serialNumber: newLineItem.serialNumber || undefined,
         licensePlate: newLineItem.licensePlate || undefined,
@@ -558,6 +561,7 @@ export function CreateOrderForm() {
       materialCode: '',
       quantity: undefined,
       uom: '',
+      uomShort: '',
       batchNumber: '',
       serialNumber: '',
       licensePlate: ''
@@ -923,7 +927,8 @@ export function CreateOrderForm() {
                       setNewLineItem(prev => ({ 
                         ...prev, 
                         materialCode: value,
-                        uom: inventoryItem?.uom || prev.uom
+                        uom: inventoryItem?.uom || prev.uom,
+                        uomShort: inventoryItem?.uom_short
                       }));
                     } else {
                       // For inbound, just set the code

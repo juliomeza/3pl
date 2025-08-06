@@ -365,12 +365,14 @@ export async function getLotsForMaterial(ownerId: number, materialCode: string, 
   lot_code: string;
   total_available_amount: number;
   uom: string;
+  uom_short: string;
 }[]> {
   try {
     let query = `
       SELECT
         l.lookupcode AS lot_code,
         imu.name AS uom,
+        imu.shortname AS uom_short,
         SUM(lpc.amount) AS total_available_amount
       FROM
         wms_licenseplatecontents lpc
@@ -396,7 +398,7 @@ export async function getLotsForMaterial(ownerId: number, materialCode: string, 
     }
     
     query += ` 
-      GROUP BY l.lookupcode, imu.name
+      GROUP BY l.lookupcode, imu.name, imu.shortname
       ORDER BY l.lookupcode`;
 
     const result = await db.query(query, params);
@@ -404,7 +406,8 @@ export async function getLotsForMaterial(ownerId: number, materialCode: string, 
     return result.rows.map(row => ({
       lot_code: row.lot_code,
       total_available_amount: parseFloat(row.total_available_amount || '0'),
-      uom: row.uom
+      uom: row.uom,
+      uom_short: row.uom_short
     }));
   } catch (error) {
     console.error('Error fetching lots for material:', error);
@@ -417,12 +420,14 @@ export async function getLicensePlatesForMaterial(ownerId: number, materialCode:
   license_plate_code: string;
   total_available_amount: number;
   uom: string;
+  uom_short: string;
 }[]> {
   try {
     let query = `
       SELECT
         lp.lookupcode AS license_plate_code,
         imu.name AS uom,
+        imu.shortname AS uom_short,
         SUM(lpc.amount) AS total_available_amount
       FROM
         wms_licenseplatecontents lpc
@@ -453,7 +458,7 @@ export async function getLicensePlatesForMaterial(ownerId: number, materialCode:
     }
     
     query += ` 
-      GROUP BY lp.lookupcode, imu.name
+      GROUP BY lp.lookupcode, imu.name, imu.shortname
       ORDER BY lp.lookupcode`;
 
     const result = await db.query(query, params);
@@ -461,7 +466,8 @@ export async function getLicensePlatesForMaterial(ownerId: number, materialCode:
     return result.rows.map(row => ({
       license_plate_code: row.license_plate_code,
       total_available_amount: parseFloat(row.total_available_amount || '0'),
-      uom: row.uom
+      uom: row.uom,
+      uom_short: row.uom_short
     }));
   } catch (error) {
     console.error('Error fetching license plates for material:', error);
@@ -478,6 +484,7 @@ export async function getOutboundInventory(ownerId: number, projectId?: string):
   material_code: string;
   total_available_amount: number;
   uom: string;
+  uom_short: string;
 }[]> {
   try {
     let query = `
@@ -488,6 +495,7 @@ export async function getOutboundInventory(ownerId: number, projectId?: string):
         m.description AS material_description,
         m.lookupcode AS material_code,
         imu.name AS uom,
+        imu.shortname AS uom_short,
         SUM(lpc.amount) AS total_available_amount
       FROM
         wms_licenseplatecontents lpc
@@ -512,7 +520,7 @@ export async function getOutboundInventory(ownerId: number, projectId?: string):
     }
     
     query += ` 
-      GROUP BY o.id, p.id, m.name, m.description, m.lookupcode, imu.name
+      GROUP BY o.id, p.id, m.name, m.description, m.lookupcode, imu.name, imu.shortname
       ORDER BY m.name`;
 
     const result = await db.query(query, params);
@@ -524,7 +532,8 @@ export async function getOutboundInventory(ownerId: number, projectId?: string):
       material_description: row.material_description,
       material_code: row.material_code,
       total_available_amount: parseFloat(row.total_available_amount || '0'),
-      uom: row.uom
+      uom: row.uom,
+      uom_short: row.uom_short
     }));
   } catch (error) {
     console.error('Error fetching outbound inventory:', error);
@@ -730,7 +739,7 @@ export async function saveOrder(
           item.materialCode,
           item.materialName,
           item.quantity,
-          item.uom,
+          item.uomShort || item.uom,
           item.batchNumber || item.lot || null,
           item.licensePlate || null,
           item.serialNumber || null,
