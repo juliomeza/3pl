@@ -46,6 +46,7 @@ interface AddressData {
 }
 
 interface OrderFormData {
+  id?: number; // Add order ID to track existing orders
   orderType: 'inbound' | 'outbound' | '';
   projectId: string;
   orderNumber: string;
@@ -282,6 +283,7 @@ export function CreateOrderForm() {
   
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<OrderFormData>({
+    id: undefined, // Track order ID for updates
     orderType: '',
     projectId: '',
     orderNumber: '',
@@ -593,9 +595,15 @@ export function CreateOrderForm() {
           description: `Order ${status === 'draft' ? 'saved as draft' : 'submitted'} successfully! Order ID: ${result.orderId}`,
         });
         
+        // Store the order ID for future updates
+        if (!formData.id && result.orderId) {
+          setFormData(prev => ({ ...prev, id: result.orderId }));
+        }
+        
         if (status === 'submitted') {
           // Reset form after successful submission
           setFormData({
+            id: undefined,
             orderType: '',
             projectId: '',
             orderNumber: '',

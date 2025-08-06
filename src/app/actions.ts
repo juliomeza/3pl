@@ -540,67 +540,124 @@ export async function saveOrder(
   status: 'draft' | 'submitted' = 'draft'
 ): Promise<{ success: boolean; orderId?: number; error?: string }> {
   try {
-    // Generate order number if not provided
-    let orderNumber = orderData.orderNumber;
-    if (!orderNumber) {
-      const result = await db.query(
-        'SELECT COUNT(*) + 1 as next_number FROM portal_orders WHERE owner_id = $1',
-        [ownerId]
-      );
-      const nextNumber = result.rows[0].next_number;
-      orderNumber = `ORD-${ownerId}-${String(nextNumber).padStart(4, '0')}`;
+    let orderId = orderData.id;
+
+    if (orderId) {
+      // UPDATE existing order
+      console.log(`Updating existing order ${orderId} with status: ${status}`);
+      
+      const orderUpdateQuery = `
+        UPDATE portal_orders SET
+          order_type = $2, project_id = $3, shipment_number = $4,
+          estimated_delivery_date = $5, recipient_name = $6,
+          addr1 = $7, addr2 = $8, city = $9, state = $10, zip = $11, country = $12,
+          account_name = $13, billing_addr1 = $14, billing_addr2 = $15,
+          billing_city = $16, billing_state = $17, billing_zip = $18, billing_country = $19,
+          carrier_id = $20, service_type_id = $21, status = $22, updated_by = $23,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = $1 AND owner_id = $24
+        RETURNING id
+      `;
+
+      const orderValues = [
+        orderId, // $1
+        orderData.orderType, // $2
+        orderData.projectId, // $3
+        orderData.shipmentNumber || null, // $4
+        orderData.estimatedDeliveryDate || null, // $5
+        orderData.recipientName, // $6
+        orderData.recipientAddress.line1, // $7
+        orderData.recipientAddress.line2 || null, // $8
+        orderData.recipientAddress.city, // $9
+        orderData.recipientAddress.state, // $10
+        orderData.recipientAddress.zipCode, // $11
+        orderData.recipientAddress.country || 'United States', // $12
+        orderData.billingAccountName, // $13
+        orderData.billingAddress.line1, // $14
+        orderData.billingAddress.line2 || null, // $15
+        orderData.billingAddress.city, // $16
+        orderData.billingAddress.state, // $17
+        orderData.billingAddress.zipCode, // $18
+        orderData.billingAddress.country || 'United States', // $19
+        orderData.carrierId, // $20
+        orderData.carrierServiceTypeId, // $21
+        status, // $22
+        'system', // $23
+        ownerId // $24
+      ];
+
+      const orderResult = await db.query(orderUpdateQuery, orderValues);
+      
+      if (orderResult.rows.length === 0) {
+        throw new Error('Order not found or access denied');
+      }
+
+      // Delete existing line items and re-insert
+      await db.query('DELETE FROM portal_order_lines WHERE order_id = $1', [orderId]);
+
+    } else {
+      // CREATE new order
+      console.log(`Creating new order with status: ${status}`);
+      
+      // Generate order number if not provided
+      let orderNumber = orderData.orderNumber;
+      if (!orderNumber) {
+        const result = await db.query(
+          'SELECT COUNT(*) + 1 as next_number FROM portal_orders WHERE owner_id = $1',
+          [ownerId]
+        );
+        const nextNumber = result.rows[0].next_number;
+        orderNumber = `ORD-${ownerId}-${String(nextNumber).padStart(4, '0')}`;
+      }
+
+      const orderInsertQuery = `
+        INSERT INTO portal_orders (
+          order_number, order_date, order_type, status, owner_id, project_id,
+          shipment_number, estimated_delivery_date, recipient_name,
+          addr1, addr2, city, state, zip, country,
+          account_name, billing_addr1, billing_addr2, billing_city, billing_state,
+          billing_zip, billing_country, carrier_id, service_type_id,
+          created_by, updated_by
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
+          $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26
+        ) RETURNING id
+      `;
+
+      const orderValues = [
+        orderNumber, // $1
+        new Date(), // $2
+        orderData.orderType, // $3
+        status, // $4
+        ownerId, // $5
+        orderData.projectId, // $6
+        orderData.shipmentNumber || null, // $7
+        orderData.estimatedDeliveryDate || null, // $8
+        orderData.recipientName, // $9
+        orderData.recipientAddress.line1, // $10
+        orderData.recipientAddress.line2 || null, // $11
+        orderData.recipientAddress.city, // $12
+        orderData.recipientAddress.state, // $13
+        orderData.recipientAddress.zipCode, // $14
+        orderData.recipientAddress.country || 'United States', // $15
+        orderData.billingAccountName, // $16
+        orderData.billingAddress.line1, // $17
+        orderData.billingAddress.line2 || null, // $18
+        orderData.billingAddress.city, // $19
+        orderData.billingAddress.state, // $20
+        orderData.billingAddress.zipCode, // $21
+        orderData.billingAddress.country || 'United States', // $22
+        orderData.carrierId, // $23
+        orderData.carrierServiceTypeId, // $24
+        'system', // $25
+        'system'  // $26
+      ];
+
+      const orderResult = await db.query(orderInsertQuery, orderValues);
+      orderId = orderResult.rows[0].id;
     }
 
-    // Insert order header
-    const orderInsertQuery = `
-      INSERT INTO portal_orders (
-        order_number, order_date, order_type, status, owner_id, project_id,
-        shipment_number, estimated_delivery_date, recipient_name,
-        addr1, addr2, city, state, zip, country,
-        account_name, billing_addr1, billing_addr2, billing_city, billing_state,
-        billing_zip, billing_country, carrier, service_type, carrier_id, service_type_id,
-        created_by, updated_by
-      ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-        $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28
-      ) RETURNING id
-    `;
-
-    const orderValues = [
-      orderNumber,
-      new Date(),
-      orderData.orderType,
-      status,
-      ownerId,
-      orderData.projectId,
-      orderData.shipmentNumber || null,
-      orderData.estimatedDeliveryDate || null,
-      orderData.recipientName,
-      orderData.recipientAddress.line1,
-      orderData.recipientAddress.line2 || null,
-      orderData.recipientAddress.city,
-      orderData.recipientAddress.state,
-      orderData.recipientAddress.zipCode,
-      orderData.recipientAddress.country || 'United States',
-      orderData.billingAccountName,
-      orderData.billingAddress.line1,
-      orderData.billingAddress.line2 || null,
-      orderData.billingAddress.city,
-      orderData.billingAddress.state,
-      orderData.billingAddress.zipCode,
-      orderData.billingAddress.country || 'United States',
-      orderData.carrierId, // We'll need to resolve this to carrier name
-      orderData.carrierServiceTypeId, // We'll need to resolve this to service type name
-      orderData.carrierId,
-      orderData.carrierServiceTypeId,
-      'system', // created_by
-      'system'  // updated_by
-    ];
-
-    const orderResult = await db.query(orderInsertQuery, orderValues);
-    const orderId = orderResult.rows[0].id;
-
-    // Insert line items
+    // Insert line items (for both new and updated orders)
     if (lineItems && lineItems.length > 0) {
       const lineInsertQuery = `
         INSERT INTO portal_order_lines (
