@@ -723,7 +723,7 @@ return () => {
 - `src/hooks/use-outbound-inventory.ts`: Material inventory data with dynamic updates
 - `src/hooks/use-material-lots.ts`: Lot-specific inventory data
 - `src/hooks/use-license-plates.ts`: License plate-specific inventory data
-- `src/components/dashboard/create-order-form.tsx`: Complete order creation form
+- `src/components/dashboard/create-order-form.tsx`: Complete order creation form with optimized layout
 
 **Hierarchical Material Selection Flow** (Updated August 2025):
 1. **Material Dropdown**: Shows available materials with total quantities (3 columns - expanded for better readability)
@@ -772,6 +772,56 @@ interface LineItem {
   availableAmount?: number;    // For tracking purposes
 }
 ```
+
+### Form Layout Optimizations (August 2025)
+
+**Enhanced Field Organization**: Improved layout spacing and grouping for better space utilization and professional appearance.
+
+#### Grid Layout Standards
+**Order Information Section**:
+- **4-Column Grid**: Order Type, Project, Order Number, Reference Number all in same row (`md:grid-cols-4`)
+- **Horizontal Optimization**: Better use of wide screens while maintaining responsive design
+- **Consistent Spacing**: Uniform `gap-4` across order information section
+
+**Name Fields Section**:
+- **3-Column Grid**: Title, First Name, Last Name in same row (`md:grid-cols-3`)
+- **Dedicated Company Row**: Company Name gets full-width row for long business names
+- **Professional Hierarchy**: Personal info grouped together, company separate
+
+**Address Fields Section**:
+- **2-Column Grid**: Address Line 1 and Line 2 share row (`md:grid-cols-2`)
+- **3-Column Grid**: City, State, ZIP Code maintain existing layout (`md:grid-cols-3`)
+- **Space Efficiency**: Better utilization without compromising Google Places functionality
+
+#### Implementation Patterns
+```typescript
+// Order info: All fields in one row for efficiency
+<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+  {/* Order Type, Project, Order Number, Reference Number */}
+</div>
+
+// Name fields: Personal info together
+<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+  {/* Title, First Name, Last Name */}
+</div>
+
+// Company: Full-width for long names
+<div className="space-y-2">
+  {/* Company Name field */}
+</div>
+
+// Address: Lines together for efficiency
+<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+  {/* Line 1, Line 2 */}
+</div>
+```
+
+#### Benefits
+- ✅ **Better Space Utilization**: More efficient use of horizontal space
+- ✅ **Visual Hierarchy**: Clear grouping of related fields  
+- ✅ **Company Name Support**: Full-width row accommodates long business names
+- ✅ **Responsive Design**: Collapses appropriately on mobile devices
+- ✅ **Professional Appearance**: Cleaner, more organized form layout
 
 ### Real-Time Validation System (Updated August 2025)
 
