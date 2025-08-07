@@ -1016,7 +1016,152 @@ const { inventory } = useOutboundInventory(ownerId, projectId);
 - **OpenAI API** → Server actions → Client components
 - **shadcn/ui** → Custom styling → Consistent design
 
+## Active Orders Status System (Added August 2025)
+
+**Multi-Table Status Management**: Unified status display system combining portal orders and WMS operations data with real-time auto-refresh.
+
+### Status Flow Architecture
+
+**Status Sources & Mapping**:
+- **Portal Orders** (`portal_orders.status`): Pre-WMS statuses
+  - `'draft'` → "Draft" 🔘 (Gray) - Order saved but not submitted
+  - `'submitted'` → "Submitted" 🔵 (Blue) - Ready for ETL processing
+  - `'failed'` → "Failed" 🔴 (Red) - ETL failed to create in WMS
+  - `'created'` → Not displayed (handed off to WMS)
+
+- **Operations Active Orders** (`operations_active_orders.order_status_id`): WMS statuses
+  - `1` → "Created" 🟢 (Green) - Successfully created in WMS
+  - `2` → "Picking" 🟡 (Yellow) - Being picked/processed
+  - `4` + no delivery_status → "Shipped" 🟣 (Purple) - Left warehouse
+  - `4` + delivery_status 'in transit'/'in_transit' → "In Transit" 🟠 (Orange) - En route
+  - `8` → Excluded (Cancelled orders never shown)
+  - delivery_status 'delivered' → Excluded (Delivered orders never shown)
+
+### SQL Query Implementation
+
+**Multi-Table UNION Strategy**:
+```sql
+-- Portal orders (not yet in WMS)
+SELECT order_number, status as display_status, ... FROM portal_orders 
+WHERE owner_id = $1 AND status IN ('draft', 'submitted', 'failed')
+
+UNION ALL
+
+-- WMS orders with intelligent status mapping
+SELECT order_number,
+  CASE 
+    WHEN order_status_id = 1 THEN 'created'
+    WHEN order_status_id = 2 THEN 'picking'
+    WHEN order_status_id = 4 AND (LOWER(delivery_status) = 'in transit' OR LOWER(delivery_status) = 'in_transit') THEN 'in_transit'
+    WHEN order_status_id = 4 AND (delivery_status IS NULL OR LOWER(delivery_status) NOT IN ('in transit', 'in_transit', 'delivered')) THEN 'shipped'
+  END as display_status, ...
+FROM operations_active_orders 
+WHERE owner_id = $1 AND order_status_id IN (1, 2, 4) 
+  AND order_status_id != 8  -- Exclude cancelled
+  AND (order_status_id != 4 OR LOWER(delivery_status) != 'delivered')  -- Exclude delivered
+
+ORDER BY order_number ASC  -- Sequential order for priority
+```
+
+### Status Color System
+
+**Unique Color Palette**:
+```typescript
+const getStatusColor = (status: string) => {
+  switch (status.toLowerCase()) {
+    case 'draft': return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+    case 'submitted': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+    case 'failed': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+    case 'created': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+    case 'picking': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
+    case 'shipped': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
+    case 'in_transit': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
+  }
+};
+```
+
+### Real-Time Auto-Refresh System
+
+**React Query Integration**: Smart polling with page visibility optimization.
+
+#### TanStack Query Implementation
+**Files Modified**:
+- `src/context/query-context.tsx`: QueryClient provider with optimized defaults
+- `src/app/layout.tsx`: QueryProvider integration
+- `src/hooks/use-active-orders.ts`: Complete React Query refactor with smart polling
+
+#### Smart Polling Features
+```typescript
+// Polling configuration in useActiveOrders
+const { data: activeOrders, isLoading, error, refetch } = useQuery({
+  queryKey: ['activeOrders', ownerId],
+  queryFn: () => getActiveOrders(ownerId!),
+  enabled: ownerId !== null,
+  refetchInterval: isVisible ? 30 * 1000 : false,  // 30s when visible
+  staleTime: 25 * 1000,  // Data fresh for 25 seconds
+  refetchOnWindowFocus: true,  // Refetch when returning to tab
+  refetchIntervalInBackground: false,  // Pause in background tabs
+});
+
+// Page visibility management
+const [isVisible, setIsVisible] = useState(true);
+useEffect(() => {
+  const handleVisibilityChange = () => {
+    setIsVisible(document.visibilityState === 'visible');
+  };
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+}, []);
+```
+
+#### Optimization Features
+- ✅ **30-second polling** when tab is active
+- ✅ **Automatic pause** when tab is hidden/backgrounded
+- ✅ **Resume polling** when user returns to tab
+- ✅ **Window focus refetch** for immediate updates
+- ✅ **Network reconnection handling** with automatic retry
+- ✅ **Smart caching** prevents duplicate requests
+- ✅ **Battery optimization** through intelligent polling
+
+### UI/UX Enhancements
+
+**Title Case Display**:
+```typescript
+// Professional status badge formatting
+<Badge className={getStatusColor(order.display_status)}>
+  {order.display_status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+</Badge>
+```
+
+**Order Prioritization**:
+- Orders sorted by `order_number ASC` (oldest first for priority)
+- Lower order numbers = older orders = higher priority for processing
+
+### Performance Impact
+
+**Minimal Resource Usage**:
+- **Per User**: ~350KB/hour additional data usage
+- **50 Concurrent Users**: ~17MB/hour total server impact  
+- **Database Load**: 100 additional simple queries/minute
+- **Battery Impact**: Negligible due to page visibility optimization
+
+### Integration Files
+
+**Core Implementation**:
+- `src/app/actions.ts`: `getActiveOrders()` with multi-table UNION logic
+- `src/hooks/use-active-orders.ts`: React Query implementation with smart polling
+- `src/components/dashboard/shared-dashboard-page.tsx`: Status display with color system
+- `src/context/query-context.tsx`: TanStack Query configuration
+
+### Benefits
+
+- ✅ **Real-Time Updates**: Status changes reflect automatically within 30 seconds
+- ✅ **No Manual Refresh**: Eliminates need for user to refresh page
+- ✅ **Battery Efficient**: Pauses polling in inactive tabs
+- ✅ **Professional UX**: Smooth, automatic status transitions
+- ✅ **Minimal Impact**: Negligible data and performance overhead
+- ✅ **Error Resilient**: Automatic retry and reconnection handling
+
 ### Current System Status
-- **Production Ready**: Authentication, AI assistant, dashboard views, dark mode, order creation with inventory
-- **Recently Added**: Real-time inventory validation, hierarchical lot/license plate selection, dynamic quantity tracking, input validation with toast notifications, expanded grid layout
+- **Production Ready**: Authentication, AI assistant, dashboard views, dark mode, order creation with inventory, real-time active orders
+- **Recently Added**: Multi-table Active Orders status system, React Query polling, smart page visibility optimization, professional Title Case status badges, unique color system
 - **Testing**: 33 AI test cases with dynamic date handling, real API integration
