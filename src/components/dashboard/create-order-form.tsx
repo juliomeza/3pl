@@ -206,7 +206,8 @@ const AddressInput = ({
       
       {/* Name Fields */}
       <div className="space-y-3">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        {/* Title, First Name, Last Name in same row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="space-y-2">
             <Label htmlFor={`${id}-title`}>Title</Label>
             <Input
@@ -236,16 +237,17 @@ const AddressInput = ({
               placeholder="Last name"
             />
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor={`${id}-companyName`}>Company Name</Label>
-            <Input
-              id={`${id}-companyName`}
-              value={value.companyName || ''}
-              onChange={(e) => handleFieldChange('companyName', e.target.value)}
-              placeholder="Company (optional)"
-            />
-          </div>
+        </div>
+        
+        {/* Company Name on separate row for more space */}
+        <div className="space-y-2">
+          <Label htmlFor={`${id}-companyName`}>Company Name</Label>
+          <Input
+            id={`${id}-companyName`}
+            value={value.companyName || ''}
+            onChange={(e) => handleFieldChange('companyName', e.target.value)}
+            placeholder="Company (optional)"
+          />
         </div>
         
         {/* Address Fields */}
