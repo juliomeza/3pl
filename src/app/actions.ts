@@ -115,7 +115,7 @@ export async function getActiveOrders(ownerId: number): Promise<any[]> {
         AND order_status_id != 8  -- Exclude cancelled orders
         AND (order_status_id != 4 OR delivery_status IS NULL OR delivery_status != 'Delivered')  -- Exclude delivered orders
       
-      ORDER BY order_created_date DESC, order_fulfillment_date DESC, estimated_delivery_date DESC
+      ORDER BY order_number ASC
       `,
       [ownerId]
     );
