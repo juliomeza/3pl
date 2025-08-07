@@ -78,7 +78,7 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
         return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
       case 'in_transit':
       case 'in transit':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+        return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
       // Legacy status support
       case 'picked_up':
       case 'picked up':
@@ -321,7 +321,7 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
                                 </p>
                               </div>
                               <Badge className={getStatusColor(order.display_status)}>
-                                {order.display_status.replace('_', ' ')}
+                                {order.display_status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                               </Badge>
                             </div>
                             <div className="flex items-center space-x-4 mt-2 text-sm text-muted-foreground">

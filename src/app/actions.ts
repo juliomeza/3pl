@@ -99,8 +99,8 @@ export async function getActiveOrders(ownerId: number): Promise<any[]> {
         CASE 
           WHEN order_status_id = 1 THEN 'created'
           WHEN order_status_id = 2 THEN 'picking'
-          WHEN order_status_id = 4 AND (delivery_status IS NULL OR delivery_status = '' OR delivery_status NOT IN ('In Transit', 'Delivered')) THEN 'shipped'
-          WHEN order_status_id = 4 AND delivery_status = 'In Transit' THEN 'in_transit'
+          WHEN order_status_id = 4 AND (LOWER(delivery_status) = 'in transit' OR LOWER(delivery_status) = 'in_transit') THEN 'in_transit'
+          WHEN order_status_id = 4 AND (delivery_status IS NULL OR delivery_status = '' OR LOWER(delivery_status) NOT IN ('in transit', 'in_transit', 'delivered')) THEN 'shipped'
         END as display_status,
         order_fulfillment_date,
         estimated_delivery_date,
@@ -113,7 +113,7 @@ export async function getActiveOrders(ownerId: number): Promise<any[]> {
       WHERE owner_id = $1 
         AND order_status_id IN (1, 2, 4)
         AND order_status_id != 8  -- Exclude cancelled orders
-        AND (order_status_id != 4 OR delivery_status IS NULL OR delivery_status != 'Delivered')  -- Exclude delivered orders
+        AND (order_status_id != 4 OR delivery_status IS NULL OR LOWER(delivery_status) != 'delivered')  -- Exclude delivered orders
       
       ORDER BY order_number ASC
       `,
