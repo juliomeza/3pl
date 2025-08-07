@@ -7,7 +7,8 @@ import { getFirestore, doc, getDoc } from 'firebase/firestore';
 
 export interface ClientInfo {
   clientId: string | null;
-  ownerId: number | null;
+  ownerId: number | null; // Backward compatibility
+  projectIds: number[] | null; // New multi-project support
   loading: boolean;
   error: string | null;
 }
@@ -17,6 +18,7 @@ export function useClientInfo(): ClientInfo {
   const [clientInfo, setClientInfo] = useState<ClientInfo>({
     clientId: null,
     ownerId: null,
+    projectIds: null,
     loading: true,
     error: null
   });
@@ -27,6 +29,7 @@ export function useClientInfo(): ClientInfo {
         setClientInfo({
           clientId: null,
           ownerId: null,
+          projectIds: null,
           loading: false,
           error: 'User not authenticated'
         });
@@ -60,15 +63,25 @@ export function useClientInfo(): ClientInfo {
         }
 
         const clientData = clientDoc.data();
+        
+        // Support both old (owner_id) and new (project_id/project_ids) schema
         const ownerId = clientData?.owner_id;
+        let projectIds = clientData?.project_ids || clientData?.project_id || (ownerId ? [ownerId] : null);
 
-        if (!ownerId) {
-          throw new Error('Owner ID not found in client profile');
+        // Ensure projectIds are numbers (Firebase might return strings)
+        if (projectIds && Array.isArray(projectIds)) {
+          projectIds = projectIds.map(id => typeof id === 'string' ? parseInt(id, 10) : id);
+        }
+
+
+        if (!projectIds || projectIds.length === 0) {
+          throw new Error('Project IDs not found in client profile');
         }
 
         setClientInfo({
           clientId,
-          ownerId,
+          ownerId, // Keep for backward compatibility
+          projectIds,
           loading: false,
           error: null
         });
@@ -78,6 +91,7 @@ export function useClientInfo(): ClientInfo {
         setClientInfo({
           clientId: null,
           ownerId: null,
+          projectIds: null,
           loading: false,
           error: error instanceof Error ? error.message : 'Unknown error'
         });

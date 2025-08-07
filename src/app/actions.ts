@@ -298,15 +298,16 @@ export async function getMaterialsData(ownerId: number): Promise<{
   }
 }
 
-// Get projects for order creation (filtered by owner_id)
-export async function getProjectsForOrders(ownerId: number): Promise<{id: string, name: string}[]> {
+// Get projects for order creation (filtered by project IDs)
+export async function getProjectsForOrders(projectIds: number[]): Promise<{id: string, name: string}[]> {
   try {
+    if (!projectIds || projectIds.length === 0) {
+      return [];
+    }
+
     const result = await db.query(
-      `SELECT id, name
-       FROM wms_projects
-       WHERE ownerid = $1
-       ORDER BY name`,
-      [ownerId]
+      `SELECT id, name FROM wms_projects WHERE id = ANY($1) ORDER BY name`,
+      [projectIds]
     );
 
     return result.rows.map(row => ({
@@ -360,14 +361,27 @@ export async function getCarrierServiceTypesForOrders(carrierId: string): Promis
   }
 }
 
-// Get lots for a specific material (filtered by owner_id and project)
-export async function getLotsForMaterial(ownerId: number, materialCode: string, projectId?: string): Promise<{
+// Get lots for a specific material (filtered by owner_id and allowed projects)
+export async function getLotsForMaterial(ownerId: number, materialCode: string, projectIds: number[], selectedProjectId?: string): Promise<{
   lot_code: string;
   total_available_amount: number;
   uom: string;
   uom_short: string;
 }[]> {
   try {
+    // Validate projectIds array is not empty
+    if (!projectIds || projectIds.length === 0) {
+      throw new Error('No allowed projects provided');
+    }
+
+    // If selectedProjectId provided, validate it's in the allowed projectIds array
+    if (selectedProjectId) {
+      const selectedId = parseInt(selectedProjectId);
+      if (!projectIds.includes(selectedId)) {
+        throw new Error(`Access denied: Project ${selectedProjectId} is not in allowed projects`);
+      }
+    }
+
     let query = `
       SELECT
         l.lookupcode AS lot_code,
@@ -388,13 +402,14 @@ export async function getLotsForMaterial(ownerId: number, materialCode: string, 
         AND l.statusid = 1
         AND lpc.amount > 0
         AND o.id = $1
-        AND m.lookupcode = $2`;
+        AND m.lookupcode = $2
+        AND p.id = ANY($3)`;
     
-    const params = [ownerId, materialCode];
+    const params = [ownerId, materialCode, projectIds];
     
-    if (projectId) {
-      query += ` AND p.id = $3`;
-      params.push(parseInt(projectId));
+    if (selectedProjectId) {
+      query += ` AND p.id = $4`;
+      params.push(parseInt(selectedProjectId));
     }
     
     query += ` 
@@ -415,14 +430,27 @@ export async function getLotsForMaterial(ownerId: number, materialCode: string, 
   }
 }
 
-// Get license plates for a specific material and lot (filtered by owner_id and project)
-export async function getLicensePlatesForMaterial(ownerId: number, materialCode: string, lotCode?: string, projectId?: string): Promise<{
+// Get license plates for a specific material and lot (filtered by owner_id and allowed projects)
+export async function getLicensePlatesForMaterial(ownerId: number, materialCode: string, projectIds: number[], selectedProjectId?: string, lotCode?: string): Promise<{
   license_plate_code: string;
   total_available_amount: number;
   uom: string;
   uom_short: string;
 }[]> {
   try {
+    // Validate projectIds array is not empty
+    if (!projectIds || projectIds.length === 0) {
+      throw new Error('No allowed projects provided');
+    }
+
+    // If selectedProjectId provided, validate it's in the allowed projectIds array
+    if (selectedProjectId) {
+      const selectedId = parseInt(selectedProjectId);
+      if (!projectIds.includes(selectedId)) {
+        throw new Error(`Access denied: Project ${selectedProjectId} is not in allowed projects`);
+      }
+    }
+
     let query = `
       SELECT
         lp.lookupcode AS license_plate_code,
@@ -443,18 +471,19 @@ export async function getLicensePlatesForMaterial(ownerId: number, materialCode:
         AND l.statusid = 1
         AND lpc.amount > 0
         AND o.id = $1
-        AND m.lookupcode = $2`;
+        AND m.lookupcode = $2
+        AND p.id = ANY($3)`;
     
-    const params = [ownerId, materialCode];
+    const params = [ownerId, materialCode, projectIds];
+    
+    if (selectedProjectId) {
+      query += ` AND p.id = $${params.length + 1}`;
+      params.push(parseInt(selectedProjectId));
+    }
     
     if (lotCode) {
       query += ` AND l.lookupcode = $${params.length + 1}`;
       params.push(lotCode);
-    }
-    
-    if (projectId) {
-      query += ` AND p.id = $${params.length + 1}`;
-      params.push(parseInt(projectId));
     }
     
     query += ` 
@@ -475,8 +504,8 @@ export async function getLicensePlatesForMaterial(ownerId: number, materialCode:
   }
 }
 
-// Get available inventory for outbound orders (filtered by owner_id and project)
-export async function getOutboundInventory(ownerId: number, projectId?: string): Promise<{
+// Get available inventory for outbound orders (filtered by owner_id and allowed projects)
+export async function getOutboundInventory(ownerId: number, projectIds: number[], selectedProjectId?: string): Promise<{
   owner_id: number;
   project_id: number;
   material_name: string;
@@ -487,6 +516,19 @@ export async function getOutboundInventory(ownerId: number, projectId?: string):
   uom_short: string;
 }[]> {
   try {
+    // Validate projectIds array is not empty
+    if (!projectIds || projectIds.length === 0) {
+      throw new Error('No allowed projects provided');
+    }
+
+    // If selectedProjectId provided, validate it's in the allowed projectIds array
+    if (selectedProjectId) {
+      const selectedId = parseInt(selectedProjectId);
+      if (!projectIds.includes(selectedId)) {
+        throw new Error(`Access denied: Project ${selectedProjectId} is not in allowed projects`);
+      }
+    }
+
     let query = `
       SELECT
         o.id AS owner_id,
@@ -510,13 +552,14 @@ export async function getOutboundInventory(ownerId: number, projectId?: string):
         AND lp.archived = false
         AND l.statusid = 1
         AND lpc.amount > 0
-        AND o.id = $1`;
+        AND o.id = $1
+        AND p.id = ANY($2)`;
     
-    const params = [ownerId];
+    const params = [ownerId, projectIds];
     
-    if (projectId) {
-      query += ` AND p.id = $2`;
-      params.push(parseInt(projectId));
+    if (selectedProjectId) {
+      query += ` AND p.id = $3`;
+      params.push(parseInt(selectedProjectId));
     }
     
     query += ` 

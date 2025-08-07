@@ -311,8 +311,8 @@ const AddressInput = ({
 
 
 export function CreateOrderForm() {
-  // Get client info for owner filtering
-  const { ownerId } = useClientInfo();
+  // Get client info for project filtering
+  const { ownerId, projectIds } = useClientInfo();
   
   // Get authenticated user info
   const { user } = useAuth();
@@ -320,8 +320,8 @@ export function CreateOrderForm() {
   // Toast notifications
   const { toast } = useToast();
   
-  // Load projects from database
-  const { projects, loading: projectsLoading, error: projectsError } = useProjectsForOrders(ownerId);
+  // Load allowed projects from database
+  const { projects, loading: projectsLoading, error: projectsError } = useProjectsForOrders(projectIds);
   
   // Load carriers from database
   const { carriers, loading: carriersLoading, error: carriersError } = useCarriersForOrders();
@@ -367,9 +367,10 @@ export function CreateOrderForm() {
   // Load carrier service types from database (filtered by selected carrier)
   const { serviceTypes, loading: serviceTypesLoading, error: serviceTypesError } = useCarrierServiceTypesForOrders(formData.carrierId);
 
-  // Load available inventory for outbound orders (filtered by project)
+  // Load available inventory for outbound orders (filtered by allowed projects)
   const { inventory, loading: inventoryLoading, error: inventoryError } = useOutboundInventory(
     ownerId, 
+    projectIds,
     formData.orderType === 'outbound' ? formData.projectId : undefined
   );
 
@@ -383,19 +384,21 @@ export function CreateOrderForm() {
     licensePlate: ''
   });
 
-  // Load lots for selected material (for outbound orders)
+  // Load lots for selected material (for outbound orders, filtered by allowed projects)
   const { lots, loading: lotsLoading, error: lotsError } = useMaterialLots(
     ownerId,
-    formData.orderType === 'outbound' && newLineItem.materialCode ? newLineItem.materialCode : undefined,
+    formData.orderType === 'outbound' && newLineItem.materialCode ? newLineItem.materialCode : '',
+    projectIds,
     formData.orderType === 'outbound' ? formData.projectId : undefined
   );
 
-  // Load license plates for selected material and lot (for outbound orders)
+  // Load license plates for selected material and lot (for outbound orders, filtered by allowed projects)
   const { licensePlates, loading: licensePlatesLoading, error: licensePlatesError } = useLicensePlates(
     ownerId,
-    formData.orderType === 'outbound' && newLineItem.materialCode ? newLineItem.materialCode : undefined,
-    formData.orderType === 'outbound' && newLineItem.batchNumber ? newLineItem.batchNumber : undefined,
-    formData.orderType === 'outbound' ? formData.projectId : undefined
+    formData.orderType === 'outbound' && newLineItem.materialCode ? newLineItem.materialCode : '',
+    projectIds,
+    formData.orderType === 'outbound' ? formData.projectId : undefined,
+    formData.orderType === 'outbound' && newLineItem.batchNumber ? newLineItem.batchNumber : undefined
   );
 
   // Validation functions for each step

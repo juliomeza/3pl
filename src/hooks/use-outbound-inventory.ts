@@ -13,17 +13,18 @@ export interface OutboundInventoryItem {
   uom: string;
 }
 
-export function useOutboundInventory(ownerId: number | null, projectId?: string) {
+export function useOutboundInventory(ownerId: number | null, projectIds: number[] | null, selectedProjectId?: string) {
   const { data, loading, error, refetch } = useDataFetcher(
     getOutboundInventory,
     {
       ownerId,
       initialData: [] as OutboundInventoryItem[],
-      dependencies: [projectId],
+      dependencies: [projectIds, selectedProjectId],
       errorMessage: 'Failed to load available inventory',
       enableRefetchLoading: true
     },
-    projectId
+    projectIds || [],
+    selectedProjectId
   );
 
   return { 

@@ -9,18 +9,19 @@ export interface MaterialLot {
   uom: string;
 }
 
-export function useMaterialLots(ownerId: number | null, materialCode?: string, projectId?: string) {
+export function useMaterialLots(ownerId: number | null, materialCode: string, projectIds: number[] | null, selectedProjectId?: string) {
   const { data, loading, error, refetch } = useDataFetcher(
     getLotsForMaterial,
     {
       ownerId,
       initialData: [] as MaterialLot[],
-      dependencies: [materialCode, projectId],
+      dependencies: [materialCode, projectIds, selectedProjectId],
       errorMessage: 'Failed to load lots for material',
       enableRefetchLoading: true
     },
-    materialCode || '',
-    projectId
+    materialCode,
+    projectIds || [],
+    selectedProjectId
   );
 
   return { 

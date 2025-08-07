@@ -9,19 +9,20 @@ export interface LicensePlate {
   uom: string;
 }
 
-export function useLicensePlates(ownerId: number | null, materialCode?: string, lotCode?: string, projectId?: string) {
+export function useLicensePlates(ownerId: number | null, materialCode: string, projectIds: number[] | null, selectedProjectId?: string, lotCode?: string) {
   const { data, loading, error, refetch } = useDataFetcher(
     getLicensePlatesForMaterial,
     {
       ownerId,
       initialData: [] as LicensePlate[],
-      dependencies: [materialCode, lotCode, projectId],
+      dependencies: [materialCode, projectIds, selectedProjectId, lotCode],
       errorMessage: 'Failed to load license plates for material',
       enableRefetchLoading: true
     },
-    materialCode || '',
-    lotCode,
-    projectId
+    materialCode,
+    projectIds || [],
+    selectedProjectId,
+    lotCode
   );
 
   return { 
