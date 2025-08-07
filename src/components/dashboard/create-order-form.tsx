@@ -250,27 +250,29 @@ const AddressInput = ({
           />
         </div>
         
-        {/* Address Fields */}
-        <div className="space-y-2">
-          <Label htmlFor={`${id}-line1`}>Address Line 1 *</Label>
-          <Input
-            ref={line1Ref}
-            id={`${id}-line1`}
-            value={value.line1 || ''}
-            onChange={(e) => handleFieldChange('line1', e.target.value)}
-            placeholder="Start typing an address..."
-            autoComplete="off"
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor={`${id}-line2`}>Address Line 2</Label>
-          <Input
-            id={`${id}-line2`}
-            value={value.line2 || ''}
-            onChange={(e) => handleFieldChange('line2', e.target.value)}
-            placeholder="Apt, Suite, Unit, etc. (optional)"
-          />
+        {/* Address Fields - Line 1 and Line 2 in same row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label htmlFor={`${id}-line1`}>Address Line 1 *</Label>
+            <Input
+              ref={line1Ref}
+              id={`${id}-line1`}
+              value={value.line1 || ''}
+              onChange={(e) => handleFieldChange('line1', e.target.value)}
+              placeholder="Start typing an address..."
+              autoComplete="off"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor={`${id}-line2`}>Address Line 2</Label>
+            <Input
+              id={`${id}-line2`}
+              value={value.line2 || ''}
+              onChange={(e) => handleFieldChange('line2', e.target.value)}
+              placeholder="Apt, Suite, Unit, etc. (optional)"
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
