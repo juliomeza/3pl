@@ -11,6 +11,7 @@ export interface OutboundInventoryItem {
   material_code: string;
   total_available_amount: number;
   uom: string;
+  uom_short: string;
 }
 
 export function useOutboundInventory(ownerId: number | null, projectIds: number[] | null, selectedProjectId?: string) {

@@ -61,28 +61,62 @@ export async function getAiInsightOpenAIClient(query: string, ownerId: number, c
   }
 }
 
-// Get active orders for client dashboard
+// Get active orders for client dashboard with multi-table status logic
 export async function getActiveOrders(ownerId: number): Promise<any[]> {
   try {
     const result = await db.query(
-      `SELECT 
+      `
+      -- Orders from portal_orders that haven't reached WMS yet
+      SELECT 
+        order_number,
+        reference_number as shipment_number,
+        '' as customer,
+        recipient_name,
+        city as recipient_city,
+        state as recipient_state,
+        status as display_status,
+        NULL as order_fulfillment_date,
+        estimated_delivery_date,
+        order_date as order_created_date,
+        carrier,
+        service_type,
+        NULL as tracking_numbers,
+        'portal' as source_table
+      FROM portal_orders 
+      WHERE owner_id = $1 
+        AND status IN ('draft', 'submitted', 'failed')
+      
+      UNION ALL
+      
+      -- Orders from operations_active_orders (WMS orders) with status mapping
+      SELECT 
         order_number,
         shipment_number,
         customer,
         recipient_name,
         recipient_city,
         recipient_state,
-        delivery_status,
+        CASE 
+          WHEN order_status_id = 1 THEN 'created'
+          WHEN order_status_id = 2 THEN 'picking'
+          WHEN order_status_id = 4 AND (delivery_status IS NULL OR delivery_status = '' OR delivery_status NOT IN ('In Transit', 'Delivered')) THEN 'shipped'
+          WHEN order_status_id = 4 AND delivery_status = 'In Transit' THEN 'in_transit'
+        END as display_status,
         order_fulfillment_date,
         estimated_delivery_date,
         order_created_date,
         carrier,
         service_type,
-        tracking_numbers
+        tracking_numbers,
+        'operations' as source_table
       FROM operations_active_orders 
       WHERE owner_id = $1 
-      AND LOWER(delivery_status) NOT IN ('delivered', 'cancelled')
-      ORDER BY order_created_date DESC, order_fulfillment_date DESC, estimated_delivery_date DESC`,
+        AND order_status_id IN (1, 2, 4)
+        AND order_status_id != 8  -- Exclude cancelled orders
+        AND (order_status_id != 4 OR delivery_status IS NULL OR delivery_status != 'Delivered')  -- Exclude delivered orders
+      
+      ORDER BY order_created_date DESC, order_fulfillment_date DESC, estimated_delivery_date DESC
+      `,
       [ownerId]
     );
     
