@@ -98,25 +98,31 @@ src/lib/
 **Authentication Flow**:
 1. User authenticates via Firebase Auth (Google/Microsoft OAuth)
 2. User document created/retrieved from `users` collection with `clientId` field
-3. For client role: Client document retrieved from `clients` collection containing `owner_id`
-4. `owner_id` is used for all database filtering and access control
+3. For client role: Client document retrieved from `clients` collection containing `project_ids` array
+4. `project_ids` array is used for all database filtering and access control
 
 **Role System**:
 - `employee`: Full access to all operational data and management
-- `client`: Limited to owner-specific data with automatic `owner_id` filtering
+- `client`: Limited to project-specific data with automatic `project_ids` filtering
 - `none`: Pending approval state
 
 **Critical Data Flow**:
 ```
-Firebase Auth → users/{uid}.clientId → clients/{clientId}.owner_id → Database filtering
+Firebase Auth → users/{uid}.clientId → clients/{clientId}.project_ids → Multi-project database filtering
 ```
 
+**Multi-Project Security Model (Updated August 2025)**:
+- **Firebase Schema**: `clients/{clientId}.project_ids: number[]` - Array of allowed project IDs
+- **Backward Compatibility**: Supports legacy `owner_id` field as fallback
+- **Security Validation**: All server actions validate that requested `projectId` is in allowed `project_ids` array
+- **Database Filtering**: Uses PostgreSQL `WHERE id = ANY($1)` for efficient multi-project queries
+
 **Key Files**:
-- `src/context/auth-context.tsx`: Global auth state with clientInfo containing owner_id
-- `src/hooks/use-client-info.ts`: Retrieves owner_id from Firebase chain
+- `src/context/auth-context.tsx`: Global auth state with clientInfo containing project_ids
+- `src/hooks/use-client-info.ts`: Retrieves project_ids from Firebase chain with owner_id fallback
 - `src/components/with-auth.tsx`: HOC wrapper for role-based access control
 
-**Security Pattern**: All client database queries MUST include `WHERE owner_id = [user_owner_id]` or equivalent filtering.
+**Security Pattern**: All client database queries MUST validate project access using `project_ids` array filtering.
 
 ## Data Visualization
 
@@ -211,17 +217,17 @@ setCenterContent(<OrderStepIndicator currentStep={currentStep} />);
   - Header controls context for dynamic content injection
 
 - **SharedDashboardPage** (`src/components/dashboard/shared-dashboard-page.tsx`): Role-based dashboard
-  - Client: Uses `owner_id` filtering for client-specific data
+  - Client: Uses `project_ids` array filtering for multi-project data access
   - Employee: Full access to all operational data (no filtering)
   - Shared metrics cards, charts, and active orders sections
 
 - **SharedReportsPage** (`src/components/dashboard/shared-reports-page.tsx`): Unified reports interface
-  - Client: 20+ client-specific reports with owner filtering
+  - Client: 20+ client-specific reports with multi-project filtering
   - Employee: 5-50 reports with configurable access levels
   - Shared MaterialsTable, header controls, and export functionality
 
 - **SharedAssistantPage** (`src/components/dashboard/shared-assistant-page.tsx`): Unified AI assistant interface
-  - Client: Loading/error states with owner validation and filtered queries
+  - Client: Loading/error states with project validation and filtered queries
   - Employee: Direct access without additional validation
   - Shared AI chat interface with role-appropriate data access
 
@@ -231,7 +237,9 @@ setCenterContent(<OrderStepIndicator currentStep={currentStep} />);
 
 **Core Data Fetching Hook**: `src/hooks/use-data-fetcher.ts` - Generic factory hook providing consistent loading, error, and refetch patterns.
 
-**Standardized Hook Pattern**:
+**Multi-Project Hook Patterns (Updated August 2025)**:
+
+**Standard useDataFetcher Pattern** (for owner-based filtering):
 ```typescript
 export function useHookName(ownerId: number | null, ...params) {
   const { data, loading, error, refetch } = useDataFetcher(
@@ -249,6 +257,109 @@ export function useHookName(ownerId: number | null, ...params) {
   return { data, loading, error, refetch };
 }
 ```
+
+**Multi-Project Custom Pattern** (for project array filtering):
+```typescript
+export function useProjectsForOrders(projectIds: number[] | null) {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchProjects() {
+      if (!projectIds || projectIds.length === 0) {
+        setProjects([]);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        const result = await getProjectsForOrders(projectIds);
+        setProjects(result);
+      } catch (err) {
+        console.error('Error loading projects:', err);
+        setError('Failed to load projects');
+        setProjects([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchProjects();
+  }, [projectIds]);
+
+  return { projects, loading, error, refetch };
+}
+```
+
+## Multi-Project System Architecture (Added August 2025)
+
+**Granular Project Access Control**: Complete multi-project support allowing clients access to specific projects with robust security validation.
+
+### Firebase Schema Design
+
+**clients Collection Structure**:
+```typescript
+// clients/{clientId}
+{
+  name: "Client Name",
+  logo_url: "https://...",
+  project_ids: [22, 228, 325, 334] // Array of allowed project IDs
+  // Legacy fields for backward compatibility:
+  owner_id: 701 // Falls back to [owner_id] if project_ids not found
+}
+```
+
+### Server Action Security Architecture
+
+**Multi-Project Validation Pattern**:
+```typescript
+// Updated server action signatures with project validation
+export async function getProjectsForOrders(projectIds: number[]): Promise<Project[]>
+export async function getOutboundInventory(ownerId: number, projectIds: number[], selectedProjectId?: string)
+export async function getLotsForMaterial(ownerId: number, materialCode: string, projectIds: number[], selectedProjectId?: string)
+export async function getLicensePlatesForMaterial(ownerId: number, materialCode: string, projectIds: number[], selectedProjectId?: string, lotCode?: string)
+```
+
+**Security Validation Logic**:
+1. **Project Array Validation**: Ensures `projectIds` array is not empty
+2. **Access Control**: If `selectedProjectId` provided, validates it exists in allowed `projectIds` array
+3. **SQL Security**: Uses PostgreSQL `WHERE id = ANY($1)` for efficient multi-project filtering
+4. **Error Handling**: Throws descriptive errors for unauthorized project access attempts
+
+### Hook Architecture Updates
+
+**Key Hooks Updated for Multi-Project Support**:
+- `useClientInfo()`: Returns `{ ownerId, projectIds }` with backward compatibility
+- `useProjectsForOrders(projectIds)`: Custom implementation for project array filtering
+- `useOutboundInventory(ownerId, projectIds, selectedProjectId?)`: Multi-project inventory access
+- `useMaterialLots(ownerId, materialCode, projectIds, selectedProjectId?)`: Project-filtered lot access
+- `useLicensePlates(ownerId, materialCode, projectIds, selectedProjectId?, lotCode?)`: Project-filtered license plate access
+
+### Create Order Form Integration
+
+**Project Selection Workflow**:
+1. **Project Dropdown**: Shows only projects from client's allowed `project_ids` array
+2. **Material Filtering**: Materials load based on `projectIds` array with optional `selectedProjectId` filtering
+3. **Inventory Validation**: Lot/license plate selection validates against both `projectIds` and selected project
+4. **Security**: All inventory queries include project access validation
+
+### Key Benefits
+
+- ✅ **Granular Access**: Clients can access multiple specific projects instead of single owner-based access
+- ✅ **Enhanced Security**: All queries validate project access before execution
+- ✅ **Backward Compatibility**: Supports legacy `owner_id` based access
+- ✅ **Performance**: Efficient PostgreSQL array queries with `ANY()` operator
+- ✅ **Scalability**: Easy to add/remove project access per client
+
+### Migration Strategy
+
+**For existing clients**:
+1. `useClientInfo` automatically converts single `owner_id` to `[owner_id]` array
+2. Legacy server actions continue working with single-project arrays
+3. Firebase can be updated gradually from `owner_id` to `project_ids`
 
 ## Google Places API Integration (Added August 2025)
 

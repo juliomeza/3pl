@@ -64,9 +64,9 @@ export function useClientInfo(): ClientInfo {
 
         const clientData = clientDoc.data();
         
-        // Support both old (owner_id) and new (project_id/project_ids) schema
+        // Support both old (owner_id) and new (project_ids) schema
         const ownerId = clientData?.owner_id;
-        let projectIds = clientData?.project_ids || clientData?.project_id || (ownerId ? [ownerId] : null);
+        let projectIds = clientData?.project_ids || (ownerId ? [ownerId] : null);
 
         // Ensure projectIds are numbers (Firebase might return strings)
         if (projectIds && Array.isArray(projectIds)) {
