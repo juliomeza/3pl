@@ -133,9 +133,7 @@ export async function getDashboardMetrics(ownerId: number): Promise<{
     // Get average delivery time (simplified calculation)
     const avgDeliveryTimeResult = await db.query(
       `SELECT AVG(
-         EXTRACT(EPOCH FROM (
-           COALESCE(estimated_delivery_date, NOW())::date - order_created_date::date
-         )) / 86400
+         COALESCE(estimated_delivery_date, NOW())::date - order_created_date::date
        ) as avg_days
        FROM operations_active_orders 
        WHERE owner_id = $1 
