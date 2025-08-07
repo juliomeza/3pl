@@ -1,5 +1,6 @@
+import { useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 import { getActiveOrders } from '@/app/actions';
-import { useDataFetcher } from './use-data-fetcher';
 
 export interface ActiveOrder {
   order_number: string;
@@ -20,15 +21,42 @@ export interface ActiveOrder {
 }
 
 export function useActiveOrders(ownerId: number | null) {
-  const { data: activeOrders, loading, error, refetch } = useDataFetcher(
-    getActiveOrders,
-    {
-      ownerId,
-      initialData: [] as ActiveOrder[],
-      errorMessage: 'Failed to load active orders',
-      enableRefetchLoading: true
-    }
-  );
+  const [isVisible, setIsVisible] = useState(true);
 
-  return { activeOrders, loading, error, refetch };
+  // Listen for page visibility changes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsVisible(document.visibilityState === 'visible');
+    };
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      return () => {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      };
+    }
+  }, []);
+
+  const { 
+    data: activeOrders = [], 
+    isLoading: loading, 
+    error, 
+    refetch 
+  } = useQuery({
+    queryKey: ['activeOrders', ownerId],
+    queryFn: () => getActiveOrders(ownerId!),
+    enabled: ownerId !== null, // Only run query if ownerId exists
+    refetchInterval: isVisible ? 30 * 1000 : false, // 30 seconds when visible, pause when hidden
+    staleTime: 25 * 1000, // Consider data fresh for 25 seconds
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
+    refetchOnReconnect: true, // Refetch when network reconnects
+    refetchIntervalInBackground: false, // Don't poll in background tabs
+  });
+
+  return { 
+    activeOrders: activeOrders as ActiveOrder[], 
+    loading, 
+    error: error ? String(error) : null, 
+    refetch 
+  };
 }
