@@ -413,18 +413,6 @@ export function DataVisualizer({ data, viewType: externalViewType }: DataVisuali
       <div className="flex-1 min-h-0">
         {renderChart()}
       </div>
-
-      {/* Data Summary - Only for charts (not for table to avoid overlapping while scrolling) */}
-      {hasValidData && data && viewType !== 'table' && (
-        <div className="text-xs text-muted-foreground border-t pt-2 mt-4">
-          Showing {data.length} rows × {columns.length} columns
-          {data.length > 20 && (
-            <span className="ml-2 text-amber-600">
-              • Large dataset: Consider filtering for better chart visualization
-            </span>
-          )}
-        </div>
-      )}
     </div>
   );
 }
