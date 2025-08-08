@@ -472,6 +472,7 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
     serialNumber: '',
     licensePlate: ''
   });
+  const [lastAddedItemId, setLastAddedItemId] = useState<string | null>(null);
 
   // Load lots for selected material (for outbound orders, filtered by allowed projects)
   const { lots, loading: lotsLoading, error: lotsError } = useMaterialLots(
@@ -728,13 +729,10 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
 
       setFormData(prev => ({
         ...prev,
-        lineItems: [...prev.lineItems, lineItem]
+        lineItems: [lineItem, ...prev.lineItems]
       }));
-
-      toast({
-        title: "Material Added",
-        description: `${lineItem.quantity} ${lineItem.uom} of ${lineItem.materialCode} added to order`,
-      });
+      setLastAddedItemId(lineItem.id);
+      setTimeout(() => setLastAddedItemId(null), 1200);
     } else {
       // For inbound orders, we'll handle this later (no inventory check needed)
       const lineItem: LineItem = {
@@ -749,8 +747,10 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
 
       setFormData(prev => ({
         ...prev,
-        lineItems: [...prev.lineItems, lineItem]
+        lineItems: [lineItem, ...prev.lineItems]
       }));
+      setLastAddedItemId(lineItem.id);
+      setTimeout(() => setLastAddedItemId(null), 1200);
     }
 
     // Reset new line item
@@ -1453,37 +1453,29 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
                 <h4 className="font-medium text-sm">Materials List ({formData.lineItems.length})</h4>
                 <div className="space-y-2">
                   {formData.lineItems.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg bg-card/50">
+                    <div key={item.id} className={`flex items-center justify-between p-3 border rounded-lg bg-card/50 ${lastAddedItemId === item.id ? 'ring-1 ring-green-300/70' : ''}`}>
                       <div className="flex-1">
-                        <div className="flex items-center gap-4">
-                          <div>
-                            <div className="font-medium">{item.materialCode}</div>
-                            <div className="text-sm text-muted-foreground">{item.materialName}</div>
-                            {formData.orderType === 'outbound' && item.availableAmount && (() => {
-                              const inventoryItem = inventory.find(inv => inv.material_code === item.materialCode);
-                              const currentRemainingQty = inventoryItem ? getRemainingQuantity(item.materialCode, inventoryItem.total_available_amount) : 0;
-                              
-                              return (
-                                <div className="text-xs text-blue-600">
-                                  Available: {currentRemainingQty.toLocaleString()} {item.uom}
-                                </div>
-                              );
-                            })()}
-                          </div>
-                          <Badge variant="outline">
-                            {item.quantity.toLocaleString()} {item.uom}
-                          </Badge>
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <span className="font-medium">{item.materialCode}</span>
+                          <span className="text-muted-foreground">•</span>
+                          <span className="text-sm text-muted-foreground">{item.materialName}</span>
+                          <Badge variant="outline">{item.quantity.toLocaleString()} {item.uom}</Badge>
                           {item.batchNumber && (
-                            <Badge variant="secondary">
-                              Lot: {item.batchNumber}
-                            </Badge>
+                            <Badge variant="secondary">Lot: {item.batchNumber}</Badge>
                           )}
                           {item.licensePlate && (
-                            <Badge variant="secondary">
-                              LP: {item.licensePlate}
-                            </Badge>
+                            <Badge variant="secondary">LP: {item.licensePlate}</Badge>
                           )}
                         </div>
+                        {formData.orderType === 'outbound' && item.availableAmount && (() => {
+                          const inventoryItem = inventory.find(inv => inv.material_code === item.materialCode);
+                          const currentRemainingQty = inventoryItem ? getRemainingQuantity(item.materialCode, inventoryItem.total_available_amount) : 0;
+                          return (
+                            <div className="text-xs text-muted-foreground mt-1">
+                              Available: <span className="text-blue-600">{currentRemainingQty.toLocaleString()} {item.uom}</span>
+                            </div>
+                          );
+                        })()}
                       </div>
                       <Button
                         variant="ghost"
