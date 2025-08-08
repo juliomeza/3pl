@@ -17,7 +17,7 @@ export default function withAuth<P extends object>(WrappedComponent: ComponentTy
       }
 
       if (!user) {
-        router.replace('/login');
+        router.replace('/');
         return;
       }
 
