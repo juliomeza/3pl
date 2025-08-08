@@ -67,35 +67,43 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
   };
 
   const getStatusColor = (status: string) => {
+    // Harmonized palette: neutral (portal), blue/indigo (WMS), red (error)
+    // Style pattern: subtle tint bg + readable text + soft border
     switch (status.toLowerCase()) {
+      // Portal (neutral)
       case 'draft':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+        return 'bg-foreground/5 text-muted-foreground border-foreground/15 dark:bg-foreground/5 dark:text-foreground/70 dark:border-foreground/15';
       case 'submitted':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+        return 'bg-slate-500/10 text-slate-700 border-slate-500/20 dark:bg-slate-400/10 dark:text-slate-300 dark:border-slate-400/20';
+
+      // Error
       case 'failed':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+        return 'bg-rose-500/10 text-rose-700 border-rose-500/20 dark:bg-rose-400/10 dark:text-rose-300 dark:border-rose-400/20';
+
+      // WMS (operational)
       case 'created':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+        return 'bg-blue-500/10 text-blue-700 border-blue-500/20 dark:bg-blue-400/10 dark:text-blue-300 dark:border-blue-400/20';
       case 'picking':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
+        return 'bg-indigo-500/10 text-indigo-700 border-indigo-500/20 dark:bg-indigo-400/10 dark:text-indigo-300 dark:border-indigo-400/20';
       case 'shipped':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
+        return 'bg-indigo-500/10 text-indigo-800 border-indigo-500/20 dark:bg-indigo-400/10 dark:text-indigo-200 dark:border-indigo-400/20';
       case 'in_transit':
       case 'in transit':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
-      // Legacy status support
+        return 'bg-sky-500/10 text-sky-700 border-sky-500/20 dark:bg-sky-400/10 dark:text-sky-300 dark:border-sky-400/20';
+
+      // Legacy mapping approximations
       case 'picked_up':
       case 'picked up':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+        return 'bg-blue-500/10 text-blue-700 border-blue-500/20 dark:bg-blue-400/10 dark:text-blue-300 dark:border-blue-400/20';
       case 'processing':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
+        return 'bg-blue-500/10 text-blue-700 border-blue-500/20 dark:bg-blue-400/10 dark:text-blue-300 dark:border-blue-400/20';
       case 'ready_for_pickup':
       case 'ready for pickup':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
+        return 'bg-indigo-500/10 text-indigo-700 border-indigo-500/20 dark:bg-indigo-400/10 dark:text-indigo-300 dark:border-indigo-400/20';
       case 'pending':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
+        return 'bg-foreground/5 text-muted-foreground border-foreground/15 dark:bg-foreground/5 dark:text-foreground/70 dark:border-foreground/15';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+        return 'bg-foreground/5 text-muted-foreground border-foreground/15 dark:bg-foreground/5 dark:text-foreground/70 dark:border-foreground/15';
     }
   };
 
@@ -415,7 +423,10 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
                                     <PencilLine className="h-4 w-4" />
                                   </Button>
                                 )}
-                                <Badge className={getStatusColor(order.display_status)}>
+                                <Badge
+                                  variant="outline"
+                                  className={`${getStatusColor(order.display_status)} cursor-default select-none`}
+                                >
                                   {order.display_status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                 </Badge>
                                 <Button
