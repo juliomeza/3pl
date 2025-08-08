@@ -391,6 +391,8 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
   const [highlightOrderNumber, setHighlightOrderNumber] = useState(false);
   const savedHashRef = useRef<string>('');
   const showOrderNumberInlineOnceRef = useRef<boolean>(false);
+  // When saving without Order Type selected, we only want to highlight Order Type (not all Step 1 fields)
+  const [orderTypeErrorOnly, setOrderTypeErrorOnly] = useState(false);
   const computeFormHash = (fd: OrderFormData) => {
     return JSON.stringify({
       orderType: fd.orderType,
@@ -831,6 +833,19 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
       return;
     }
 
+    // Preflight: Order Type is required (server also validates). Only highlight Order Type here.
+    if (!formData.orderType) {
+      setOrderTypeErrorOnly(true);
+      toast({
+        variant: 'destructive',
+        title: 'Order Type Required',
+        description: 'Select Inbound or Outbound before saving so we can generate the order number (prefix IN/OUT).',
+      });
+      // Scroll to basic info card and focus the Select trigger via ref next tick
+      basicInfoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
     try {
       const userName = user?.displayName || user?.email || 'Unknown User';
       const result = await saveOrder(formData, formData.lineItems, ownerId, status, userName);
@@ -959,28 +974,39 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="orderType" className={showStep1Errors && !formData.orderType ? 'text-red-600' : ''}>Order Type *</Label>
-                  <Select value={formData.orderType} onValueChange={(value: 'inbound' | 'outbound') => 
-                    setFormData(prev => ({ ...prev, orderType: value }))
-                  }>
-                    <SelectTrigger className={showStep1Errors && !formData.orderType ? 'border-red-500 focus-visible:ring-red-500' : ''}>
-                      <SelectValue placeholder="Select order type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="inbound">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          Inbound (Purchase Order)
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="outbound">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          Outbound (Sales Order)
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                  {(() => {
+                    const showOrderTypeError = !formData.orderType && (orderTypeErrorOnly || showStep1Errors);
+                    return (
+                      <>
+                        <Label htmlFor="orderType" className={showOrderTypeError ? 'text-red-600' : ''}>Order Type *</Label>
+                        <Select 
+                          value={formData.orderType} 
+                          onValueChange={(value: 'inbound' | 'outbound') => {
+                            setFormData(prev => ({ ...prev, orderType: value }));
+                            setOrderTypeErrorOnly(false);
+                          }}
+                        >
+                          <SelectTrigger className={showOrderTypeError ? 'border-red-500 focus-visible:ring-red-500' : ''}>
+                            <SelectValue placeholder="Select order type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="inbound">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                Inbound (Purchase Order)
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="outbound">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                Outbound (Sales Order)
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </>
+                    );
+                  })()}
                 </div>
 
                 <div className="space-y-2">

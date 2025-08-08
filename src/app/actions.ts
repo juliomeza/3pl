@@ -953,6 +953,14 @@ export async function saveOrder(
   userName: string = 'system'
 ): Promise<{ success: boolean; orderId?: number; orderNumber?: string; error?: string }> {
   try {
+    // Basic validation: order type is required to save (needed to generate order number prefix)
+    const validTypes = ['inbound', 'outbound'];
+    if (!orderData?.orderType || !validTypes.includes(orderData.orderType)) {
+      return {
+        success: false,
+        error: 'Order Type is required. Please select Inbound or Outbound to generate the order number.'
+      };
+    }
   // Safely parse integer IDs for optional fields
   const projectIdInt = Number.isFinite(parseInt(orderData.projectId)) ? parseInt(orderData.projectId) : null;
   const carrierIdInt = Number.isFinite(parseInt(orderData.carrierId)) ? parseInt(orderData.carrierId) : null;
