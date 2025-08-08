@@ -206,11 +206,19 @@ export function SharedAiAssistant({ getAiInsight, onLeftContentChange, onRightCo
         </div>
 
         {/* Resize Handle (Desktop only) */}
-        <div 
-          className="hidden lg:flex items-center justify-center w-2 bg-gray-200 cursor-col-resize hover:bg-gray-300 transition-colors"
+        <div
+          className="hidden lg:flex relative w-4 cursor-col-resize group"
           onMouseDown={handleMouseDown}
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize panels"
         >
-          <GripVertical className="w-4 h-4 text-gray-400" />
+          {/* Faint track for discoverability */}
+          <div className="pointer-events-none absolute inset-y-2 left-1/2 -translate-x-1/2 w-1.5 rounded-full bg-foreground/10" />
+          {/* Visible thin line that adapts to theme */}
+          <div className="pointer-events-none absolute inset-y-2 left-1/2 -translate-x-1/2 w-px bg-foreground/40 rounded-full transition-colors group-hover:bg-foreground/60" />
+          {/* Always-visible subtle grip hint */}
+          <GripVertical className="pointer-events-none absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-3 h-3 text-foreground/40 opacity-100 group-hover:text-foreground/70 transition-colors" />
         </div>
 
         {/* Right Panel - Chat Interface */}
