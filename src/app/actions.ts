@@ -299,6 +299,118 @@ export async function getTopDestinations(ownerId: number, period: 'last90days' =
   }
 }
 
+// Fetch a portal order (header + lines) for editing by order_number and owner
+export async function getPortalOrderForEdit(ownerId: number, orderNumber: string): Promise<{
+  id: number;
+  orderType: 'inbound' | 'outbound';
+  projectId: string;
+  orderNumber: string;
+  referenceNumber: string | null;
+  recipientAddress: any;
+  billingAddress: any;
+  carrierId: string | '';
+  carrierServiceTypeId: string | '';
+  estimatedDeliveryDate: string;
+  lineItems: Array<{
+    id: string;
+    materialCode: string;
+    materialName: string;
+    quantity: number;
+    uom: string;
+    uomShort?: string;
+    batchNumber?: string | null;
+    serialNumber?: string | null;
+    licensePlate?: string | null;
+    availableAmount?: number;
+  }>;
+  status: 'draft' | 'submitted';
+} | null> {
+  try {
+    const headerRes = await db.query(
+      `SELECT id, order_number, order_type, project_id, reference_number, estimated_delivery_date,
+              recipient_title, recipient_first_name, recipient_last_name, recipient_company_name,
+              addr1, addr2, city, state, zip, country,
+              billing_title, billing_first_name, billing_last_name, billing_company_name,
+              billing_addr1, billing_addr2, billing_city, billing_state, billing_zip, billing_country,
+              carrier_id, service_type_id, status
+       FROM portal_orders
+       WHERE owner_id = $1 AND order_number = $2
+       LIMIT 1`,
+      [ownerId, orderNumber]
+    );
+
+    if (headerRes.rows.length === 0) return null;
+    const h = headerRes.rows[0];
+
+    const linesRes = await db.query(
+      `SELECT line_number, material_code, material_description, quantity, uom, lot, license_plate, serial_number, batch_number
+       FROM portal_order_lines
+       WHERE order_id = $1
+       ORDER BY line_number`,
+      [h.id]
+    );
+
+    const lineItems = linesRes.rows.map((r: any) => ({
+      id: `${r.line_number}-${r.material_code}`,
+      materialCode: r.material_code,
+      materialName: r.material_description || r.material_code,
+      quantity: parseFloat(r.quantity || '0'),
+      uom: r.uom || 'EA',
+      batchNumber: r.batch_number || r.lot || null,
+      serialNumber: r.serial_number || null,
+      licensePlate: r.license_plate || null,
+    }));
+
+    const recipientAddress = {
+      title: h.recipient_title || '',
+      firstName: h.recipient_first_name || '',
+      lastName: h.recipient_last_name || '',
+      companyName: h.recipient_company_name || '',
+      line1: h.addr1 || '',
+      line2: h.addr2 || '',
+      city: h.city || '',
+      state: h.state || '',
+      zipCode: h.zip || '',
+      country: h.country || 'US'
+    };
+
+    const billingAddress = {
+      title: h.billing_title || '',
+      firstName: h.billing_first_name || '',
+      lastName: h.billing_last_name || '',
+      companyName: h.billing_company_name || '',
+      line1: h.billing_addr1 || '',
+      line2: h.billing_addr2 || '',
+      city: h.billing_city || '',
+      state: h.billing_state || '',
+      zipCode: h.billing_zip || '',
+      country: h.billing_country || 'US'
+    };
+
+    const est = h.estimated_delivery_date
+      ? new Date(h.estimated_delivery_date).toISOString().split('T')[0]
+      : '';
+
+    return {
+      id: h.id,
+      orderType: (h.order_type as 'inbound' | 'outbound') || 'outbound',
+      projectId: h.project_id ? String(h.project_id) : '',
+      orderNumber: h.order_number,
+      referenceNumber: h.reference_number || null,
+      recipientAddress,
+      billingAddress,
+      carrierId: h.carrier_id ? String(h.carrier_id) : '',
+      carrierServiceTypeId: h.service_type_id ? String(h.service_type_id) : '',
+      estimatedDeliveryDate: est,
+      lineItems,
+      status: String(h.status).toLowerCase() === 'submitted' ? 'submitted' : 'draft'
+    };
+  } catch (error) {
+    console.error('Error loading portal order for edit:', error);
+    return null;
+  }
+}
+
 // Get materials data for reports
 export async function getMaterialsData(ownerId: number): Promise<{
   lookupCode: string;

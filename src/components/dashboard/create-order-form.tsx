@@ -329,7 +329,7 @@ const AddressInput = ({
 };
 
 
-export function CreateOrderForm() {
+export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string }) {
   // Get client info for project filtering
   const { ownerId, projectIds } = useClientInfo();
   
@@ -382,6 +382,37 @@ export function CreateOrderForm() {
     lineItems: [],
     status: 'draft'
   });
+  // If editing an existing order, load it once ownerId is available
+  useEffect(() => {
+    async function loadForEdit() {
+      if (!ownerId || !editOrderNumber) return;
+      const { getPortalOrderForEdit } = await import('@/app/actions');
+      try {
+        const loaded = await getPortalOrderForEdit(ownerId, editOrderNumber);
+        if (loaded) {
+          setFormData({
+            id: loaded.id,
+            orderType: loaded.orderType,
+            projectId: loaded.projectId,
+            orderNumber: loaded.orderNumber,
+            referenceNumber: loaded.referenceNumber || '',
+            recipientAddress: loaded.recipientAddress,
+            billingAddress: loaded.billingAddress,
+            carrierId: loaded.carrierId || '',
+            carrierServiceTypeId: loaded.carrierServiceTypeId || '',
+            estimatedDeliveryDate: loaded.estimatedDeliveryDate || '',
+            lineItems: loaded.lineItems as any,
+            status: loaded.status
+          });
+          // Jump to step 2 if there are materials
+          if ((loaded.lineItems || []).length > 0) setCurrentStep(2);
+        }
+      } catch (e) {
+        console.error('Failed to load order for edit', e);
+      }
+    }
+    loadForEdit();
+  }, [ownerId, editOrderNumber]);
 
   // Load carrier service types from database (filtered by selected carrier)
   const { serviceTypes, loading: serviceTypesLoading, error: serviceTypesError } = useCarrierServiceTypesForOrders(formData.carrierId);

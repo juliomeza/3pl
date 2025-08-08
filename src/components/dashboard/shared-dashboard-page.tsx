@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { useActiveOrders } from '@/hooks/use-active-orders';
 import { useShipmentTrends, useTopDestinations, useDeliveryPerformance } from '@/hooks/use-dashboard-charts';
@@ -24,6 +25,7 @@ import {
   TrendingUp,
   DollarSign
 } from 'lucide-react';
+import { PencilLine } from 'lucide-react';
 
 interface SharedDashboardPageProps {
   role: 'client' | 'employee';
@@ -45,6 +47,7 @@ const mockDeliveryPerformance = [
 export default function SharedDashboardPage({ role }: SharedDashboardPageProps) {
   const { user, clientInfo } = useAuth();
   const [activeShipmentsOpen, setActiveShipmentsOpen] = useState(false);
+  const router = useRouter();
   
   // Determine owner_id based on role
   const ownerId = role === 'client' ? (clientInfo?.owner_id || null) : null;
@@ -365,7 +368,16 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
                             {/* Row 1: Order • Customer • Destination  |  Status + (View) */}
                             <div className="flex items-center justify-between gap-3">
                               <div className="flex items-center gap-3 min-w-0">
-                                <p className="font-semibold shrink-0">{order.order_number}</p>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    // Placeholder navigation for future view details
+                                    if (role === 'client') router.push(`/client/orders?view=${encodeURIComponent(order.order_number)}`);
+                                  }}
+                                  className="font-semibold shrink-0 text-primary hover:underline"
+                                >
+                                  {order.order_number}
+                                </button>
 
                                 {/* Wide screens: inline meta to reduce line count */}
                                 <div className="hidden md:flex items-center text-sm text-muted-foreground gap-2 min-w-0">
@@ -379,15 +391,41 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
                                       {formatDestination(order.recipient_city, order.recipient_state)}
                                     </span>
                                   </span>
+                                  {(order.carrier || order.service_type) && (
+                                    <>
+                                      <span className="text-muted-foreground/60">•</span>
+                                      <Badge variant="outline" className="h-5 px-2 py-0 text-[11px] font-medium rounded-full">
+                                        {(order.carrier || '').toString()}
+                                        {order.service_type ? ` • ${order.service_type}` : ''}
+                                      </Badge>
+                                    </>
+                                  )}
                                 </div>
                               </div>
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2">
+                                {/* Edit icon only for client + portal source + draft/failed */}
+                                {role === 'client' && order.source_table === 'portal' && ['draft','failed'].includes(String(order.display_status).toLowerCase()) && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-amber-700 hover:text-amber-800 hover:bg-amber-50"
+                                    onClick={() => router.push(`/client/orders?edit=${encodeURIComponent(order.order_number)}`)}
+                                    title="Edit order"
+                                  >
+                                    <PencilLine className="h-4 w-4" />
+                                  </Button>
+                                )}
                                 <Badge className={getStatusColor(order.display_status)}>
                                   {order.display_status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                 </Badge>
-                                <Button variant="ghost" size="sm" className="hidden md:inline-flex">
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  View Details
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="hidden md:inline-flex h-8 w-8"
+                                  onClick={() => { if (role === 'client') router.push(`/client/orders?view=${encodeURIComponent(order.order_number)}`); }}
+                                  title="View details"
+                                >
+                                  <Eye className="h-4 w-4" />
                                 </Button>
                               </div>
                             </div>
@@ -412,11 +450,37 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
                                 <span className="md:hidden block">
                                   Customer: {order.recipient_name || 'Not specified'}
                                 </span>
+                                {((order.carrier || order.service_type) && (
+                                  <span className="md:hidden inline-flex">
+                                    <Badge variant="outline" className="h-5 px-2 py-0 text-[11px] font-medium rounded-full">
+                                      {(order.carrier || '').toString()}
+                                      {order.service_type ? ` • ${order.service_type}` : ''}
+                                    </Badge>
+                                  </span>
+                                ))}
                               </div>
-                              <Button variant="ghost" size="sm" className="md:hidden">
-                                <Eye className="h-4 w-4 mr-2" />
-                                View Details
-                              </Button>
+                              <div className="flex items-center gap-1">
+                                {role === 'client' && order.source_table === 'portal' && ['draft','failed'].includes(String(order.display_status).toLowerCase()) && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="md:hidden h-8 w-8 text-amber-700"
+                                    onClick={() => router.push(`/client/orders?edit=${encodeURIComponent(order.order_number)}`)}
+                                    title="Edit order"
+                                  >
+                                    <PencilLine className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="md:hidden h-8 w-8"
+                                  onClick={() => { if (role === 'client') router.push(`/client/orders?view=${encodeURIComponent(order.order_number)}`); }}
+                                  title="View details"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         </div>
