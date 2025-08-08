@@ -34,7 +34,8 @@
   .dark {
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
-    --card: 222 47% 11%;
+  /* Subtle elevation for cards in dark mode: slightly lighter than background */
+  --card: 222 47% 13.5%;
     --card-foreground: 210 40% 98%;
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
