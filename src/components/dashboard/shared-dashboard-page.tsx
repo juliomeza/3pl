@@ -71,6 +71,8 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
   const LIVE_STATUSES = new Set(['created', 'picking', 'shipped', 'in_transit', 'in transit']);
   const liveOrders = activeOrders.filter(o => LIVE_STATUSES.has(normalizeStatus(o.display_status)));
   const failedOrders = activeOrders.filter(o => normalizeStatus(o.display_status) === 'failed');
+  const nonLiveOrders = activeOrders.filter(o => !LIVE_STATUSES.has(normalizeStatus(o.display_status)));
+  const sortedOrders = [...liveOrders, ...nonLiveOrders];
 
   const getStatusColor = (status: string) => {
     // Harmonized palette: neutral (portal), blue/indigo (WMS), red (error)
@@ -330,9 +332,11 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
                           <Badge variant="secondary" className="cursor-default select-none" title="Live orders (created/picking/shipped/in transit)">
                             Active: {liveOrders.length}
                           </Badge>
-                          <Badge variant="outline" className="cursor-default select-none bg-rose-500/10 text-rose-700 border-rose-500/20 dark:bg-rose-400/10 dark:text-rose-300 dark:border-rose-400/20" title="Failed orders">
-                            Failed: {failedOrders.length}
-                          </Badge>
+                          {failedOrders.length > 0 && (
+                            <Badge variant="outline" className="cursor-default select-none bg-rose-500/10 text-rose-700 border-rose-500/20 dark:bg-rose-400/10 dark:text-rose-300 dark:border-rose-400/20" title="Failed orders">
+                              Failed: {failedOrders.length}
+                            </Badge>
+                          )}
                         </div>
                       )}
                     </div>
@@ -383,7 +387,7 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {activeOrders.map((order, index) => (
+                      {sortedOrders.map((order, index) => (
                         <div
                           key={index}
                           className="p-4 border rounded-lg hover:bg-muted/30 transition-colors bg-card/50"
