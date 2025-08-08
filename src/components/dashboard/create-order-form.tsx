@@ -11,6 +11,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 import { Plus, Trash2, Package, Truck, MapPin, CheckCircle, ArrowLeft, ArrowRight, Eye, CreditCard } from 'lucide-react';
 import { OrderStepIndicator } from './order-step-indicator';
 import { useHeaderControls } from '@/app/client/layout';
@@ -393,6 +403,8 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
   const showOrderNumberInlineOnceRef = useRef<boolean>(false);
   // When saving without Order Type selected, we only want to highlight Order Type (not all Step 1 fields)
   const [orderTypeErrorOnly, setOrderTypeErrorOnly] = useState(false);
+  // New Order dialog control
+  const [newOrderDialogOpen, setNewOrderDialogOpen] = useState(false);
   const computeFormHash = (fd: OrderFormData) => {
     return JSON.stringify({
       orderType: fd.orderType,
@@ -443,6 +455,25 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
       state: '',
       zipCode: '',
       country: 'US'
+    },
+    carrierId: '',
+    carrierServiceTypeId: '',
+    estimatedDeliveryDate: '',
+    lineItems: [],
+    status: 'draft'
+  });
+
+  const getInitialFormData = (): OrderFormData => ({
+    id: undefined,
+    orderType: '',
+    projectId: '',
+    orderNumber: '',
+    referenceNumber: '',
+    recipientAddress: {
+      title: '', firstName: '', lastName: '', companyName: '', line1: '', line2: '', city: '', state: '', zipCode: '', country: 'US'
+    },
+    billingAddress: {
+      title: '', firstName: '', lastName: '', companyName: '', line1: '', line2: '', city: '', state: '', zipCode: '', country: 'US'
     },
     carrierId: '',
     carrierServiceTypeId: '',
@@ -620,7 +651,11 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
         onStepClick={handleStepClick}
       />
     );
-    setRightContent(null);
+    setRightContent(
+      <Button variant="outline" size="sm" onClick={() => handleNewOrderClick()} className="gap-2">
+        <Plus className="w-4 h-4" /> New Order
+      </Button>
+    );
 
     // Cleanup on unmount
     return () => {
@@ -633,6 +668,48 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
     if (canGoToStep(step)) {
       setCurrentStep(step);
     }
+  };
+
+  // Determine if only the order type has been selected (initial unsaved state)
+  const isOnlyOrderTypeSelected = () => {
+    const init = getInitialFormData();
+    return !!formData.orderType &&
+      formData.orderNumber === '' &&
+      formData.projectId === '' &&
+      formData.referenceNumber === '' &&
+      formData.carrierId === '' &&
+      formData.carrierServiceTypeId === '' &&
+      formData.estimatedDeliveryDate === '' &&
+      formData.lineItems.length === 0 &&
+      JSON.stringify(formData.recipientAddress) === JSON.stringify(init.recipientAddress) &&
+      JSON.stringify(formData.billingAddress) === JSON.stringify(init.billingAddress);
+  };
+
+  const resetToNewOrder = () => {
+    const fresh = getInitialFormData();
+    setFormData(fresh);
+    setCurrentStep(1);
+    setShowStep1Errors(false);
+    setOrderTypeErrorOnly(false);
+    setInlineSaveMessage(null);
+    showOrderNumberInlineOnceRef.current = false;
+    // Treat brand-new as clean baseline so Save as Draft remains disabled until user edits
+    savedHashRef.current = computeFormHash(fresh);
+  };
+
+  const handleNewOrderClick = () => {
+    // If no unsaved changes, reset immediately
+    if (!isDirty) {
+      resetToNewOrder();
+      return;
+    }
+    // If only order type selected and never saved, reset without prompt
+    if (savedHashRef.current === '' && isOnlyOrderTypeSelected()) {
+      resetToNewOrder();
+      return;
+    }
+    // Otherwise, confirm
+    setNewOrderDialogOpen(true);
   };
 
   const handleNext = () => {
@@ -1850,6 +1927,29 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
           </div>
         </div>
       </div>
+
+      {/* Confirm New Order dialog */}
+      <AlertDialog open={newOrderDialogOpen} onOpenChange={setNewOrderDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Start a new order?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Unsaved changes will be lost. This action will clear the form and start a new order.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setNewOrderDialogOpen(false);
+                resetToNewOrder();
+              }}
+            >
+              New Order
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
