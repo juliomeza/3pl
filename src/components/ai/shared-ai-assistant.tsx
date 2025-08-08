@@ -34,7 +34,7 @@ export function SharedAiAssistant({ getAiInsight, onLeftContentChange, onRightCo
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [currentData, setCurrentData] = useState<any>(null);
-  const [leftWidth, setLeftWidth] = useState(50); // Percentage for left panel
+  const [leftWidth, setLeftWidth] = useState(60); // Percentage for left panel (default 60/40)
   const [isResizing, setIsResizing] = useState(false);
   const [viewType, setViewType] = useState<ViewType>('table');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -177,18 +177,18 @@ export function SharedAiAssistant({ getAiInsight, onLeftContentChange, onRightCo
   };
 
   return (
-    <div className="space-y-6">
+    <div className="-m-4 md:-m-8">
       {/* Main Container with Fixed Height */}
       <div 
         ref={containerRef}
-        className="flex h-[calc(100vh-144px)] bg-transparent overflow-hidden"
+        className="flex h-[calc(100vh-144px)] bg-transparent overflow-hidden px-6 md:px-8 py-4"
       >
         {/* Left Panel - Data Visualization (Desktop only) */}
         <div 
           className="hidden lg:flex flex-col bg-transparent"
           style={{ width: `${leftWidth}%` }}
         >
-          <Card className="m-4 overflow-hidden">
+          <Card className="overflow-hidden">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
                 <span className="h-7 w-7 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 inline-flex items-center justify-center">
@@ -219,7 +219,7 @@ export function SharedAiAssistant({ getAiInsight, onLeftContentChange, onRightCo
           style={{ width: `${100 - leftWidth}%` }}
         >
           {/* Chat Messages */}
-          <Card className="m-4 overflow-hidden flex-1 flex flex-col">
+          <Card className="overflow-hidden flex-1 flex flex-col">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
                 <span className="h-7 w-7 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 inline-flex items-center justify-center">
@@ -274,7 +274,7 @@ export function SharedAiAssistant({ getAiInsight, onLeftContentChange, onRightCo
 
           {/* Data Visualization (Mobile) */}
           <div className="lg:hidden">
-            <Card className="m-4 overflow-hidden">
+            <Card className="overflow-hidden">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <span className="h-7 w-7 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 inline-flex items-center justify-center">
@@ -292,7 +292,7 @@ export function SharedAiAssistant({ getAiInsight, onLeftContentChange, onRightCo
           </div>
 
           {/* Chat Input */}
-          <div className="px-4 pb-4">
+          <div className="pt-4">
             <Card>
               <div className="h-px w-full bg-gradient-to-r from-violet-500 via-fuchsia-400 to-pink-400" />
               <CardContent className="pt-4">
