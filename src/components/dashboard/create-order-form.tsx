@@ -1668,13 +1668,21 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
 
           <div className="flex items-center gap-2">
             {currentStep < 3 && (
-              <Button 
-                onClick={handleNext}
-                disabled={currentStep === 2 ? !canGoToStep(3) : false}
-              >
-                Next
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
+              <>
+                <Button 
+                  variant="outline"
+                  onClick={() => handleSave('draft')}
+                >
+                  Save as Draft
+                </Button>
+                <Button 
+                  onClick={handleNext}
+                  disabled={currentStep === 2 ? !canGoToStep(3) : false}
+                >
+                  Next
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </>
             )}
 
             {currentStep === 3 && (

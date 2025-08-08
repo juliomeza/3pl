@@ -953,6 +953,11 @@ export async function saveOrder(
   userName: string = 'system'
 ): Promise<{ success: boolean; orderId?: number; error?: string }> {
   try {
+  // Safely parse integer IDs for optional fields
+  const projectIdInt = Number.isFinite(parseInt(orderData.projectId)) ? parseInt(orderData.projectId) : null;
+  const carrierIdInt = Number.isFinite(parseInt(orderData.carrierId)) ? parseInt(orderData.carrierId) : null;
+  const serviceTypeIdInt = Number.isFinite(parseInt(orderData.carrierServiceTypeId)) ? parseInt(orderData.carrierServiceTypeId) : null;
+
     let orderId = orderData.id;
 
     if (orderId) {
@@ -975,9 +980,9 @@ export async function saveOrder(
       
       const lookupResult = await db.query(lookupDataQuery, [
         ownerId, 
-        parseInt(orderData.projectId), 
-        parseInt(orderData.carrierId),
-        parseInt(orderData.carrierServiceTypeId)
+        projectIdInt, 
+        carrierIdInt,
+        serviceTypeIdInt
       ]);
       
       const lookupData = lookupResult.rows[0] || {};
@@ -999,7 +1004,7 @@ export async function saveOrder(
       const orderValues = [
         orderId, // $1
         orderData.orderType, // $2
-        orderData.projectId, // $3
+        projectIdInt, // $3
         lookupData.project_lookupcode || null, // $4
         orderData.referenceNumber || null, // $5
         orderData.estimatedDeliveryDate || null, // $6
@@ -1027,8 +1032,8 @@ export async function saveOrder(
         orderData.billingAddress.country || 'US', // $28
         lookupData.carrier_name || null, // $29
         lookupData.service_type_name || null, // $30
-        orderData.carrierId, // $31
-        orderData.carrierServiceTypeId, // $32
+        carrierIdInt, // $31
+        serviceTypeIdInt, // $32
         status, // $33
         userName, // $34
         ownerId // $35
@@ -1049,7 +1054,7 @@ export async function saveOrder(
       
       // Generate order number if not provided
       let orderNumber = orderData.orderNumber;
-      if (!orderNumber) {
+  if (!orderNumber) {
         const result = await db.query(
           'SELECT COUNT(*) + 1 as next_number FROM portal_orders WHERE owner_id = $1',
           [ownerId]
@@ -1075,9 +1080,9 @@ export async function saveOrder(
       
       const lookupResult = await db.query(lookupDataQuery, [
         ownerId, 
-        parseInt(orderData.projectId), 
-        parseInt(orderData.carrierId),
-        parseInt(orderData.carrierServiceTypeId)
+        projectIdInt, 
+        carrierIdInt,
+        serviceTypeIdInt
       ]);
       
       const lookupData = lookupResult.rows[0] || {};
@@ -1104,7 +1109,7 @@ export async function saveOrder(
         status, // $4
         ownerId, // $5
         lookupData.owner_lookupcode || null, // $6
-        orderData.projectId, // $7
+  projectIdInt, // $7
         lookupData.project_lookupcode || null, // $8
         orderData.referenceNumber || null, // $9
         orderData.estimatedDeliveryDate || null, // $10
@@ -1132,8 +1137,8 @@ export async function saveOrder(
         orderData.billingAddress.country || 'US', // $32
         lookupData.carrier_name || null, // $33
         lookupData.service_type_name || null, // $34
-        orderData.carrierId, // $35
-        orderData.carrierServiceTypeId, // $36
+  carrierIdInt, // $35
+  serviceTypeIdInt, // $36
         userName, // $37 - created_by
         userName  // $38 - updated_by
       ];
