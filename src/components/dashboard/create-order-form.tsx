@@ -389,7 +389,7 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
       const { getPortalOrderForEdit } = await import('@/app/actions');
       try {
         const loaded = await getPortalOrderForEdit(ownerId, editOrderNumber);
-        if (loaded) {
+  if (loaded) {
           setFormData({
             id: loaded.id,
             orderType: loaded.orderType,
@@ -404,8 +404,6 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
             lineItems: loaded.lineItems as any,
             status: loaded.status
           });
-          // Jump to step 2 if there are materials
-          if ((loaded.lineItems || []).length > 0) setCurrentStep(2);
         }
       } catch (e) {
         console.error('Failed to load order for edit', e);
