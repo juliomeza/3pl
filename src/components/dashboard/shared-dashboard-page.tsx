@@ -66,6 +66,12 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
     averageDeliveryTime: metricsLoading ? '' : metrics.averageDeliveryTime || 3
   };
 
+  // Active Orders header counters
+  const normalizeStatus = (s?: string) => (s || '').toLowerCase();
+  const LIVE_STATUSES = new Set(['created', 'picking', 'shipped', 'in_transit', 'in transit']);
+  const liveOrders = activeOrders.filter(o => LIVE_STATUSES.has(normalizeStatus(o.display_status)));
+  const failedOrders = activeOrders.filter(o => normalizeStatus(o.display_status) === 'failed');
+
   const getStatusColor = (status: string) => {
     // Harmonized palette: neutral (portal), blue/indigo (WMS), red (error)
     // Style pattern: subtle tint bg + readable text + soft border
@@ -315,9 +321,19 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
                       </div>
                       <h3 className="text-lg font-semibold">Active Orders</h3>
                       {ordersLoading ? (
-                        <Skeleton className="h-5 w-6" />
+                        <div className="flex items-center gap-2">
+                          <Skeleton className="h-5 w-10" />
+                          <Skeleton className="h-5 w-10" />
+                        </div>
                       ) : (
-                        <Badge variant="secondary">{activeOrders.length}</Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary" className="cursor-default select-none" title="Live orders (created/picking/shipped/in transit)">
+                            Active: {liveOrders.length}
+                          </Badge>
+                          <Badge variant="outline" className="cursor-default select-none bg-rose-500/10 text-rose-700 border-rose-500/20 dark:bg-rose-400/10 dark:text-rose-300 dark:border-rose-400/20" title="Failed orders">
+                            Failed: {failedOrders.length}
+                          </Badge>
+                        </div>
                       )}
                     </div>
                     {activeShipmentsOpen ? (
