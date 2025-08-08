@@ -300,6 +300,16 @@ export async function getTopDestinations(ownerId: number, period: 'last90days' =
 }
 
 // Get detailed order view (normalized) for a given order_number with client security
+/**
+ * TODO [OrderDetails data-source alignment]
+ * - Replace/augment line items with authoritative WMS data for WMS/operations orders.
+ *   • Preferred: wms_order_lines (joined by order_number or WMS order key) instead of portal_order_lines when source includes operations.
+ *   • Enrich with joins: wms_materials (name/description), wms_lots (batch), wms_licenseplates (license plate), wms_inventorymeasurementunits (uom/uom_short).
+ * - Keep portal_order_lines as fallback for portal-only draft/failed orders.
+ * - Security: Validate by owner_id and, where applicable, allowed projectIds (multi-project filtering) before returning any WMS lines.
+ * - Consider mapping order_number across systems (ensure the join key is correct in the target datasets provided later).
+ * - Extend tests to cover WMS-backed details, including mixed source ('both').
+ */
 export async function getOrderDetails(
   ownerId: number,
   orderNumber: string
@@ -364,7 +374,7 @@ export async function getOrderDetails(
     const portal = portalHeaderRes.rows[0];
     let lineItems: any[] | undefined = undefined;
 
-    if (portal?.id) {
+  if (portal?.id) {
       const linesRes = await db.query(
         `SELECT line_number, material_code, material_description, quantity, uom, lot, license_plate, serial_number, batch_number
          FROM portal_order_lines
@@ -383,6 +393,26 @@ export async function getOrderDetails(
         licensePlate: r.license_plate || null,
       }));
     }
+
+  // TODO: If ops record exists, fetch line items from authoritative WMS source
+  // Example sketch (pending exact schema/keys):
+  // if (ops) {
+  //   const wmsLines = await db.query(`
+  //     SELECT ol.linenumber, m.lookupcode AS material_code, COALESCE(m.name, m.description, m.lookupcode) AS material_name,
+  //            ol.quantity, imu.name AS uom, l.lookupcode AS lot_code, lp.lookupcode AS license_plate_code
+  //     FROM wms_order_lines ol
+  //     JOIN wms_orders o ON o.id = ol.orderid
+  //     JOIN wms_projects p ON p.id = o.projectid
+  //     JOIN wms_owners ow ON ow.id = p.ownerid
+  //     LEFT JOIN wms_materials m ON m.id = ol.materialid
+  //     LEFT JOIN wms_lots l ON l.id = ol.lotid
+  //     LEFT JOIN wms_licenseplates lp ON lp.id = ol.licenseplateid
+  //     LEFT JOIN wms_inventorymeasurementunits imu ON imu.id = ol.uomid
+  //     WHERE ow.id = $1 AND o.ordernumber = $2
+  //     ORDER BY ol.linenumber
+  //   `, [ownerId, orderNumber]);
+  //   // Map to normalized lineItems array, replacing portal lines when applicable
+  // }
 
     // Fetch operations (WMS) record if exists
     const opsRes = await db.query(
