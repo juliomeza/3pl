@@ -198,7 +198,7 @@ export function SharedAiAssistant({ getAiInsight, onLeftContentChange, onRightCo
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-full max-h-[calc(100vh-220px)] overflow-auto custom-scrollbar">
+              <div className="h-[calc(100vh-260px)] min-h-[320px] overflow-auto custom-scrollbar">
                 <DataVisualizer data={currentData} viewType={viewType} />
               </div>
             </CardContent>
@@ -284,7 +284,7 @@ export function SharedAiAssistant({ getAiInsight, onLeftContentChange, onRightCo
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="max-h-96 overflow-auto">
+                <div className="h-96 overflow-auto">
                   <DataVisualizer data={currentData} viewType={viewType} />
                 </div>
               </CardContent>

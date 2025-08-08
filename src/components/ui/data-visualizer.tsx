@@ -13,18 +13,27 @@ interface DataVisualizerProps {
   viewType?: ViewType;
 }
 
-// Color palette for charts - Soft Pastel Palette
+// Color palette for charts - Subtle glass-style palette using brand hues
 const COLORS = [
-  '#0A183C', // Primary dark blue (mantener como base)
-  '#cdb4db', // Soft lavender
-  '#ffc8dd', // Soft pink
-  '#ffafcc', // Light pink
-  '#bde0fe', // Light blue
-  '#a2d2ff', // Soft blue
-  '#E8F4FD', // Very light blue complement
-  '#F3E8FF', // Very light purple complement
-  '#FFF0F3', // Very light pink complement
-  '#6C757D'  // Gray accent
+  'rgba(99, 102, 241, 0.7)',   // Indigo 500 @70%
+  'rgba(14, 165, 233, 0.7)',   // Sky 500 @70%
+  'rgba(16, 185, 129, 0.7)',   // Emerald 500 @70%
+  'rgba(236, 72, 153, 0.7)',   // Fuchsia 500 @70%
+  'rgba(245, 158, 11, 0.7)',   // Amber 500 @70%
+  'rgba(168, 85, 247, 0.7)',   // Violet 500 @70%
+  'rgba(59, 130, 246, 0.7)',   // Blue 500 @70%
+  'rgba(20, 184, 166, 0.7)',   // Teal 500 @70%
+];
+
+const STROKES = [
+  'rgb(99, 102, 241)',
+  'rgb(14, 165, 233)',
+  'rgb(16, 185, 129)',
+  'rgb(236, 72, 153)',
+  'rgb(245, 158, 11)',
+  'rgb(168, 85, 247)',
+  'rgb(59, 130, 246)',
+  'rgb(20, 184, 166)',
 ];
 
 export function DataVisualizer({ data, viewType: externalViewType }: DataVisualizerProps) {
@@ -251,10 +260,16 @@ export function DataVisualizer({ data, viewType: externalViewType }: DataVisuali
                 formatter={(value, name) => [value, formatColumnName(String(name))]}
                 labelFormatter={(label) => `${formatColumnName(keyColumn)}: ${label}`}
               />
+              <defs>
+                <linearGradient id="glassBar" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stopColor={STROKES[0]} stopOpacity={0.85} />
+                  <stop offset="100%" stopColor={STROKES[0]} stopOpacity={0.35} />
+                </linearGradient>
+              </defs>
               <Bar 
                 dataKey={valueColumn} 
-                fill={COLORS[1]} // Using the soft lavender color
-                radius={[4, 4, 0, 0]}
+                fill="url(#glassBar)"
+                radius={[6, 6, 0, 0]}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -289,7 +304,7 @@ export function DataVisualizer({ data, viewType: externalViewType }: DataVisuali
                 dataKey="value"
               >
                 {pieData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke={STROKES[index % STROKES.length]} strokeWidth={1} />
                 ))}
               </Pie>
               <Tooltip 
@@ -337,13 +352,19 @@ export function DataVisualizer({ data, viewType: externalViewType }: DataVisuali
                 formatter={(value, name) => [value, formatColumnName(String(name))]}
                 labelFormatter={(label) => `${formatColumnName(keyColumn)}: ${label}`}
               />
+              <defs>
+                <linearGradient id="glassLine" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stopColor={STROKES[2]} stopOpacity={0.95} />
+                  <stop offset="100%" stopColor={STROKES[2]} stopOpacity={0.45} />
+                </linearGradient>
+              </defs>
               <Line 
                 type="monotone" 
                 dataKey={valueColumn} 
-                stroke="#0A183C"
+                stroke={STROKES[2]}
                 strokeWidth={3}
-                dot={{ fill: '#0A183C', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, fill: '#0A183C' }}
+                dot={{ fill: STROKES[2], strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, fill: STROKES[2] }}
               />
             </LineChart>
           </ResponsiveContainer>
