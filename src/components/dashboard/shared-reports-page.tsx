@@ -175,49 +175,45 @@ export default function SharedReportsPage({ role }: SharedReportsPageProps) {
 
   return (
     <div className="flex flex-col h-full -m-4 md:-m-8">
-      {/* Action Bar - View and Export buttons */}
+      {/* Action Bar - transparent area with buttons only */}
       <div className="px-6 py-2">
-        <Card className="overflow-hidden">
-          <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400" />
-          <CardContent className="py-3">
-            <div className="flex justify-end items-center">
-              <div className="flex gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <Download className="w-4 h-4 mr-2" />
-                      Export
-                      <ChevronDown className="w-4 h-4 ml-2" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleExport('csv')}>
-                      <FileText className="w-4 h-4 mr-2" />
-                      CSV
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleExport('excel')}>
-                      <FileSpreadsheet className="w-4 h-4 mr-2" />
-                      Excel
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleExport('pdf')}>
-                      <FileImage className="w-4 h-4 mr-2" />
-                      PDF
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <Button variant="default" size="sm" onClick={handleViewReport}>
-                  <Eye className="w-4 h-4 mr-2" />
-                  View
+        <div className="flex justify-end items-center">
+          <div className="flex gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  Export
+                  <ChevronDown className="w-4 h-4 ml-2" />
                 </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleExport('csv')}>
+                  <FileText className="w-4 h-4 mr-2" />
+                  CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('excel')}>
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                  Excel
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                  <FileImage className="w-4 h-4 mr-2" />
+                  PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button variant="default" size="sm" onClick={handleViewReport}>
+              <Eye className="w-4 h-4 mr-2" />
+              View
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Report Content */}
-      <div className="flex-1 p-6 overflow-auto">
+  <div className="flex-1 p-6 overflow-hidden">
         <Card className="overflow-hidden">
+          <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400" />
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
               <span className="h-7 w-7 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 inline-flex items-center justify-center">
