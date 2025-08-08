@@ -24,11 +24,12 @@
     --input: 220 13% 91%;
     --ring: 224 71.4% 4.1%;
     --radius: 0.5rem;
-    --chart-1: 350 100% 88%;
-    --chart-2: 25 100% 85%;
-    --chart-3: 50 100% 80%;
-    --chart-4: 170 70% 80%;
-    --chart-5: 210 100% 80%;
+  /* Executive, accessible palette for charts (light) */
+  --chart-1: 217 90% 50%;  /* indigo */
+  --chart-2: 199 89% 48%;  /* cyan */
+  --chart-3: 142 71% 45%;  /* emerald */
+  --chart-4: 31 97% 58%;   /* amber */
+  --chart-5: 271 81% 56%;  /* violet */
   }
   .dark {
     --background: 222 47% 11%;
@@ -50,11 +51,12 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 210 40% 98%;
-    --chart-1: 350 100% 88%;
-    --chart-2: 25 100% 85%;
-    --chart-3: 50 100% 80%;
-    --chart-4: 170 70% 80%;
-    --chart-5: 210 100% 80%;
+  /* Executive, accessible palette for charts (dark) */
+  --chart-1: 222 83% 66%;  /* indigo-400 */
+  --chart-2: 191 97% 77%;  /* sky-300 */
+  --chart-3: 160 84% 39%;  /* emerald-500 */
+  --chart-4: 43 96% 56%;   /* amber-500 */
+  --chart-5: 258 90% 66%;  /* violet-400 */
   }
 }
 
@@ -74,6 +76,25 @@
 
 .float-animation {
   animation: float 8s ease-in-out infinite;
+}
+
+/* Dashboard gradient accents */
+.dashboard-radials:before,
+.dashboard-radials:after {
+  content: "";
+  position: absolute;
+  inset: auto auto 0 0;
+  width: 60vw;
+  height: 60vh;
+  pointer-events: none;
+  background: radial-gradient(closest-side, hsl(217 92% 60% / 0.12), transparent 70%);
+  filter: blur(40px);
+  transform: translate(-20%, 20%);
+}
+.dashboard-radials:after {
+  inset: 0 0 auto auto;
+  background: radial-gradient(closest-side, hsl(271 81% 56% / 0.10), transparent 70%);
+  transform: translate(20%, -20%);
 }
 
 /* Custom ChatGPT-like scrollbar */

@@ -8,6 +8,7 @@ import { useDashboardMetrics } from '@/hooks/use-dashboard-metrics';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DataVisualizer } from '@/components/ui/data-visualizer';
 import { 
@@ -120,144 +121,187 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
   // Show loading or placeholder for employee when no data yet
   if (role === 'employee' && metricsLoading && activeOrders.length === 0) {
     return (
-      <div className="space-y-8">
+      <div className="relative space-y-8 dashboard-radials">
         {/* Quick Status Cards with Employee-scale numbers */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="p-6 border border-border rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Active Shipments</p>
-                <p className="text-3xl font-bold">1,284</p>
-                <p className="text-xs text-green-600 flex items-center mt-1">
-                  <ArrowUpRight className="w-3 h-3 mr-1" />
-                  +12% from last month
-                </p>
+          <Card className="overflow-hidden">
+            <CardHeader className="p-0">
+              <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400" />
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Active Shipments</p>
+                    <p className="text-3xl font-bold">1,284</p>
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center mt-1">
+                      <ArrowUpRight className="w-3 h-3 mr-1" />
+                      +12% from last month
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </CardHeader>
+          </Card>
 
-          <div className="p-6 border border-border rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Pending Orders</p>
-                <p className="text-3xl font-bold">172</p>
-                <p className="text-xs text-red-600 flex items-center mt-1">
-                  <ArrowDownRight className="w-3 h-3 mr-1" />
-                  -5% from last month
-                </p>
+          <Card className="overflow-hidden">
+            <CardHeader className="p-0">
+              <div className="h-1 w-full bg-gradient-to-r from-rose-500 via-orange-400 to-amber-400" />
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Pending Orders</p>
+                    <p className="text-3xl font-bold">172</p>
+                    <p className="text-xs text-rose-600 dark:text-rose-400 flex items-center mt-1">
+                      <ArrowDownRight className="w-3 h-3 mr-1" />
+                      -5% from last month
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </CardHeader>
+          </Card>
 
-          <div className="p-6 border border-border rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">This Month's Volume</p>
-                <p className="text-3xl font-bold">5,254</p>
-                <p className="text-xs text-green-600 flex items-center mt-1">
-                  <ArrowUpRight className="w-3 h-3 mr-1" />
-                  +18% vs last month
-                </p>
+          <Card className="overflow-hidden">
+            <CardHeader className="p-0">
+              <div className="h-1 w-full bg-gradient-to-r from-violet-500 via-fuchsia-400 to-pink-400" />
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">This Month's Volume</p>
+                    <p className="text-3xl font-bold">5,254</p>
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center mt-1">
+                      <ArrowUpRight className="w-3 h-3 mr-1" />
+                      +18% vs last month
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </CardHeader>
+          </Card>
 
-          <div className="p-6 border border-border rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Avg. Delivery Time</p>
-                <p className="text-3xl font-bold">3</p>
-                <p className="text-xs text-muted-foreground mt-1">days</p>
+          <Card className="overflow-hidden">
+            <CardHeader className="p-0">
+              <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-slate-400 to-zinc-300 dark:from-indigo-400 dark:via-slate-600 dark:to-zinc-700" />
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Avg. Delivery Time</p>
+                    <p className="text-3xl font-bold">3</p>
+                    <p className="text-xs text-muted-foreground mt-1">days</p>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </CardHeader>
+          </Card>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="bg-card p-6 rounded-lg shadow-sm">
-              <h2 className="text-xl font-semibold mb-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">
                 {role === 'employee' ? 'Employee Dashboard' : 'Client Dashboard'}
-              </h2>
-              <p className="text-muted-foreground">
-                {role === 'employee' 
-                  ? 'Enterprise-level logistics dashboard with full system access.' 
-                  : 'Your personalized logistics dashboard.'
-                }
-              </p>
-          </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 text-muted-foreground">
+              {role === 'employee' 
+                ? 'Enterprise-level logistics dashboard with full system access.' 
+                : 'Your personalized logistics dashboard.'}
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
   }
 
   return (
-      <div className="space-y-8">
+      <div className="relative space-y-8 dashboard-radials">
           {/* Quick Status Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-6 border border-border rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Active Shipments</p>
-                  {metricsLoading ? <Skeleton className="h-8 w-20 mt-1" /> : <p className="text-3xl font-bold">{displayMetrics.activeShipments}</p>}
-                  {metricsLoading ? <Skeleton className="h-4 w-24 mt-1" /> : (
-                    <p className="text-xs text-green-600 flex items-center mt-1">
-                      <ArrowUpRight className="w-3 h-3 mr-1" />
-                      +12% from last month
-                    </p>
-                  )}
+            <Card className="overflow-hidden">
+              <CardHeader className="p-0">
+                <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400" />
+                <div className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Active Shipments</p>
+                      {metricsLoading ? <Skeleton className="h-8 w-20 mt-1" /> : <p className="text-3xl font-bold">{displayMetrics.activeShipments}</p>}
+                      {metricsLoading ? <Skeleton className="h-4 w-24 mt-1" /> : (
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center mt-1">
+                          <ArrowUpRight className="w-3 h-3 mr-1" />
+                          +12% from last month
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </CardHeader>
+            </Card>
 
-            <div className="p-6 border border-border rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Pending Orders</p>
-                  {metricsLoading ? <Skeleton className="h-8 w-20 mt-1" /> : <p className="text-3xl font-bold">{displayMetrics.pendingOrders}</p>}
-                  {metricsLoading ? <Skeleton className="h-4 w-24 mt-1" /> : (
-                    <p className="text-xs text-red-600 flex items-center mt-1">
-                      <ArrowDownRight className="w-3 h-3 mr-1" />
-                      -5% from last month
-                    </p>
-                  )}
+            <Card className="overflow-hidden">
+              <CardHeader className="p-0">
+                <div className="h-1 w-full bg-gradient-to-r from-rose-500 via-orange-400 to-amber-400" />
+                <div className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Pending Orders</p>
+                      {metricsLoading ? <Skeleton className="h-8 w-20 mt-1" /> : <p className="text-3xl font-bold">{displayMetrics.pendingOrders}</p>}
+                      {metricsLoading ? <Skeleton className="h-4 w-24 mt-1" /> : (
+                        <p className="text-xs text-rose-600 dark:text-rose-400 flex items-center mt-1">
+                          <ArrowDownRight className="w-3 h-3 mr-1" />
+                          -5% from last month
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </CardHeader>
+            </Card>
 
-            <div className="p-6 border border-border rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">This Month's Volume</p>
-                  {metricsLoading ? <Skeleton className="h-8 w-20 mt-1" /> : <p className="text-3xl font-bold">{displayMetrics.thisMonthVolume}</p>}
-                  {metricsLoading ? <Skeleton className="h-4 w-24 mt-1" /> : (
-                    <p className="text-xs text-green-600 flex items-center mt-1">
-                      <ArrowUpRight className="w-3 h-3 mr-1" />
-                      +18% vs last month
-                    </p>
-                  )}
+            <Card className="overflow-hidden">
+              <CardHeader className="p-0">
+                <div className="h-1 w-full bg-gradient-to-r from-violet-500 via-fuchsia-400 to-pink-400" />
+                <div className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">This Month's Volume</p>
+                      {metricsLoading ? <Skeleton className="h-8 w-20 mt-1" /> : <p className="text-3xl font-bold">{displayMetrics.thisMonthVolume}</p>}
+                      {metricsLoading ? <Skeleton className="h-4 w-24 mt-1" /> : (
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center mt-1">
+                          <ArrowUpRight className="w-3 h-3 mr-1" />
+                          +18% vs last month
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </CardHeader>
+            </Card>
 
-            <div className="p-6 border border-border rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Avg. Delivery Time</p>
-                  {metricsLoading ? <Skeleton className="h-8 w-20 mt-1" /> : <p className="text-3xl font-bold">{displayMetrics.averageDeliveryTime}</p>}
-                  <p className="text-xs text-muted-foreground mt-1">days</p>
+            <Card className="overflow-hidden">
+              <CardHeader className="p-0">
+                <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-slate-400 to-zinc-300 dark:from-indigo-400 dark:via-slate-600 dark:to-zinc-700" />
+                <div className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Avg. Delivery Time</p>
+                      {metricsLoading ? <Skeleton className="h-8 w-20 mt-1" /> : <p className="text-3xl font-bold">{displayMetrics.averageDeliveryTime}</p>}
+                      <p className="text-xs text-muted-foreground mt-1">days</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </CardHeader>
+            </Card>
           </div>
 
           {/* Active Orders Collapsible Section */}
-          <div className="border border-border rounded-lg">
+          <Card>
             <Collapsible open={activeShipmentsOpen} onOpenChange={setActiveShipmentsOpen}>
               <CollapsibleTrigger asChild>
                 <div className="cursor-pointer hover:bg-muted/50 transition-colors p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <Truck className="h-5 w-5 text-gray-800" />
+                      <div className="h-7 w-7 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                        <Truck className="h-4 w-4" />
+                      </div>
                       <h3 className="text-lg font-semibold">Active Orders</h3>
                       {ordersLoading ? (
                         <Skeleton className="h-5 w-6" />
@@ -278,7 +322,7 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
                   {ordersLoading ? (
                     <div className="space-y-4">
                       {[1, 2, 3].map((i) => (
-                        <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div key={i} className="flex items-center justify-between p-4 border rounded-lg bg-card/50">
                           <div className="flex-1">
                             <div className="flex items-center space-x-3">
                               <div>
@@ -303,7 +347,9 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
                     </div>
                   ) : activeOrders.length === 0 ? (
                     <div className="text-center py-8">
-                      <Truck className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <div className="h-12 w-12 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 mx-auto mb-4 flex items-center justify-center">
+                        <Truck className="h-6 w-6" />
+                      </div>
                       <p className="text-muted-foreground">
                         {role === 'employee' ? 'No active orders in the system' : 'No active orders found'}
                       </p>
@@ -311,7 +357,7 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
                   ) : (
                     <div className="space-y-4">
                       {activeOrders.map((order, index) => (
-                        <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition-colors">
+                        <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition-colors bg-card/50">
                           <div className="flex-1">
                             <div className="flex items-center space-x-3">
                               <div>
@@ -350,19 +396,21 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
                 </div>
               </CollapsibleContent>
             </Collapsible>
-          </div>
+          </Card>
 
           {/* Data Visualization Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Shipment Trends */}
-            <div className="border border-border rounded-lg">
-              <div className="p-6 pb-2">
-                <h3 className="text-lg font-semibold flex items-center space-x-2">
-                  <TrendingUp className="h-5 w-5 text-gray-800" />
-                  <span>Outbound Sales Trends (Last 6 Months)</span>
-                </h3>
-              </div>
-              <div className="px-6 pb-6">
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <span className="h-7 w-7 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 inline-flex items-center justify-center">
+                    <TrendingUp className="h-4 w-4" />
+                  </span>
+                  Outbound Sales Trends (Last 6 Months)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="h-80">
                   {trendsLoading ? (
                     <div className="flex items-center justify-center h-full">
@@ -376,48 +424,54 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
                     <DataVisualizer data={shipmentTrends} viewType="line" />
                   )}
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Delivery Performance */}
-            <div className="border border-border rounded-lg">
-              <div className="p-6 pb-2">
-                <h3 className="text-lg font-semibold flex items-center space-x-2">
-                  <Clock className="h-5 w-5 text-gray-800" />
-                  <span>Delivery Performance</span>
-                </h3>
-              </div>
-              <div className="px-6 pb-6">
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <span className="h-7 w-7 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 inline-flex items-center justify-center">
+                    <Clock className="h-4 w-4" />
+                  </span>
+                  Delivery Performance
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="h-80">
-                   <DataVisualizer data={mockDeliveryPerformance} viewType="bar" />
+                  <DataVisualizer data={mockDeliveryPerformance} viewType="bar" />
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Cost Analysis */}
-            <div className="border border-border rounded-lg">
-              <div className="p-6 pb-2">
-                <h3 className="text-lg font-semibold flex items-center space-x-2">
-                  <DollarSign className="h-5 w-5 text-gray-800" />
-                  <span>Cost Analysis by Service Type</span>
-                </h3>
-              </div>
-              <div className="px-6 pb-6">
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <span className="h-7 w-7 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 inline-flex items-center justify-center">
+                    <DollarSign className="h-4 w-4" />
+                  </span>
+                  Cost Analysis by Service Type
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="h-80">
                   <DataVisualizer data={mockCostAnalysis} viewType="pie" />
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Top Destinations */}
-            <div className="border border-border rounded-lg">
-              <div className="p-6 pb-2">
-                <h3 className="text-lg font-semibold flex items-center space-x-2">
-                  <MapPin className="h-5 w-5 text-gray-800" />
-                  <span>Top Shipping Destinations (Last 90 Days)</span>
-                </h3>
-              </div>
-              <div className="px-6 pb-6">
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <span className="h-7 w-7 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 inline-flex items-center justify-center">
+                    <MapPin className="h-4 w-4" />
+                  </span>
+                  Top Shipping Destinations (Last 90 Days)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="h-80">
                   {destinationsLoading ? (
                     <div className="flex items-center justify-center h-full">
@@ -431,8 +485,8 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
                     <DataVisualizer data={topDestinations} viewType="table" />
                   )}
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
       </div>
   );
