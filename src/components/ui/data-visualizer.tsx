@@ -405,11 +405,11 @@ export function DataVisualizer({ data, viewType: externalViewType }: DataVisuali
         {renderChart()}
       </div>
 
-      {/* Data Summary - Only show when there's data */}
-      {hasValidData && data && (
+      {/* Data Summary - Only for charts (not for table to avoid overlapping while scrolling) */}
+      {hasValidData && data && viewType !== 'table' && (
         <div className="text-xs text-muted-foreground border-t pt-2 mt-4">
           Showing {data.length} rows × {columns.length} columns
-          {viewType !== 'table' && data.length > 20 && (
+          {data.length > 20 && (
             <span className="ml-2 text-amber-600">
               • Large dataset: Consider filtering for better chart visualization
             </span>
