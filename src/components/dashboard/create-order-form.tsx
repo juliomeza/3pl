@@ -390,6 +390,7 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
   const [inlineSaveMessage, setInlineSaveMessage] = useState<string | null>(null);
   const [highlightOrderNumber, setHighlightOrderNumber] = useState(false);
   const savedHashRef = useRef<string>('');
+  const showOrderNumberInlineOnceRef = useRef<boolean>(false);
   const computeFormHash = (fd: OrderFormData) => {
     return JSON.stringify({
       orderType: fd.orderType,
@@ -848,11 +849,17 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
           setFormData(nextForm);
           setHighlightOrderNumber(true);
           setTimeout(() => setHighlightOrderNumber(false), 1800);
+          // Allow showing order number inline only once
+          showOrderNumberInlineOnceRef.current = true;
         }
         // Draft UX: no toast; show inline helper and disable Save until next edit
         if (status === 'draft') {
           setInlineSaveMessage('Draft saved');
-          setTimeout(() => setInlineSaveMessage(null), 2500);
+          setTimeout(() => {
+            setInlineSaveMessage(null);
+            // After first inline show, never show number again
+            showOrderNumberInlineOnceRef.current = false;
+          }, 2500);
           // Mark form as clean (use the possibly updated form with order number)
           savedHashRef.current = computeFormHash(nextForm);
         }
@@ -1749,7 +1756,10 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
                     Save as Draft
                   </Button>
                   {inlineSaveMessage && (
-                    <span className="text-xs text-muted-foreground">{inlineSaveMessage}{formData.orderNumber ? ` • ${formData.orderNumber}` : ''}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {inlineSaveMessage}
+                      {showOrderNumberInlineOnceRef.current && formData.orderNumber ? ` • ${formData.orderNumber}` : ''}
+                    </span>
                   )}
                 </div>
                 <Button 
