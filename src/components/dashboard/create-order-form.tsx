@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Plus, Trash2, Package, Truck, MapPin, CheckCircle, ArrowLeft, ArrowRight, Eye, CreditCard } from 'lucide-react';
 import { OrderStepIndicator } from './order-step-indicator';
 import { useHeaderControls } from '@/app/client/layout';
@@ -71,12 +72,14 @@ const AddressInput = ({
   value, 
   onChange, 
   label,
-  id 
+  id,
+  showErrors = false
 }: { 
   value: AddressData, 
   onChange: (value: AddressData) => void, 
   label: string,
-  id: string
+  id: string,
+  showErrors?: boolean
 }) => {
   const autocompleteRef = useRef<any>(null);
   const line1Ref = useRef<HTMLInputElement>(null);
@@ -206,6 +209,16 @@ const AddressInput = ({
     : 'bg-violet-500/10 text-violet-700 dark:text-violet-300';
   const borderClasses = isShip ? 'border-emerald-300/70' : 'border-violet-300/70';
 
+  // Simple required mapping for both address blocks
+  const req = {
+    firstName: !value.firstName,
+    lastName: !value.lastName,
+    line1: !value.line1,
+    city: !value.city,
+    state: !value.state,
+    zipCode: !value.zipCode,
+  };
+
   return (
     <div className={`space-y-3 pl-3 border-l-4 ${borderClasses} rounded-sm`}>
       <div className="flex items-center gap-2">
@@ -234,23 +247,31 @@ const AddressInput = ({
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor={`${id}-firstName`}>First Name *</Label>
+            <Label htmlFor={`${id}-firstName`} className={showErrors && req.firstName ? 'text-red-600' : ''}>First Name *</Label>
             <Input
               id={`${id}-firstName`}
               value={value.firstName || ''}
               onChange={(e) => handleFieldChange('firstName', e.target.value)}
               placeholder="First name"
+              className={showErrors && req.firstName ? 'border-red-500 focus-visible:ring-red-500' : ''}
             />
+            {showErrors && req.firstName && (
+              <p className="text-xs text-red-600">Required</p>
+            )}
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor={`${id}-lastName`}>Last Name *</Label>
+            <Label htmlFor={`${id}-lastName`} className={showErrors && req.lastName ? 'text-red-600' : ''}>Last Name *</Label>
             <Input
               id={`${id}-lastName`}
               value={value.lastName || ''}
               onChange={(e) => handleFieldChange('lastName', e.target.value)}
               placeholder="Last name"
+              className={showErrors && req.lastName ? 'border-red-500 focus-visible:ring-red-500' : ''}
             />
+            {showErrors && req.lastName && (
+              <p className="text-xs text-red-600">Required</p>
+            )}
           </div>
         </div>
         
@@ -268,7 +289,7 @@ const AddressInput = ({
         {/* Address Fields - Line 1 and Line 2 in same row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="space-y-2">
-            <Label htmlFor={`${id}-line1`}>Address Line 1 *</Label>
+            <Label htmlFor={`${id}-line1`} className={showErrors && req.line1 ? 'text-red-600' : ''}>Address Line 1 *</Label>
             <Input
               ref={line1Ref}
               id={`${id}-line1`}
@@ -276,7 +297,11 @@ const AddressInput = ({
               onChange={(e) => handleFieldChange('line1', e.target.value)}
               placeholder="Start typing an address..."
               autoComplete="off"
+              className={showErrors && req.line1 ? 'border-red-500 focus-visible:ring-red-500' : ''}
             />
+            {showErrors && req.line1 && (
+              <p className="text-xs text-red-600">Required</p>
+            )}
           </div>
           
           <div className="space-y-2">
@@ -292,35 +317,47 @@ const AddressInput = ({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="space-y-2">
-            <Label htmlFor={`${id}-city`}>City *</Label>
+            <Label htmlFor={`${id}-city`} className={showErrors && req.city ? 'text-red-600' : ''}>City *</Label>
             <Input
               id={`${id}-city`}
               value={value.city || ''}
               onChange={(e) => handleFieldChange('city', e.target.value)}
               placeholder="City"
+              className={showErrors && req.city ? 'border-red-500 focus-visible:ring-red-500' : ''}
             />
+            {showErrors && req.city && (
+              <p className="text-xs text-red-600">Required</p>
+            )}
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor={`${id}-state`}>State *</Label>
+            <Label htmlFor={`${id}-state`} className={showErrors && req.state ? 'text-red-600' : ''}>State *</Label>
             <Input
               id={`${id}-state`}
               value={value.state || ''}
               onChange={(e) => handleFieldChange('state', e.target.value)}
               placeholder="State"
               maxLength={2}
+              className={showErrors && req.state ? 'border-red-500 focus-visible:ring-red-500' : ''}
             />
+            {showErrors && req.state && (
+              <p className="text-xs text-red-600">Required</p>
+            )}
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor={`${id}-zip`}>ZIP Code *</Label>
+            <Label htmlFor={`${id}-zip`} className={showErrors && req.zipCode ? 'text-red-600' : ''}>ZIP Code *</Label>
             <Input
               id={`${id}-zip`}
               value={value.zipCode || ''}
               onChange={(e) => handleFieldChange('zipCode', e.target.value)}
               placeholder="ZIP Code"
               maxLength={10}
+              className={showErrors && req.zipCode ? 'border-red-500 focus-visible:ring-red-500' : ''}
             />
+            {showErrors && req.zipCode && (
+              <p className="text-xs text-red-600">Required</p>
+            )}
           </div>
         </div>
       </div>
@@ -346,6 +383,10 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
   const { carriers, loading: carriersLoading, error: carriersError } = useCarriersForOrders();
   
   const [currentStep, setCurrentStep] = useState(1);
+  const [showStep1Errors, setShowStep1Errors] = useState(false);
+  const basicInfoRef = useRef<HTMLDivElement>(null);
+  const addressesRef = useRef<HTMLDivElement>(null);
+  const shippingRef = useRef<HTMLDivElement>(null);
   const [formData, setFormData] = useState<OrderFormData>({
     id: undefined, // Track order ID for updates
     orderType: '',
@@ -488,6 +529,35 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
     return false;
   };
 
+  // Build a human-readable list of missing fields for Step 1
+  const getStep1MissingFields = (): string[] => {
+    const missing: string[] = [];
+    if (!formData.orderType) missing.push('Order Type');
+    if (!formData.projectId) missing.push('Project');
+
+    // Recipient
+    if (!formData.recipientAddress.firstName) missing.push('Ship To: First Name');
+    if (!formData.recipientAddress.lastName) missing.push('Ship To: Last Name');
+    if (!formData.recipientAddress.line1) missing.push('Ship To: Address Line 1');
+    if (!formData.recipientAddress.city) missing.push('Ship To: City');
+    if (!formData.recipientAddress.state) missing.push('Ship To: State');
+    if (!formData.recipientAddress.zipCode) missing.push('Ship To: ZIP Code');
+
+    // Billing
+    if (!formData.billingAddress.firstName) missing.push('Billing: First Name');
+    if (!formData.billingAddress.lastName) missing.push('Billing: Last Name');
+    if (!formData.billingAddress.line1) missing.push('Billing: Address Line 1');
+    if (!formData.billingAddress.city) missing.push('Billing: City');
+    if (!formData.billingAddress.state) missing.push('Billing: State');
+    if (!formData.billingAddress.zipCode) missing.push('Billing: ZIP Code');
+
+    // Shipping
+    if (!formData.carrierId) missing.push('Carrier');
+    if (!formData.carrierServiceTypeId) missing.push('Service Type');
+
+    return missing;
+  };
+
   // Header controls
   const { setCenterContent, setRightContent } = useHeaderControls();
 
@@ -523,6 +593,30 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
   };
 
   const handleNext = () => {
+    // Custom validation feedback on Step 1
+    if (currentStep === 1 && !canGoToStep(2)) {
+      setShowStep1Errors(true);
+      const missing = getStep1MissingFields();
+      // Friendly toast summary
+      toast({
+        variant: 'destructive',
+        title: 'Missing required fields',
+        description: missing.slice(0, 3).join(', ') + (missing.length > 3 ? `, and ${missing.length - 3} more...` : ''),
+      });
+
+      // Scroll to the most relevant section
+      const basicFields = ['Order Type', 'Project'];
+      const addressFields = missing.filter(m => m.startsWith('Ship To') || m.startsWith('Billing'));
+      if (missing.some(m => basicFields.includes(m))) {
+        basicInfoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else if (addressFields.length > 0) {
+        addressesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        shippingRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      return;
+    }
+
     if (currentStep < 3 && canGoToStep(currentStep + 1)) {
       setCurrentStep(currentStep + 1);
     }
@@ -774,7 +868,7 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
       {/* Step 1: Order Information */}
       {currentStep === 1 && (
         <div className="space-y-6">
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden" ref={basicInfoRef}>
             <CardHeader className="p-0">
               <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400" />
               <div className="p-6">
@@ -789,11 +883,11 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="orderType">Order Type *</Label>
+                  <Label htmlFor="orderType" className={showStep1Errors && !formData.orderType ? 'text-red-600' : ''}>Order Type *</Label>
                   <Select value={formData.orderType} onValueChange={(value: 'inbound' | 'outbound') => 
                     setFormData(prev => ({ ...prev, orderType: value }))
                   }>
-                    <SelectTrigger>
+                    <SelectTrigger className={showStep1Errors && !formData.orderType ? 'border-red-500 focus-visible:ring-red-500' : ''}>
                       <SelectValue placeholder="Select order type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -814,13 +908,13 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="project">Project *</Label>
+                  <Label htmlFor="project" className={showStep1Errors && !formData.projectId ? 'text-red-600' : ''}>Project *</Label>
                   <Select 
                     value={formData.projectId} 
                     onValueChange={(value) => setFormData(prev => ({ ...prev, projectId: value }))}
                     disabled={currentStep > 2}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className={showStep1Errors && !formData.projectId ? 'border-red-500 focus-visible:ring-red-500' : ''}>
                       <SelectValue placeholder={projectsLoading ? "Loading..." : "Select project"} />
                     </SelectTrigger>
                     <SelectContent>
@@ -869,7 +963,7 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
             </CardContent>
           </Card>
 
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden" ref={addressesRef}>
             <CardHeader className="p-0">
               <div className="h-1 w-full bg-gradient-to-r from-emerald-500 via-cyan-400 to-violet-400" />
               <div className="p-6">
@@ -889,6 +983,14 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
                     label={formData.orderType === 'inbound' ? 'Ship From Address' : 'Ship To Address'}
                     value={formData.recipientAddress}
                     onChange={(value) => setFormData(prev => ({ ...prev, recipientAddress: value }))}
+                    showErrors={showStep1Errors && (
+                      !formData.recipientAddress.firstName ||
+                      !formData.recipientAddress.lastName ||
+                      !formData.recipientAddress.line1 ||
+                      !formData.recipientAddress.city ||
+                      !formData.recipientAddress.state ||
+                      !formData.recipientAddress.zipCode
+                    )}
                   />
                 </div>
 
@@ -898,13 +1000,21 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
                     label="Billing Name"
                     value={formData.billingAddress}
                     onChange={(value) => setFormData(prev => ({ ...prev, billingAddress: value }))}
+                    showErrors={showStep1Errors && (
+                      !formData.billingAddress.firstName ||
+                      !formData.billingAddress.lastName ||
+                      !formData.billingAddress.line1 ||
+                      !formData.billingAddress.city ||
+                      !formData.billingAddress.state ||
+                      !formData.billingAddress.zipCode
+                    )}
                   />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden" ref={shippingRef}>
             <CardHeader className="p-0">
               <div className="h-1 w-full bg-gradient-to-r from-sky-500 via-indigo-400 to-slate-400" />
               <div className="p-6">
@@ -919,7 +1029,7 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="carrier">Carrier *</Label>
+                  <Label htmlFor="carrier" className={showStep1Errors && !formData.carrierId ? 'text-red-600' : ''}>Carrier *</Label>
                   <Select value={formData.carrierId} onValueChange={(value) => 
                     setFormData(prev => ({ 
                       ...prev, 
@@ -927,7 +1037,7 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
                       carrierServiceTypeId: '' // Reset service type when carrier changes
                     }))
                   }>
-                    <SelectTrigger>
+                    <SelectTrigger className={showStep1Errors && !formData.carrierId ? 'border-red-500 focus-visible:ring-red-500' : ''}>
                       <SelectValue placeholder={carriersLoading ? "Loading..." : "Select carrier"} />
                     </SelectTrigger>
                     <SelectContent>
@@ -949,13 +1059,13 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="serviceType">Service Type *</Label>
+                  <Label htmlFor="serviceType" className={showStep1Errors && !formData.carrierServiceTypeId ? 'text-red-600' : ''}>Service Type *</Label>
                   <Select 
                     value={formData.carrierServiceTypeId} 
                     onValueChange={(value) => setFormData(prev => ({ ...prev, carrierServiceTypeId: value }))}
                     disabled={!formData.carrierId}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className={showStep1Errors && !formData.carrierServiceTypeId ? 'border-red-500 focus-visible:ring-red-500' : ''}>
                       <SelectValue placeholder={
                         !formData.carrierId ? "Select carrier first" :
                         serviceTypesLoading ? "Loading..." : 
@@ -994,6 +1104,19 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
               </div>
             </CardContent>
           </Card>
+
+          {showStep1Errors && !isStep1Valid() && (
+            <Alert variant="destructive">
+              <AlertTitle>Missing required fields</AlertTitle>
+              <AlertDescription>
+                <ul className="list-disc pl-5 space-y-1">
+                  {getStep1MissingFields().map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
       )}
 
@@ -1555,7 +1678,7 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
             {currentStep < 3 && (
               <Button 
                 onClick={handleNext}
-                disabled={!canGoToStep(currentStep + 1)}
+                disabled={currentStep === 2 ? !canGoToStep(3) : false}
               >
                 Next
                 <ArrowRight className="w-4 h-4 ml-2" />
