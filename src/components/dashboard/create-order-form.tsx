@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Plus, Trash2, Package, Truck, MapPin, CheckCircle, ArrowLeft, ArrowRight, Eye } from 'lucide-react';
+import { Plus, Trash2, Package, Truck, MapPin, CheckCircle, ArrowLeft, ArrowRight, Eye, CreditCard } from 'lucide-react';
 import { OrderStepIndicator } from './order-step-indicator';
 import { useHeaderControls } from '@/app/client/layout';
 import { useProjectsForOrders } from '@/hooks/use-projects-for-orders';
@@ -200,9 +200,24 @@ const AddressInput = ({
     });
   };
 
+  const isShip = id === 'recipient' || label.toLowerCase().includes('ship');
+  const chipClasses = isShip
+    ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+    : 'bg-violet-500/10 text-violet-700 dark:text-violet-300';
+  const borderClasses = isShip ? 'border-emerald-300/70' : 'border-violet-300/70';
+
   return (
-    <div className="space-y-3">
-      <h4 className="font-medium text-sm text-muted-foreground">{label}</h4>
+    <div className={`space-y-3 pl-3 border-l-4 ${borderClasses} rounded-sm`}>
+      <div className="flex items-center gap-2">
+        <span className={`h-6 w-6 rounded-full inline-flex items-center justify-center ${chipClasses}`}>
+          {isShip ? (
+            <MapPin className="h-3.5 w-3.5" />
+          ) : (
+            <CreditCard className="h-3.5 w-3.5" />
+          )}
+        </span>
+        <h4 className="font-semibold text-sm">{label}</h4>
+      </div>
       
       {/* Name Fields */}
       <div className="space-y-3">
@@ -309,7 +324,7 @@ const AddressInput = ({
           </div>
         </div>
       </div>
-    </div>
+  </div>
   );
 };
 
