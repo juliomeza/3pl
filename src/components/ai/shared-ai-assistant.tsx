@@ -215,11 +215,11 @@ export function SharedAiAssistant({ getAiInsight, onLeftContentChange, onRightCo
 
         {/* Right Panel - Chat Interface */}
         <div 
-          className="flex flex-col bg-transparent w-full lg:w-auto relative"
+          className="flex flex-col bg-transparent w-full lg:w-auto relative min-h-0"
           style={{ width: `${100 - leftWidth}%` }}
         >
           {/* Chat Messages */}
-          <Card className="overflow-hidden flex-1 flex flex-col">
+          <Card className="overflow-hidden flex-1 flex flex-col min-h-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
                 <span className="h-7 w-7 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 inline-flex items-center justify-center">
@@ -228,8 +228,8 @@ export function SharedAiAssistant({ getAiInsight, onLeftContentChange, onRightCo
                 Assistant
               </CardTitle>
             </CardHeader>
-            <CardContent className="flex-1 overflow-y-auto p-0">
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+            <CardContent className="flex-1 min-h-0 overflow-hidden p-0 flex flex-col">
+              <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 custom-scrollbar">
             {messages.length === 0 && (
               <div className="text-center text-gray-500 py-8">
               </div>
