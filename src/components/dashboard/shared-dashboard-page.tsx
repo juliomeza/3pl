@@ -452,26 +452,14 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
                                 </div>
                               </div>
                               <div className="flex items-center gap-2">
-                                {/* Edit icon only for client + portal source + draft/failed */}
-                                {role === 'client' && order.source_table === 'portal' && ['draft','failed'].includes(String(order.display_status).toLowerCase()) && (
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 text-amber-700 hover:text-amber-800 hover:bg-amber-50"
-                                    onClick={() => router.push(`/client/orders?edit=${encodeURIComponent(order.order_number)}`)}
-                                    title="Edit order"
-                                  >
-                                    <PencilLine className="h-4 w-4" />
-                                  </Button>
-                                )}
-                                {/* Delete icon only for client + portal source + draft/failed */}
+                                {/* 1) Delete (danger) */}
                                 {role === 'client' && order.source_table === 'portal' && ['draft','failed'].includes(String(order.display_status).toLowerCase()) && (
                                   <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                       <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-8 w-8 text-rose-700 hover:text-rose-800 hover:bg-rose-50"
+                                        className="h-8 w-8 me-1 md:me-2 text-rose-700 hover:text-rose-800 hover:bg-rose-50"
                                         title="Delete order"
                                       >
                                         <Trash2 className="h-4 w-4" />
@@ -509,12 +497,29 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
                                     </AlertDialogContent>
                                   </AlertDialog>
                                 )}
+
+                                {/* 2) Edit (when allowed) */}
+                                {role === 'client' && order.source_table === 'portal' && ['draft','failed'].includes(String(order.display_status).toLowerCase()) && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-primary hover:text-primary/90 hover:bg-primary/10 dark:hover:bg-primary/10"
+                                    onClick={() => router.push(`/client/orders?edit=${encodeURIComponent(order.order_number)}`)}
+                                    title="Edit order"
+                                  >
+                                    <PencilLine className="h-4 w-4" />
+                                  </Button>
+                                )}
+
+                                {/* 3) Status chip */}
                                 <Badge
                                   variant="outline"
                                   className={`${getStatusColor(order.display_status)} cursor-default select-none`}
                                 >
                                   {order.display_status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                 </Badge>
+
+                                {/* 4) View */}
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -557,11 +562,12 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
                                 ))}
                               </div>
                               <div className="flex items-center gap-1">
+                                {/* Mobile: Edit then View (Delete is in first row) */}
                                 {role === 'client' && order.source_table === 'portal' && ['draft','failed'].includes(String(order.display_status).toLowerCase()) && (
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="md:hidden h-8 w-8 text-amber-700"
+                                    className="md:hidden h-8 w-8 text-primary hover:text-primary/90 hover:bg-primary/10 dark:hover:bg-primary/10"
                                     onClick={() => router.push(`/client/orders?edit=${encodeURIComponent(order.order_number)}`)}
                                     title="Edit order"
                                   >
