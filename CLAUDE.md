@@ -1055,3 +1055,152 @@ const { theme, toggleTheme } = useTheme();
 - Custom hooks pattern: `use-*-for-orders.ts` for database integration
 - **Shared Components**: Prefer shared components over duplicate implementations for client/employee interfaces
 - **Data Fetching Pattern**: Use `useDataFetcher()` factory hook for consistent loading/error/refetch logic
+
+## Create Order – Validation, Order Type Locking & New Order Workflow (August 2025)
+
+This section codifies the finalized UX / logic rules for the Create Order form to prevent regressions.
+
+### Core Principles
+- Minimize cognitive load: surface only the specific field causing a blocking validation error.
+- Preserve numbering integrity: once an order number is issued it must never silently change.
+- Protect data consistency: prevent mid‑stream semantic pivots (changing order type after materials / persistence).
+- Provide a frictionless restart path (New Order) with safe‑guarding of meaningful unsaved work.
+
+### Order Type Single-Field Validation
+1. When user clicks Save (draft or submit) and `orderType` is missing, only the Order Type field is marked in error.
+2. Other Step 1 required fields are NOT highlighted in this scenario (prevents “wall of red”).
+3. Implementation flag: `orderTypeErrorOnly` (local state) controls isolated highlighting.
+4. Clearing / selecting an Order Type resets `orderTypeErrorOnly` immediately.
+
+### Locking Rules for Order Type
+Order Type becomes immutable (select disabled + helper text) when ANY of the following are true:
+- An `orderNumber` has been generated (first successful save).
+- At least one material line has been added.
+- Status is no longer `draft` (e.g. `submitted`).
+
+Rationale: Changing type would imply a different numbering prefix and potentially different downstream handling; regeneration after partial data entry risks mismatched semantics.
+
+### Order Number Policy
+- Generated server-side only when absent on first CREATE.
+- Never regenerated client-side after initial assignment.
+- UI must not strip / replace prefix if Order Type were hypothetically toggled before lock (guarded by lock anyway).
+- Visual emphasis (temporary highlight) allowed when number first appears or on initial save event.
+
+### New Order Button & Reset Workflow
+Global button injected via header context provides a controlled reset:
+1. Detect “trivial” state (only Order Type selected and NOTHING else materially filled) → reset silently (no dialog).
+2. Otherwise show confirmation dialog (unsaved changes guard).
+3. On confirm: call `resetToNewOrder()` → restore pristine initial form object, clear `orderNumber`, unlock Order Type, clear materials, reset step to 1.
+4. Hash/dirty tracking recalculated post-reset so subsequent navigation behaves as a fresh session.
+
+### Helper Functions / Flags (Client Form Component)
+- `orderTypeErrorOnly`: Gates isolated field error rendering.
+- `resetToNewOrder()`: Central reset routine – keep implementation idempotent.
+- `isOnlyOrderTypeSelected()`: Determines dialog necessity.
+- Lock predicate consolidated for clarity (avoid scattering logic expressions across JSX).
+
+### UX Copy / Helper Text
+- When locked: concise helper text e.g. “Order Type locked after first save/materials.” (No exclamation marks; retain professional tone.)
+- Error toast messaging remains specific for other validation domains (materials, quantity, inventory) – do not conflate with Order Type logic.
+
+### Do / Don’t
+| Do | Don’t |
+| --- | --- |
+| Keep future enhancements (e.g. copy order number) additive & non-invasive | Regenerate order number after first assignment |
+| Centralize lock condition evaluation | Duplicate lock checks inline multiple times |
+| Maintain single source of truth for reset initial state | Partially mutate old state objects on reset |
+| Expand tests (future) to assert lock invariants | Allow silent type mutation post-save |
+
+### Extension Hooks (Future Friendly)
+- If a future requirement adds “Clone Order”: reuse the same reset pattern but pre-seed selective fields (NEVER reuse existing `orderNumber`).
+- If multi‑type transformation ever becomes a feature, require explicit server action performing archival + new order creation rather than in-place mutation.
+
+### Regression Checklist (Quick)
+Before merging changes touching create-order-form logic verify:
+- [ ] `orderTypeErrorOnly` still isolates validation.
+- [ ] Lock predicate unchanged or intentionally revised with docs updated.
+- [ ] New Order reset clears materials & number and unlocks type.
+- [ ] No code path calls server to regenerate existing order number.
+- [ ] Confirmation dialog logic matches trivial vs meaningful change criteria.
+
+### Rationale Summary
+Focused validation + deterministic locking eliminates confusion, preserves auditability, and keeps the mental model simple: “Choose type first, save once, proceed; use New Order to start over.”
+
+## Dashboard Visual Refresh & Status Chip Harmonization (August 2025)
+
+Recent UI/UX changes to the shared dashboard not yet previously documented.
+
+### Goals
+- Unify visual language across portal + WMS statuses (tinted chips with subtle borders).
+- Improve information density (fewer line wraps, inline meta on wide screens).
+- Provide clear affordances for allowed actions (Edit/Delete) while staying low-noise.
+- Modernize metric cards (gradient accent bars, consistent spacing, skeleton loading states).
+
+### Metric Cards
+- Added 1px height gradient bars (top) with multi‑stop brand gradients per card.
+- Loading state: skeleton placeholders (height matches number text) instead of spinners.
+- Dynamic numbers fallback to representative demo scale for employee role when no data yet.
+
+### Active Orders Section
+- Converted into `Collapsible` with header row summarizing live vs failed counts.
+- Live statuses grouped first: created, picking, shipped, in_transit/in transit.
+- Sorting: live statuses first (original relative order) then non-live (draft, submitted, failed) to surface operational items.
+- Row layout:
+  - Row 1: Order Number (link) • Customer • Destination • Carrier/Service | Status + actions.
+  - Row 2: Pickup Date • ETA • (Mobile) Destination + Customer + Carrier.
+- Responsive truncation: long customer/destination strings truncated with max-width utilities.
+- Status editing: Edit & Delete buttons only for portal-sourced orders in `draft` or `failed`.
+- View details opens route-driven modal (Dialog) using `?view=ORDER_NUMBER` param (state preserving, no full reload).
+
+### Status Chip Harmonized Palette
+New tinted background + subtle border scheme replacing prior solid color badges.
+
+| Status | Classes (Light) | Intent |
+| ------ | ---------------- | ------ |
+| draft | foreground/5 tint, muted text, subtle border | Neutral pre-processing |
+| submitted | slate-500/10 bg + slate text | Queued / pending ETL |
+| failed | rose-500/10 bg + rose text | Error state, action required |
+| created | blue-500/10 bg + blue text | Successfully created in WMS |
+| picking | indigo-500/10 bg + indigo text | Active warehouse processing |
+| shipped | violet-500/10 bg + violet text | Left facility (no delivery status) |
+| in_transit | sky-500/10 bg + sky text | En route (carrier progress) |
+| legacy (processing / picked_up / ready_for_pickup / pending) | Mapped to nearest above palette for backwards compatibility |
+
+Implementation helper: `getStatusColor(status: string)` centralizes class selection (tinted bg + text + border classes for both light/dark themes) in `shared-dashboard-page.tsx`.
+
+### Action Buttons Logic
+- Delete: visible only when `source_table === 'portal'` AND status in (`draft`,`failed`). AlertDialog confirms irreversible removal.
+- Edit: same visibility predicate; navigates to `/client/orders?edit=ORDER_NUMBER`.
+- View: ghost icon button; hidden on small screens in Row 1 and shown in Row 2 for mobile density.
+
+### Accessibility / Usability
+- Buttons have `title` attributes for tooltips.
+- Status badges use Title Case transformation and underscore replacement.
+- Non-interactive chips set `cursor-default select-none` to avoid implying action.
+
+### Dialog-Based Order Details
+- Modal triggered by presence of `view` search param.
+- Closing dialog rewrites URL back to `/client` without scroll reset (`router.push('/client', { scroll: false })`).
+- Preserves dashboard scroll position and loaded data cache.
+
+### Skeleton Loading Strategy
+- Applies to metric cards and active orders list (3 placeholder rows) using height-matched skeleton blocks.
+- Reduces layout shift by reserving approximate content height.
+
+### Theming & Dark Mode
+- All chips include dual light/dark class sets (`dark:bg-* dark:text-* dark:border-*`).
+- Gradient bars include dark-mode adjusted stops where needed.
+
+### Migration Notes
+- Older documentation referencing distinct flat color fills (gray/blue/green/yellow/purple/orange) is superseded by tinted palette.
+- Ensure future status additions extend `getStatusColor` and maintain tint/border/text triad.
+
+### Regression Checklist (Visual Refresh)
+- [ ] Status chips display consistent border + tint in both themes.
+- [ ] Edit/Delete absent for non-portal or non-draft/failed statuses.
+- [ ] Live statuses appear before others.
+- [ ] Dialog closes without page flash or scroll jump.
+- [ ] Truncation does not clip essential interactive elements.
+
+### Rationale
+Tinted chips improve contrast while reducing visual overstimulation. Grouping operational statuses first enhances scannability for time-sensitive monitoring.
