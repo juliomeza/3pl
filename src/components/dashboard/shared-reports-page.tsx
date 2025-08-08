@@ -213,7 +213,7 @@ export default function SharedReportsPage({ role }: SharedReportsPageProps) {
       {/* Report Content */}
   <div className="flex-1 p-6 overflow-hidden">
         <Card className="overflow-hidden">
-          <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400" />
+          <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400 dark:from-indigo-400 dark:via-sky-500/60 dark:to-emerald-500/60" />
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
               <span className="h-7 w-7 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 inline-flex items-center justify-center">

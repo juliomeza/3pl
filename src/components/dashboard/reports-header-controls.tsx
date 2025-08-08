@@ -265,27 +265,27 @@ export function ReportsHeaderControls({ selectedReportId, onReportSelect }: Repo
                 {/* Category Header - Clickable to toggle */}
                 <button
                   onClick={() => handleCategoryToggle(categoryKey)}
-                  className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   <div className="flex items-center gap-2">
                     <div className={`p-1 rounded ${(category as any).color} text-white`}>
                       <IconComponent className="w-3 h-3" />
                     </div>
-                    <span className="text-sm font-semibold text-left">{(category as any).title}</span>
+                    <span className="text-sm font-semibold text-left text-foreground">{(category as any).title}</span>
                     <Badge variant="outline" className="text-xs ml-2">
                       {categoryReports.length}
                     </Badge>
                   </div>
                   {isExpanded ? (
-                    <ChevronUp className="w-4 h-4 text-gray-500" />
+                    <ChevronUp className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                   ) : (
-                    <ChevronDown className="w-4 h-4 text-gray-500" />
+                    <ChevronDown className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                   )}
                 </button>
                 
                 {/* Collapsible Reports List */}
                 {isExpanded && (
-                  <div className="border-l-2 border-gray-100 ml-6 pl-2">
+                  <div className="border-l-2 border-gray-100 dark:border-gray-800 ml-6 pl-2">
                     {categoryReports.map((report: any) => (
                       <DropdownMenuItem
                         key={report.id}
@@ -295,16 +295,16 @@ export function ReportsHeaderControls({ selectedReportId, onReportSelect }: Repo
                         <div className="flex items-center justify-between w-full">
                           <div className="flex-1 min-w-0">
                             <p className={`font-medium text-sm truncate ${
-                              selectedReportId === report.id ? 'text-blue-600' : 'text-gray-900'
+                              selectedReportId === report.id ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'
                             }`}>
                               {report.title}
                             </p>
-                            <p className="text-xs text-gray-500 mt-1 line-clamp-1">
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">
                               {report.description}
                             </p>
                           </div>
                           {selectedReportId === report.id && (
-                            <ChevronRight className="w-4 h-4 text-blue-600 ml-2" />
+                            <ChevronRight className="w-4 h-4 text-blue-600 dark:text-blue-400 ml-2" />
                           )}
                         </div>
                       </DropdownMenuItem>
@@ -318,11 +318,11 @@ export function ReportsHeaderControls({ selectedReportId, onReportSelect }: Repo
           })}
 
           {/* Empty State for Search */}
-          {Object.keys(groupedReports).length === 0 && (
+      {Object.keys(groupedReports).length === 0 && (
             <div className="text-center py-8">
-              <FileText className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-              <p className="text-xs text-gray-500">No reports found</p>
-              <p className="text-xs text-gray-400">Try a different search term</p>
+        <FileText className="w-8 h-8 mx-auto text-gray-400 dark:text-gray-500 mb-2" />
+        <p className="text-xs text-gray-500 dark:text-gray-400">No reports found</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500">Try a different search term</p>
             </div>
           )}
         </DropdownMenuContent>

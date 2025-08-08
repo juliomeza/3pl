@@ -218,16 +218,17 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
 
   // Get sort icon
   const getSortIcon = useCallback((field: SortField) => {
+    // Icons inherit color from the parent container so dark mode styles apply correctly
     if (sortField !== field) {
-      return <ChevronsUpDown className="w-4 h-4 text-gray-400" />;
+      return <ChevronsUpDown className="w-4 h-4" />;
     }
     if (sortDirection === 'asc') {
-      return <ChevronUp className="w-4 h-4 text-blue-600 font-bold" />;
+      return <ChevronUp className="w-4 h-4" />;
     }
     if (sortDirection === 'desc') {
-      return <ChevronDown className="w-4 h-4 text-blue-600 font-bold" />;
+      return <ChevronDown className="w-4 h-4" />;
     }
-    return <ChevronsUpDown className="w-4 h-4 text-gray-400" />;
+    return <ChevronsUpDown className="w-4 h-4" />;
   }, [sortField, sortDirection]);
 
   // Fetch real data when isRealData changes to true
@@ -309,8 +310,8 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
 
       {/* Error State */}
       {error && (
-        <Alert className="mb-4 border-red-200 bg-red-50">
-          <AlertDescription className="text-red-800">
+        <Alert className="mb-4 border-red-200 bg-red-50 dark:border-red-900/40 dark:bg-red-950/30">
+          <AlertDescription className="text-red-800 dark:text-red-300">
             Error loading data: {error}
           </AlertDescription>
         </Alert>
@@ -319,12 +320,12 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
       {/* Materials Table */}
       {!loading && !error && (
         <div className="rounded-md bg-transparent">
-          {/* Fixed Header */}
-          <div className="bg-gray-50">
+      {/* Fixed Header */}
+      <div className="bg-muted/30">
             <Table className="bg-transparent [&_thead]:border-b-0 [&_thead_tr]:border-b-0">
               <TableHeader className="border-b-0">
-                <TableRow className="border-b-0 hover:bg-gray-50 bg-gray-50">
-                  <TableHead className="w-[160px] border-r-0">
+                <TableRow className="border-b border-border/60 bg-muted/40 hover:bg-muted/50 dark:border-border/30">
+                  <TableHead className="w-[160px] border-r-0 text-foreground">
                     <ColumnHeader 
                       field="lookupCode" 
                       label="Lookup Code" 
@@ -336,7 +337,7 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
                       getSortIcon={getSortIcon}
                     />
                   </TableHead>
-                  <TableHead className="w-[120px] border-r-0">
+                  <TableHead className="w-[120px] border-r-0 text-foreground">
                     <ColumnHeader 
                       field="statusId" 
                       label="Status" 
@@ -348,7 +349,7 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
                       getSortIcon={getSortIcon}
                     />
                   </TableHead>
-                  <TableHead className="w-[160px] border-r-0">
+                  <TableHead className="w-[160px] border-r-0 text-foreground">
                     <ColumnHeader 
                       field="materialGroupId" 
                       label="Material Group" 
@@ -360,7 +361,7 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
                       getSortIcon={getSortIcon}
                     />
                   </TableHead>
-                  <TableHead className="w-[240px] border-r-0">
+                  <TableHead className="w-[240px] border-r-0 text-foreground">
                     <ColumnHeader 
                       field="name" 
                       label="Name" 
@@ -372,7 +373,7 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
                       getSortIcon={getSortIcon}
                     />
                   </TableHead>
-                  <TableHead className="border-r-0">
+                  <TableHead className="border-r-0 text-foreground">
                     <ColumnHeader 
                       field="description" 
                       label="Description" 
@@ -409,9 +410,9 @@ export function MaterialsTable({ isRealData, ownerId }: MaterialsTableProps) {
           </div>
 
           {/* Sample Data Overlay Effect */}
-          {!isRealData && (
+      {!isRealData && (
             <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute top-1/2 left-1/3 transform -translate-x-1/2 -translate-y-1/2 rotate-[22.5deg] text-blue-200 text-8xl font-bold opacity-40 select-none">
+        <div className="absolute top-1/2 left-1/3 transform -translate-x-1/2 -translate-y-1/2 rotate-[22.5deg] text-blue-200 dark:text-blue-900 text-8xl font-bold opacity-40 dark:opacity-30 select-none">
                 SAMPLE DATA
               </div>
             </div>

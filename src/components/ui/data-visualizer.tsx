@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { TableIcon, BarChart3, PieChart as PieChartIcon, TrendingUp } from 'lucide-react';
+import { useTheme } from '@/context/theme-context';
 
 type ViewType = 'table' | 'bar' | 'pie' | 'line';
 
@@ -38,6 +39,8 @@ const STROKES = [
 
 export function DataVisualizer({ data, viewType: externalViewType }: DataVisualizerProps) {
   const [lastInteractedData, setLastInteractedData] = useState<any>(null);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   // Function to transform column names from snake_case to readable format
   const formatColumnName = (columnName: string): string => {
@@ -240,23 +243,25 @@ export function DataVisualizer({ data, viewType: externalViewType }: DataVisuali
         return (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+              <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#2D3340' : '#E5E7EB'} />
               <XAxis 
                 dataKey={keyColumn} 
-                stroke="#6B7280"
+                stroke={isDark ? '#A3A3A3' : '#6B7280'}
                 fontSize={12}
                 angle={data.length > 6 ? -45 : 0}
                 textAnchor={data.length > 6 ? 'end' : 'middle'}
                 height={data.length > 6 ? 80 : 60}
               />
-              <YAxis stroke="#6B7280" fontSize={12} />
+              <YAxis stroke={isDark ? '#A3A3A3' : '#6B7280'} fontSize={12} />
               <Tooltip 
                 contentStyle={{ 
-                  backgroundColor: '#FFFFFF', 
-                  border: '1px solid #E5E7EB',
+                  backgroundColor: isDark ? '#0B1220' : '#FFFFFF', 
+                  border: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`,
                   borderRadius: '8px',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}
+                labelStyle={{ color: isDark ? '#E5E7EB' : '#111827' }}
+                itemStyle={{ color: isDark ? '#E5E7EB' : '#111827' }}
                 formatter={(value, name) => [value, formatColumnName(String(name))]}
                 labelFormatter={(label) => `${formatColumnName(keyColumn)}: ${label}`}
               />
@@ -309,11 +314,13 @@ export function DataVisualizer({ data, viewType: externalViewType }: DataVisuali
               </Pie>
               <Tooltip 
                 contentStyle={{ 
-                  backgroundColor: '#FFFFFF', 
-                  border: '1px solid #E5E7EB',
+                  backgroundColor: isDark ? '#0B1220' : '#FFFFFF', 
+                  border: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`,
                   borderRadius: '8px',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}
+                labelStyle={{ color: isDark ? '#E5E7EB' : '#111827' }}
+                itemStyle={{ color: isDark ? '#E5E7EB' : '#111827' }}
                 formatter={(value, name) => [value, formatColumnName(String(name))]}
               />
             </PieChart>
@@ -335,20 +342,22 @@ export function DataVisualizer({ data, viewType: externalViewType }: DataVisuali
         return (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+              <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#2D3340' : '#E5E7EB'} />
               <XAxis 
                 dataKey={keyColumn} 
-                stroke="#6B7280"
+                stroke={isDark ? '#A3A3A3' : '#6B7280'}
                 fontSize={12}
               />
-              <YAxis stroke="#6B7280" fontSize={12} />
+              <YAxis stroke={isDark ? '#A3A3A3' : '#6B7280'} fontSize={12} />
               <Tooltip 
                 contentStyle={{ 
-                  backgroundColor: '#FFFFFF', 
-                  border: '1px solid #E5E7EB',
+                  backgroundColor: isDark ? '#0B1220' : '#FFFFFF', 
+                  border: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`,
                   borderRadius: '8px',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}
+                labelStyle={{ color: isDark ? '#E5E7EB' : '#111827' }}
+                itemStyle={{ color: isDark ? '#E5E7EB' : '#111827' }}
                 formatter={(value, name) => [value, formatColumnName(String(name))]}
                 labelFormatter={(label) => `${formatColumnName(keyColumn)}: ${label}`}
               />
