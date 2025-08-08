@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { deletePortalOrder } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -86,6 +87,7 @@ export function OrderDetails({ data }: { data: OrderDetailsData }) {
   const router = useRouter();
   const { clientInfo } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const topAccent = data.orderType === 'inbound'
     ? 'from-blue-500 via-sky-400 to-cyan-400'
     : 'from-emerald-500 via-sky-400 to-indigo-400';
@@ -154,6 +156,7 @@ export function OrderDetails({ data }: { data: OrderDetailsData }) {
                           const res = await deletePortalOrder(ownerId, data.orderNumber);
                           if (res.success) {
                             toast({ title: 'Order deleted', description: `Order ${data.orderNumber} was deleted.` });
+                            await queryClient.invalidateQueries({ queryKey: ['activeOrders', ownerId] });
                             router.push('/client');
                           } else {
                             toast({ variant: 'destructive', title: 'Delete failed', description: res.error || 'Unable to delete order.' });

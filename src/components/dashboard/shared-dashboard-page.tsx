@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { useActiveOrders } from '@/hooks/use-active-orders';
 import { useShipmentTrends, useTopDestinations, useDeliveryPerformance } from '@/hooks/use-dashboard-charts';
@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DataVisualizer } from '@/components/ui/data-visualizer';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   ArrowUpRight,
   ArrowDownRight,
@@ -29,6 +30,8 @@ import {
 import { PencilLine, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { deletePortalOrder } from '@/app/actions';
+import { OrderDetails } from '@/components/dashboard/order-details';
+import { useOrderDetails } from '@/hooks/use-order-details';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -63,6 +66,7 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
   const [activeShipmentsOpen, setActiveShipmentsOpen] = useState(false);
   const router = useRouter();
   const queryClient = useQueryClient();
+  const params = useSearchParams();
   
   // Determine owner_id based on role
   const ownerId = role === 'client' ? (clientInfo?.owner_id || null) : null;
@@ -74,6 +78,8 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
   const { data: deliveryPerformance, loading: performanceLoading, error: performanceError } = useDeliveryPerformance(ownerId);
   const { metrics, loading: metricsLoading, error: metricsError } = useDashboardMetrics(ownerId);
   const { toast } = useToast();
+  const viewOrderNumber = useMemo(() => params.get('view'), [params]);
+  const { details, loading: detailsLoading, error: detailsError } = useOrderDetails(ownerId, viewOrderNumber);
 
   const displayMetrics = {
     activeShipments: metricsLoading ? '' : metrics.activeShipments || (role === 'employee' ? 1284 : 284),
@@ -412,11 +418,10 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
                             {/* Row 1: Order • Customer • Destination  |  Status + (View) */}
                             <div className="flex items-center justify-between gap-3">
                               <div className="flex items-center gap-3 min-w-0">
-                                <button
+                <button
                                   type="button"
                                   onClick={() => {
-                                    // Placeholder navigation for future view details
-                                    if (role === 'client') router.push(`/client/orders?view=${encodeURIComponent(order.order_number)}`);
+                  if (role === 'client') router.push(`/client?view=${encodeURIComponent(order.order_number)}`, { scroll: false });
                                   }}
                                   className="font-semibold shrink-0 text-primary hover:underline"
                                 >
@@ -514,7 +519,7 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
                                   variant="ghost"
                                   size="icon"
                                   className="hidden md:inline-flex h-8 w-8"
-                                  onClick={() => { if (role === 'client') router.push(`/client/orders?view=${encodeURIComponent(order.order_number)}`); }}
+                                  onClick={() => { if (role === 'client') router.push(`/client?view=${encodeURIComponent(order.order_number)}`, { scroll: false }); }}
                                   title="View details"
                                 >
                                   <Eye className="h-4 w-4" />
@@ -567,7 +572,7 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
                                   variant="ghost"
                                   size="icon"
                                   className="md:hidden h-8 w-8"
-                                  onClick={() => { if (role === 'client') router.push(`/client/orders?view=${encodeURIComponent(order.order_number)}`); }}
+                                  onClick={() => { if (role === 'client') router.push(`/client?view=${encodeURIComponent(order.order_number)}`, { scroll: false }); }}
                                   title="View details"
                                 >
                                   <Eye className="h-4 w-4" />
@@ -674,6 +679,35 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
               </CardContent>
             </Card>
           </div>
+          {/* Route-driven Order Details overlay (preserves dashboard state) */}
+          {role === 'client' && (
+            <Dialog open={!!viewOrderNumber} onOpenChange={(open) => {
+              if (!open) {
+                // Clear the view param without losing scroll position
+                router.push('/client', { scroll: false });
+              }
+            }}>
+              <DialogContent className="max-w-5xl w-[95vw]">
+                <DialogHeader>
+                  <DialogTitle>Order Details</DialogTitle>
+                </DialogHeader>
+                <div>
+                  {detailsLoading && (
+                    <div className="space-y-3">
+                      <Skeleton className="h-7 w-48" />
+                      <Skeleton className="h-40 w-full" />
+                    </div>
+                  )}
+                  {detailsError && (
+                    <div className="text-sm text-red-600">Failed to load: {String(detailsError)}</div>
+                  )}
+                  {!detailsLoading && !detailsError && details && (
+                    <OrderDetails data={details} />
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
       </div>
   );
 }
