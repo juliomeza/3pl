@@ -850,21 +850,21 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
       const userName = user?.displayName || user?.email || 'Unknown User';
       const result = await saveOrder(formData, formData.lineItems, ownerId, status, userName);
       
-      if (result.success) {
+  if (result.success) {
         // Update order id after first save
         
         // Store the order ID for future updates
         if (!formData.id && result.orderId) {
           setFormData(prev => ({ ...prev, id: result.orderId }));
         }
-        // If backend returned an order number, sync it and highlight once on first assignment
+        // Sync returned order number. Highlight when newly assigned or changed due to type change
         let nextForm = formData;
-        if (result.orderNumber && !formData.orderNumber) {
+        if (result.orderNumber && result.orderNumber !== formData.orderNumber) {
           nextForm = { ...formData, orderNumber: result.orderNumber! } as OrderFormData;
           setFormData(nextForm);
           setHighlightOrderNumber(true);
           setTimeout(() => setHighlightOrderNumber(false), 1800);
-          // Allow showing order number inline only once
+          // Show inline number once per change to avoid noise
           showOrderNumberInlineOnceRef.current = true;
         }
         // Draft UX: no toast; show inline helper and disable Save until next edit
@@ -982,9 +982,22 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
                         <Select 
                           value={formData.orderType} 
                           onValueChange={(value: 'inbound' | 'outbound') => {
-                            setFormData(prev => ({ ...prev, orderType: value }));
+                            setFormData(prev => {
+                              const isChanging = prev.orderType && prev.orderType !== value;
+                              const canRegenerate = prev.status === 'draft' && prev.lineItems.length === 0 && !prev.orderNumber;
+                              return {
+                                ...prev,
+                                orderType: value,
+                                orderNumber: isChanging && canRegenerate ? '' : prev.orderNumber,
+                              };
+                            });
+                            if (!formData.orderNumber) {
+                              setInlineSaveMessage('Order type changed — number will generate on save');
+                              setTimeout(() => setInlineSaveMessage(null), 2500);
+                            }
                             setOrderTypeErrorOnly(false);
                           }}
+                          disabled={!!formData.orderNumber || formData.lineItems.length > 0 || formData.status === 'submitted'}
                         >
                           <SelectTrigger className={showOrderTypeError ? 'border-red-500 focus-visible:ring-red-500' : ''}>
                             <SelectValue placeholder="Select order type" />
@@ -1004,6 +1017,13 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
                             </SelectItem>
                           </SelectContent>
                         </Select>
+                        {formData.status === 'submitted' ? (
+                          <p className="text-xs text-muted-foreground">Order Type cannot be changed after submission</p>
+                        ) : formData.orderNumber ? (
+                          <p className="text-xs text-muted-foreground">Order Type locked after first save. Create a new order for a different type.</p>
+                        ) : formData.lineItems.length > 0 ? (
+                          <p className="text-xs text-muted-foreground">Order Type cannot be changed after materials are selected</p>
+                        ) : null}
                       </>
                     );
                   })()}
