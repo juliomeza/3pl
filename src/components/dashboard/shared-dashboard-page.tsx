@@ -357,38 +357,68 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
                   ) : (
                     <div className="space-y-4">
                       {activeOrders.map((order, index) => (
-                        <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition-colors bg-card/50">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3">
-                              <div>
-                                <p className="font-semibold">{order.order_number}</p>
-                                <p className="text-sm text-muted-foreground">
-                                  Customer: {order.recipient_name || 'Not specified'}
-                                </p>
+                        <div
+                          key={index}
+                          className="p-4 border rounded-lg hover:bg-muted/30 transition-colors bg-card/50"
+                        >
+                          <div className="flex flex-col gap-1 w-full">
+                            {/* Row 1: Order • Customer • Destination  |  Status + (View) */}
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <p className="font-semibold shrink-0">{order.order_number}</p>
+
+                                {/* Wide screens: inline meta to reduce line count */}
+                                <div className="hidden md:flex items-center text-sm text-muted-foreground gap-2 min-w-0">
+                                  <span className="truncate max-w-[26rem]">
+                                    Customer: {order.recipient_name || 'Not specified'}
+                                  </span>
+                                  <span className="text-muted-foreground/60">•</span>
+                                  <span className="flex items-center gap-1 min-w-0">
+                                    <MapPin className="h-3 w-3" />
+                                    <span className="truncate max-w-[14rem]">
+                                      {formatDestination(order.recipient_city, order.recipient_state)}
+                                    </span>
+                                  </span>
+                                </div>
                               </div>
-                              <Badge className={getStatusColor(order.display_status)}>
-                                {order.display_status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                              </Badge>
+                              <div className="flex items-center gap-3">
+                                <Badge className={getStatusColor(order.display_status)}>
+                                  {order.display_status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                </Badge>
+                                <Button variant="ghost" size="sm" className="hidden md:inline-flex">
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  View Details
+                                </Button>
+                              </div>
                             </div>
-                            <div className="flex items-center space-x-4 mt-2 text-sm text-muted-foreground">
-                              <div className="flex items-center space-x-1">
-                                <Calendar className="h-3 w-3" />
-                                <span>Pickup: {formatDate(order.order_fulfillment_date)}</span>
+
+                            {/* Row 2: Pickup • ETA  |  (View on mobile) */}
+                            <div className="flex items-center justify-between text-sm text-muted-foreground">
+                              <div className="flex items-center gap-4">
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  <span>Pickup: {formatDate(order.order_fulfillment_date)}</span>
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  <span>ETA: {formatDate(order.estimated_delivery_date)}</span>
+                                </span>
+
+                                {/* Small screens: show destination and customer on row 2 */}
+                                <span className="md:hidden flex items-center gap-1">
+                                  <MapPin className="h-3 w-3" />
+                                  <span>{formatDestination(order.recipient_city, order.recipient_state)}</span>
+                                </span>
+                                <span className="md:hidden block">
+                                  Customer: {order.recipient_name || 'Not specified'}
+                                </span>
                               </div>
-                              <div className="flex items-center space-x-1">
-                                <Clock className="h-3 w-3" />
-                                <span>ETA: {formatDate(order.estimated_delivery_date)}</span>
-                              </div>
-                              <div className="flex items-center space-x-1">
-                                <MapPin className="h-3 w-3" />
-                                <span>{formatDestination(order.recipient_city, order.recipient_state)}</span>
-                              </div>
+                              <Button variant="ghost" size="sm" className="md:hidden">
+                                <Eye className="h-4 w-4 mr-2" />
+                                View Details
+                              </Button>
                             </div>
                           </div>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
-                          </Button>
                         </div>
                       ))}
                     </div>
