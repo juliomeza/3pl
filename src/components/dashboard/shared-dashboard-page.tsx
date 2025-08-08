@@ -86,7 +86,7 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
       case 'picking':
         return 'bg-indigo-500/10 text-indigo-700 border-indigo-500/20 dark:bg-indigo-400/10 dark:text-indigo-300 dark:border-indigo-400/20';
       case 'shipped':
-        return 'bg-indigo-500/10 text-indigo-800 border-indigo-500/20 dark:bg-indigo-400/10 dark:text-indigo-200 dark:border-indigo-400/20';
+        return 'bg-violet-500/10 text-violet-800 border-violet-500/20 dark:bg-violet-400/10 dark:text-violet-200 dark:border-violet-400/20';
       case 'in_transit':
       case 'in transit':
         return 'bg-sky-500/10 text-sky-700 border-sky-500/20 dark:bg-sky-400/10 dark:text-sky-300 dark:border-sky-400/20';
