@@ -1490,55 +1490,52 @@ export function CreateOrderForm() {
         </Card>
       )}
 
-      {/* Navigation */}
+      {/* Navigation - transparent footer with only buttons and step count */}
       <div className="pt-2">
-        <Card className="overflow-hidden">
-          <div className="h-px w-full bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400" />
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center gap-4">
-              {currentStep > 1 && (
-                <Button variant="outline" onClick={handlePrevious}>
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Previous
-                </Button>
-              )}
-            </div>
-
-            <div className="text-sm text-muted-foreground">
-              Step {currentStep} of 3
-              {currentStep === 2 && ` • ${formData.lineItems.length} materials added`}
-            </div>
-
-            <div className="flex items-center gap-2">
-              {currentStep < 3 && (
-                <Button 
-                  onClick={handleNext}
-                  disabled={!canGoToStep(currentStep + 1)}
-                >
-                  Next
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              )}
-
-              {currentStep === 3 && (
-                <>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => handleSave('draft')}
-                  >
-                    Save as Draft
-                  </Button>
-                  <Button 
-                    onClick={() => handleSave('submitted')}
-                    disabled={!isStep1Valid() || !isStep2Valid()}
-                  >
-                    Submit Order
-                  </Button>
-                </>
-              )}
-            </div>
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-4">
+            {currentStep > 1 && (
+              <Button variant="outline" onClick={handlePrevious}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Previous
+              </Button>
+            )}
           </div>
-        </Card>
+
+          <div className="text-sm text-muted-foreground">
+            Step {currentStep} of 3
+            {currentStep === 2 && ` • ${formData.lineItems.length} materials added`}
+          </div>
+
+          <div className="flex items-center gap-2">
+            {currentStep < 3 && (
+              <Button 
+                onClick={handleNext}
+                disabled={!canGoToStep(currentStep + 1)}
+              >
+                Next
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            )}
+
+            {currentStep === 3 && (
+              <>
+                <Button 
+                  variant="outline" 
+                  onClick={() => handleSave('draft')}
+                >
+                  Save as Draft
+                </Button>
+                <Button 
+                  onClick={() => handleSave('submitted')}
+                  disabled={!isStep1Valid() || !isStep2Valid()}
+                >
+                  Submit Order
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
