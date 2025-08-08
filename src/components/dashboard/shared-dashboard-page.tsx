@@ -121,7 +121,7 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
   // Show loading or placeholder for employee when no data yet
   if (role === 'employee' && metricsLoading && activeOrders.length === 0) {
     return (
-      <div className="relative space-y-8 dashboard-radials">
+      <div className="relative space-y-8">
         {/* Quick Status Cards with Employee-scale numbers */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="overflow-hidden">
@@ -213,7 +213,7 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
   }
 
   return (
-      <div className="relative space-y-8 dashboard-radials">
+      <div className="relative space-y-8">
           {/* Quick Status Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card className="overflow-hidden">

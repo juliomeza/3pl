@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bot, User, Loader2, RotateCcw, GripVertical, TableIcon, BarChart3, PieChart as PieChartIcon, TrendingUp } from 'lucide-react';
 import { ChatMessage } from '@/lib/ai/logistics-assistant';
 import { DataVisualizer } from '@/components/ui/data-visualizer';
@@ -187,9 +188,21 @@ export function SharedAiAssistant({ getAiInsight, onLeftContentChange, onRightCo
           className="hidden lg:flex flex-col bg-transparent"
           style={{ width: `${leftWidth}%` }}
         >
-          <div className="flex-1 p-4 overflow-auto custom-scrollbar">
-            <DataVisualizer data={currentData} viewType={viewType} />
-          </div>
+          <Card className="m-4 overflow-hidden">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <span className="h-7 w-7 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 inline-flex items-center justify-center">
+                  <TrendingUp className="h-4 w-4" />
+                </span>
+                Insights
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-full max-h-[calc(100vh-220px)] overflow-auto custom-scrollbar">
+                <DataVisualizer data={currentData} viewType={viewType} />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Resize Handle (Desktop only) */}
@@ -206,7 +219,17 @@ export function SharedAiAssistant({ getAiInsight, onLeftContentChange, onRightCo
           style={{ width: `${100 - leftWidth}%` }}
         >
           {/* Chat Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+          <Card className="m-4 overflow-hidden flex-1 flex flex-col">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <span className="h-7 w-7 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 inline-flex items-center justify-center">
+                  <Bot className="h-4 w-4" />
+                </span>
+                Assistant
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-y-auto p-0">
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
             {messages.length === 0 && (
               <div className="text-center text-gray-500 py-8">
               </div>
@@ -217,7 +240,7 @@ export function SharedAiAssistant({ getAiInsight, onLeftContentChange, onRightCo
                 <div className={`${message.role === 'user' ? 'max-w-[80%]' : 'w-full'}`}>
                   <div className={`${
                     message.role === 'user' 
-                      ? 'px-4 py-2 rounded-lg bg-gray-100 text-gray-900' 
+                      ? 'px-4 py-2 rounded-lg bg-card/50 border text-gray-900' 
                       : 'text-gray-900'
                   }`}>
                     <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
@@ -245,33 +268,50 @@ export function SharedAiAssistant({ getAiInsight, onLeftContentChange, onRightCo
             )}
             
             <div ref={messagesEndRef} />
-          </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Data Visualization (Mobile) */}
           <div className="lg:hidden">
-            <div className="p-4 bg-transparent">
-              <div className="max-h-96 overflow-auto">
-                <DataVisualizer data={currentData} viewType={viewType} />
-              </div>
-            </div>
+            <Card className="m-4 overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <span className="h-7 w-7 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 inline-flex items-center justify-center">
+                    <TrendingUp className="h-4 w-4" />
+                  </span>
+                  Insights
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="max-h-96 overflow-auto">
+                  <DataVisualizer data={currentData} viewType={viewType} />
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Chat Input */}
-          <div className="p-4 bg-transparent">
-            <form onSubmit={handleSubmit} className="flex gap-2">
-              <Input
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about your logistics data..."
-                disabled={isLoading}
-                className="flex-1 focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-gray-300 focus-visible:outline-none"
-                autoFocus
-              />
-              <Button type="submit" disabled={isLoading || !input.trim()}>
-                Send
-              </Button>
-            </form>
+          <div className="px-4 pb-4">
+            <Card>
+              <div className="h-px w-full bg-gradient-to-r from-violet-500 via-fuchsia-400 to-pink-400" />
+              <CardContent className="pt-4">
+                <form onSubmit={handleSubmit} className="flex gap-2">
+                  <Input
+                    ref={inputRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Ask about your logistics data..."
+                    disabled={isLoading}
+                    className="flex-1 focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-gray-300 focus-visible:outline-none"
+                    autoFocus
+                  />
+                  <Button type="submit" disabled={isLoading || !input.trim()}>
+                    Send
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
