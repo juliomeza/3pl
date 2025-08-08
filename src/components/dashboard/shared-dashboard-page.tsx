@@ -1,6 +1,7 @@
-'use client';
+"use client";
 
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { useActiveOrders } from '@/hooks/use-active-orders';
@@ -25,7 +26,20 @@ import {
   TrendingUp,
   DollarSign
 } from 'lucide-react';
-import { PencilLine } from 'lucide-react';
+import { PencilLine, Trash2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { deletePortalOrder } from '@/app/actions';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface SharedDashboardPageProps {
   role: 'client' | 'employee';
@@ -48,6 +62,7 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
   const { user, clientInfo } = useAuth();
   const [activeShipmentsOpen, setActiveShipmentsOpen] = useState(false);
   const router = useRouter();
+  const queryClient = useQueryClient();
   
   // Determine owner_id based on role
   const ownerId = role === 'client' ? (clientInfo?.owner_id || null) : null;
@@ -58,6 +73,7 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
   const { data: topDestinations, loading: destinationsLoading, error: destinationsError } = useTopDestinations(ownerId);
   const { data: deliveryPerformance, loading: performanceLoading, error: performanceError } = useDeliveryPerformance(ownerId);
   const { metrics, loading: metricsLoading, error: metricsError } = useDashboardMetrics(ownerId);
+  const { toast } = useToast();
 
   const displayMetrics = {
     activeShipments: metricsLoading ? '' : metrics.activeShipments || (role === 'employee' ? 1284 : 284),
@@ -442,6 +458,51 @@ export default function SharedDashboardPage({ role }: SharedDashboardPageProps) 
                                   >
                                     <PencilLine className="h-4 w-4" />
                                   </Button>
+                                )}
+                                {/* Delete icon only for client + portal source + draft/failed */}
+                                {role === 'client' && order.source_table === 'portal' && ['draft','failed'].includes(String(order.display_status).toLowerCase()) && (
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 text-rose-700 hover:text-rose-800 hover:bg-rose-50"
+                                        title="Delete order"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Delete order?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          This action is permanent and cannot be undone.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction
+                                          className="bg-rose-600 hover:bg-rose-700"
+                                          onClick={async () => {
+                                            if (!ownerId) return;
+                                            try {
+                                              const res = await deletePortalOrder(ownerId, order.order_number);
+                                              if (res.success) {
+                                                toast({ title: 'Order deleted', description: `Order ${order.order_number} was deleted.` });
+                                                await queryClient.invalidateQueries({ queryKey: ['activeOrders', ownerId] });
+                                              } else {
+                                                toast({ variant: 'destructive', title: 'Delete failed', description: res.error || 'Unable to delete order.' });
+                                              }
+                                            } catch (e) {
+                                              toast({ variant: 'destructive', title: 'Delete failed', description: 'Unexpected error occurred.' });
+                                            }
+                                          }}
+                                        >
+                                          Delete
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
                                 )}
                                 <Badge
                                   variant="outline"

@@ -299,6 +299,183 @@ export async function getTopDestinations(ownerId: number, period: 'last90days' =
   }
 }
 
+// Get detailed order view (normalized) for a given order_number with client security
+export async function getOrderDetails(
+  ownerId: number,
+  orderNumber: string
+): Promise<{
+  orderNumber: string;
+  orderType: 'inbound' | 'outbound' | null;
+  source: 'portal' | 'operations' | 'both';
+  status?: string | null; // portal status
+  wmsStatus?: string | null; // mapped operations status
+  deliveryStatus?: string | null;
+  orderStatusId?: number | null;
+  orderDate?: string | null;
+  fulfillmentDate?: string | null;
+  estimatedDeliveryDate?: string | null;
+  recipient: {
+    name?: string | null;
+    companyName?: string | null;
+    line1?: string | null;
+    line2?: string | null;
+    city?: string | null;
+    state?: string | null;
+    zipCode?: string | null;
+    country?: string | null;
+  };
+  billing: {
+    name?: string | null;
+    companyName?: string | null;
+    line1?: string | null;
+    line2?: string | null;
+    city?: string | null;
+    state?: string | null;
+    zipCode?: string | null;
+    country?: string | null;
+  };
+  carrier?: string | null;
+  serviceType?: string | null;
+  trackingNumbers?: string[];
+  lineItems?: Array<{
+    lineNumber: number;
+    materialCode: string;
+    materialName: string;
+    quantity: number;
+    uom: string;
+    batchNumber?: string | null;
+    licensePlate?: string | null;
+    serialNumber?: string | null;
+  }>;
+} | null> {
+  try {
+    // Fetch portal order header (if exists)
+    const portalHeaderRes = await db.query(
+      `SELECT id, order_number, order_type, status, order_date, estimated_delivery_date,
+              recipient_name, recipient_company_name, addr1, addr2, city, state, zip, country,
+              account_name, billing_company_name, billing_addr1, billing_addr2, billing_city, billing_state, billing_zip, billing_country,
+              carrier, service_type
+       FROM portal_orders
+       WHERE owner_id = $1 AND order_number = $2
+       LIMIT 1`,
+      [ownerId, orderNumber]
+    );
+
+    const portal = portalHeaderRes.rows[0];
+    let lineItems: any[] | undefined = undefined;
+
+    if (portal?.id) {
+      const linesRes = await db.query(
+        `SELECT line_number, material_code, material_description, quantity, uom, lot, license_plate, serial_number, batch_number
+         FROM portal_order_lines
+         WHERE order_id = $1
+         ORDER BY line_number`,
+        [portal.id]
+      );
+      lineItems = linesRes.rows.map((r: any) => ({
+        lineNumber: parseInt(r.line_number, 10),
+        materialCode: r.material_code,
+        materialName: r.material_description || r.material_code,
+        quantity: parseFloat(r.quantity || '0'),
+        uom: r.uom || 'EA',
+        batchNumber: r.batch_number || r.lot || null,
+        serialNumber: r.serial_number || null,
+        licensePlate: r.license_plate || null,
+      }));
+    }
+
+    // Fetch operations (WMS) record if exists
+    const opsRes = await db.query(
+      `SELECT 
+         order_status_id, delivery_status, tracking_numbers, 
+         order_created_date, order_fulfillment_date, estimated_delivery_date,
+         recipient_name, recipient_city, recipient_state,
+         carrier, service_type, order_type
+       FROM operations_active_orders
+       WHERE owner_id = $1 AND order_number = $2
+       LIMIT 1`,
+      [ownerId, orderNumber]
+    );
+    const ops = opsRes.rows[0];
+
+    // Map WMS status
+    let wmsStatus: string | null = null;
+    if (ops) {
+      const ds = (ops.delivery_status || '').toLowerCase();
+      if (ops.order_status_id === 1) wmsStatus = 'created';
+      else if (ops.order_status_id === 2) wmsStatus = 'picking';
+      else if (ops.order_status_id === 4 && (ds === 'in transit' || ds === 'in_transit')) wmsStatus = 'in_transit';
+      else if (ops.order_status_id === 4 && (!ds || !['in transit','in_transit','delivered'].includes(ds))) wmsStatus = 'shipped';
+    }
+
+    if (!portal && !ops) return null;
+
+    // Normalize recipient: prefer portal full address; fallback to ops basic fields
+    const recipient = portal ? {
+      name: portal.recipient_name || null,
+      companyName: portal.recipient_company_name || null,
+      line1: portal.addr1 || null,
+      line2: portal.addr2 || null,
+      city: portal.city || null,
+      state: portal.state || null,
+      zipCode: portal.zip || null,
+      country: portal.country || 'US',
+    } : {
+      name: ops?.recipient_name || null,
+      companyName: null,
+      line1: null,
+      line2: null,
+      city: ops?.recipient_city || null,
+      state: ops?.recipient_state || null,
+      zipCode: null,
+      country: null,
+    } as any;
+
+    const billing = portal ? {
+      name: portal.account_name || null,
+      companyName: portal.billing_company_name || null,
+      line1: portal.billing_addr1 || null,
+      line2: portal.billing_addr2 || null,
+      city: portal.billing_city || null,
+      state: portal.billing_state || null,
+      zipCode: portal.billing_zip || null,
+      country: portal.billing_country || 'US',
+    } : {} as any;
+
+    // Prefer ops dates when present
+    const orderDate = ops?.order_created_date || portal?.order_date || null;
+    const fulfillmentDate = ops?.order_fulfillment_date || null;
+    const estimatedDeliveryDate = ops?.estimated_delivery_date || portal?.estimated_delivery_date || null;
+
+    // Parse tracking numbers into array
+    const trackingNumbers: string[] | undefined = ops?.tracking_numbers
+      ? String(ops.tracking_numbers).split(/[\n,;\s]+/).filter(Boolean)
+      : undefined;
+
+    return {
+      orderNumber,
+  orderType: (portal?.order_type as 'inbound'|'outbound') || (ops?.order_type as 'inbound'|'outbound') || null,
+      source: portal && ops ? 'both' : portal ? 'portal' : 'operations',
+      status: portal?.status || null,
+      wmsStatus: wmsStatus || null,
+      deliveryStatus: ops?.delivery_status || null,
+      orderStatusId: ops?.order_status_id ?? null,
+      orderDate: orderDate ? new Date(orderDate).toISOString() : null,
+      fulfillmentDate: fulfillmentDate ? new Date(fulfillmentDate).toISOString() : null,
+      estimatedDeliveryDate: estimatedDeliveryDate ? new Date(estimatedDeliveryDate).toISOString() : null,
+      recipient,
+      billing,
+  carrier: portal?.carrier || ops?.carrier || null,
+  serviceType: portal?.service_type || ops?.service_type || null,
+      trackingNumbers,
+      lineItems,
+    };
+  } catch (error) {
+    console.error('Error fetching order details:', error);
+    return null;
+  }
+}
+
 // Fetch a portal order (header + lines) for editing by order_number and owner
 export async function getPortalOrderForEdit(ownerId: number, orderNumber: string): Promise<{
   id: number;
@@ -977,5 +1154,41 @@ export async function saveOrder(
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred'
     };
+  }
+}
+
+// Permanently delete a portal order (only if status is 'draft' or 'failed')
+export async function deletePortalOrder(
+  ownerId: number,
+  orderNumber: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Verify the order exists and is deletable
+    const checkRes = await db.query(
+      `SELECT id, status FROM portal_orders WHERE owner_id = $1 AND order_number = $2 LIMIT 1`,
+      [ownerId, orderNumber]
+    );
+
+    if (checkRes.rows.length === 0) {
+      return { success: false, error: 'Order not found' };
+    }
+
+    const { id, status } = checkRes.rows[0];
+    const s = String(status || '').toLowerCase();
+    if (!['draft', 'failed'].includes(s)) {
+      return { success: false, error: 'Only draft or failed orders can be deleted' };
+    }
+
+    // Transactional delete: lines then header
+  await db.query('BEGIN', []);
+    await db.query(`DELETE FROM portal_order_lines WHERE order_id = $1`, [id]);
+  await db.query(`DELETE FROM portal_orders WHERE id = $1 AND owner_id = $2`, [id, ownerId]);
+  await db.query('COMMIT', []);
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting order:', error);
+  try { await db.query('ROLLBACK', []); } catch {}
+    return { success: false, error: 'Failed to delete order' };
   }
 }
