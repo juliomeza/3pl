@@ -730,12 +730,17 @@ export function CreateOrderForm() {
       {/* Step 1: Order Information */}
       {currentStep === 1 && (
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="w-5 h-5" />
-                Order Type & Basic Information
-              </CardTitle>
+          <Card className="overflow-hidden">
+            <CardHeader className="p-0">
+              <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400" />
+              <div className="p-6">
+                <CardTitle className="flex items-center gap-2">
+                  <span className="h-7 w-7 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 inline-flex items-center justify-center">
+                    <Package className="w-4 h-4" />
+                  </span>
+                  Order Type & Basic Information
+                </CardTitle>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -820,12 +825,17 @@ export function CreateOrderForm() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="w-5 h-5" />
-                Addresses
-              </CardTitle>
+          <Card className="overflow-hidden">
+            <CardHeader className="p-0">
+              <div className="h-1 w-full bg-gradient-to-r from-emerald-500 via-cyan-400 to-violet-400" />
+              <div className="p-6">
+                <CardTitle className="flex items-center gap-2">
+                  <span className="h-7 w-7 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 inline-flex items-center justify-center">
+                    <MapPin className="w-4 h-4" />
+                  </span>
+                  Addresses
+                </CardTitle>
+              </div>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -850,12 +860,17 @@ export function CreateOrderForm() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Truck className="w-5 h-5" />
-                Shipping Information
-              </CardTitle>
+          <Card className="overflow-hidden">
+            <CardHeader className="p-0">
+              <div className="h-1 w-full bg-gradient-to-r from-sky-500 via-indigo-400 to-slate-400" />
+              <div className="p-6">
+                <CardTitle className="flex items-center gap-2">
+                  <span className="h-7 w-7 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 inline-flex items-center justify-center">
+                    <Truck className="w-4 h-4" />
+                  </span>
+                  Shipping Information
+                </CardTitle>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -940,15 +955,20 @@ export function CreateOrderForm() {
 
       {/* Step 2: Select Materials */}
       {currentStep === 2 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="w-5 h-5" />
-              Select Materials
-            </CardTitle>
+        <Card className="overflow-hidden">
+          <CardHeader className="p-0">
+            <div className="h-1 w-full bg-gradient-to-r from-violet-500 via-fuchsia-400 to-pink-400" />
+            <div className="p-6">
+              <CardTitle className="flex items-center gap-2">
+                <span className="h-7 w-7 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 inline-flex items-center justify-center">
+                  <Package className="w-4 h-4" />
+                </span>
+                Select Materials
+              </CardTitle>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="bg-muted p-4 rounded-lg">
+            <div className="p-4 rounded-lg border bg-card/50">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">Selected Project</p>
@@ -963,7 +983,7 @@ export function CreateOrderForm() {
               </div>
             </div>
 
-            <div className="space-y-4 p-4 border border-dashed border-gray-300 rounded-lg">
+            <div className="space-y-4 p-4 border border-dashed rounded-lg bg-card/50">
               <h4 className="font-medium text-sm">Add Material</h4>
               <div className="grid grid-cols-1 md:grid-cols-10 gap-3">
                 <div className="md:col-span-3">
@@ -1266,7 +1286,7 @@ export function CreateOrderForm() {
                 <h4 className="font-medium text-sm">Materials List ({formData.lineItems.length})</h4>
                 <div className="space-y-2">
                   {formData.lineItems.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg bg-card/50">
                       <div className="flex-1">
                         <div className="flex items-center gap-4">
                           <div>
@@ -1325,12 +1345,17 @@ export function CreateOrderForm() {
 
       {/* Step 3: Review */}
       {currentStep === 3 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Eye className="w-5 h-5" />
-              Review Order
-            </CardTitle>
+        <Card className="overflow-hidden">
+          <CardHeader className="p-0">
+            <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-slate-400 to-zinc-300 dark:from-indigo-400 dark:via-slate-600 dark:to-zinc-700" />
+            <div className="p-6">
+              <CardTitle className="flex items-center gap-2">
+                <span className="h-7 w-7 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 inline-flex items-center justify-center">
+                  <Eye className="w-4 h-4" />
+                </span>
+                Review Order
+              </CardTitle>
+            </div>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1427,7 +1452,7 @@ export function CreateOrderForm() {
               <h4 className="font-medium">Materials ({formData.lineItems.length})</h4>
               <div className="space-y-2">
                 {formData.lineItems.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg bg-muted/50">
+                  <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg bg-card/50">
                     <div className="flex items-center gap-4">
                       <div>
                         <div className="font-medium">{item.materialCode}</div>
@@ -1466,49 +1491,54 @@ export function CreateOrderForm() {
       )}
 
       {/* Navigation */}
-      <div className="flex items-center justify-between p-4 border-t">
-        <div className="flex items-center gap-4">
-          {currentStep > 1 && (
-            <Button variant="outline" onClick={handlePrevious}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Previous
-            </Button>
-          )}
-        </div>
+      <div className="pt-2">
+        <Card className="overflow-hidden">
+          <div className="h-px w-full bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400" />
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-4">
+              {currentStep > 1 && (
+                <Button variant="outline" onClick={handlePrevious}>
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Previous
+                </Button>
+              )}
+            </div>
 
-        <div className="text-sm text-muted-foreground">
-          Step {currentStep} of 3
-          {currentStep === 2 && ` • ${formData.lineItems.length} materials added`}
-        </div>
+            <div className="text-sm text-muted-foreground">
+              Step {currentStep} of 3
+              {currentStep === 2 && ` • ${formData.lineItems.length} materials added`}
+            </div>
 
-        <div className="flex items-center gap-2">
-          {currentStep < 3 && (
-            <Button 
-              onClick={handleNext}
-              disabled={!canGoToStep(currentStep + 1)}
-            >
-              Next
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          )}
+            <div className="flex items-center gap-2">
+              {currentStep < 3 && (
+                <Button 
+                  onClick={handleNext}
+                  disabled={!canGoToStep(currentStep + 1)}
+                >
+                  Next
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              )}
 
-          {currentStep === 3 && (
-            <>
-              <Button 
-                variant="outline" 
-                onClick={() => handleSave('draft')}
-              >
-                Save as Draft
-              </Button>
-              <Button 
-                onClick={() => handleSave('submitted')}
-                disabled={!isStep1Valid() || !isStep2Valid()}
-              >
-                Submit Order
-              </Button>
-            </>
-          )}
-        </div>
+              {currentStep === 3 && (
+                <>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => handleSave('draft')}
+                  >
+                    Save as Draft
+                  </Button>
+                  <Button 
+                    onClick={() => handleSave('submitted')}
+                    disabled={!isStep1Valid() || !isStep2Valid()}
+                  >
+                    Submit Order
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
   );
