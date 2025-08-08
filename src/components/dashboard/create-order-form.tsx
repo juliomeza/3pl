@@ -1774,12 +1774,21 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
 
             {currentStep === 3 && (
               <>
-                <Button 
-                  variant="outline" 
-                  onClick={() => handleSave('draft')}
-                >
-                  Save as Draft
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => handleSave('draft')}
+                    disabled={!isDirty}
+                  >
+                    Save as Draft
+                  </Button>
+                  {inlineSaveMessage && (
+                    <span className="text-xs text-muted-foreground">
+                      {inlineSaveMessage}
+                      {showOrderNumberInlineOnceRef.current && formData.orderNumber ? ` • ${formData.orderNumber}` : ''}
+                    </span>
+                  )}
+                </div>
                 <Button 
                   onClick={() => handleSave('submitted')}
                   disabled={!isStep1Valid() || !isStep2Valid()}
