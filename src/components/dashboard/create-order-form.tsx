@@ -1748,6 +1748,14 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
             {currentStep < 3 && (
               <>
                 <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground min-w-[160px] text-right">
+                    {inlineSaveMessage ? (
+                      <>
+                        {inlineSaveMessage}
+                        {showOrderNumberInlineOnceRef.current && formData.orderNumber ? ` • ${formData.orderNumber}` : ''}
+                      </>
+                    ) : ''}
+                  </span>
                   <Button 
                     variant="outline"
                     onClick={() => handleSave('draft')}
@@ -1755,12 +1763,6 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
                   >
                     Save as Draft
                   </Button>
-                  {inlineSaveMessage && (
-                    <span className="text-xs text-muted-foreground">
-                      {inlineSaveMessage}
-                      {showOrderNumberInlineOnceRef.current && formData.orderNumber ? ` • ${formData.orderNumber}` : ''}
-                    </span>
-                  )}
                 </div>
                 <Button 
                   onClick={handleNext}
@@ -1775,6 +1777,14 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
             {currentStep === 3 && (
               <>
                 <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground min-w-[160px] text-right">
+                    {inlineSaveMessage ? (
+                      <>
+                        {inlineSaveMessage}
+                        {showOrderNumberInlineOnceRef.current && formData.orderNumber ? ` • ${formData.orderNumber}` : ''}
+                      </>
+                    ) : ''}
+                  </span>
                   <Button 
                     variant="outline" 
                     onClick={() => handleSave('draft')}
@@ -1782,12 +1792,6 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
                   >
                     Save as Draft
                   </Button>
-                  {inlineSaveMessage && (
-                    <span className="text-xs text-muted-foreground">
-                      {inlineSaveMessage}
-                      {showOrderNumberInlineOnceRef.current && formData.orderNumber ? ` • ${formData.orderNumber}` : ''}
-                    </span>
-                  )}
                 </div>
                 <Button 
                   onClick={() => handleSave('submitted')}
