@@ -951,14 +951,16 @@ export async function saveOrder(
   ownerId: number,
   status: 'draft' | 'submitted' = 'draft',
   userName: string = 'system'
-): Promise<{ success: boolean; orderId?: number; error?: string }> {
+): Promise<{ success: boolean; orderId?: number; orderNumber?: string; error?: string }> {
   try {
   // Safely parse integer IDs for optional fields
   const projectIdInt = Number.isFinite(parseInt(orderData.projectId)) ? parseInt(orderData.projectId) : null;
   const carrierIdInt = Number.isFinite(parseInt(orderData.carrierId)) ? parseInt(orderData.carrierId) : null;
   const serviceTypeIdInt = Number.isFinite(parseInt(orderData.carrierServiceTypeId)) ? parseInt(orderData.carrierServiceTypeId) : null;
 
-    let orderId = orderData.id;
+  let orderId = orderData.id;
+  let updatedOrderNumber: string | undefined = undefined;
+  let insertedOrderNumber: string | undefined = undefined;
 
     if (orderId) {
       // UPDATE existing order
@@ -998,7 +1000,7 @@ export async function saveOrder(
           carrier = $29, service_type = $30, carrier_id = $31, service_type_id = $32, 
           status = $33, updated_by = $34, updated_at = CURRENT_TIMESTAMP
         WHERE id = $1 AND owner_id = $35
-        RETURNING id
+        RETURNING id, order_number
       `;
 
       const orderValues = [
@@ -1039,11 +1041,13 @@ export async function saveOrder(
         ownerId // $35
       ];
 
-      const orderResult = await db.query(orderUpdateQuery, orderValues);
+  const orderResult = await db.query(orderUpdateQuery, orderValues);
       
       if (orderResult.rows.length === 0) {
         throw new Error('Order not found or access denied');
       }
+  // Keep current order number for return
+  updatedOrderNumber = orderResult.rows[0].order_number as string;
 
       // Delete existing line items and re-insert
       await db.query('DELETE FROM portal_order_lines WHERE order_id = $1', [orderId]);
@@ -1143,8 +1147,10 @@ export async function saveOrder(
         userName  // $38 - updated_by
       ];
 
-      const orderResult = await db.query(orderInsertQuery, orderValues);
-      orderId = orderResult.rows[0].id;
+  const orderResult = await db.query(orderInsertQuery, orderValues);
+  orderId = orderResult.rows[0].id;
+  // orderNumber variable here holds the generated or provided one for insert
+  insertedOrderNumber = orderNumber as string;
     }
 
     // Insert line items (for both new and updated orders)
@@ -1178,9 +1184,17 @@ export async function saveOrder(
       }
     }
 
+    // Derive order number to return: for insert we have local variable, for update use a fresh select if not available
+  let finalOrderNumber: string | undefined = undefined;
+  // Prefer insert-time generated number, then update-time returned number, then any provided value
+  if (insertedOrderNumber) finalOrderNumber = insertedOrderNumber;
+  else if (updatedOrderNumber) finalOrderNumber = updatedOrderNumber;
+  else if (typeof orderData?.orderNumber === 'string' && orderData.orderNumber.length > 0) finalOrderNumber = orderData.orderNumber;
+
     return {
       success: true,
-      orderId: orderId
+      orderId: orderId,
+      orderNumber: finalOrderNumber
     };
 
   } catch (error) {

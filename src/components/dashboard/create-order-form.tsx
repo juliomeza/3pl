@@ -387,6 +387,30 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
   const basicInfoRef = useRef<HTMLDivElement>(null);
   const addressesRef = useRef<HTMLDivElement>(null);
   const shippingRef = useRef<HTMLDivElement>(null);
+  const [inlineSaveMessage, setInlineSaveMessage] = useState<string | null>(null);
+  const [highlightOrderNumber, setHighlightOrderNumber] = useState(false);
+  const savedHashRef = useRef<string>('');
+  const computeFormHash = (fd: OrderFormData) => {
+    return JSON.stringify({
+      orderType: fd.orderType,
+      projectId: fd.projectId,
+      orderNumber: fd.orderNumber,
+      referenceNumber: fd.referenceNumber,
+      recipientAddress: fd.recipientAddress,
+      billingAddress: fd.billingAddress,
+      carrierId: fd.carrierId,
+      carrierServiceTypeId: fd.carrierServiceTypeId,
+      estimatedDeliveryDate: fd.estimatedDeliveryDate,
+      lineItems: fd.lineItems.map(li => ({
+        materialCode: li.materialCode,
+        quantity: li.quantity,
+        uom: li.uom,
+        batchNumber: li.batchNumber,
+        licensePlate: li.licensePlate,
+        serialNumber: li.serialNumber
+      }))
+    });
+  };
   const [formData, setFormData] = useState<OrderFormData>({
     id: undefined, // Track order ID for updates
     orderType: '',
@@ -445,6 +469,21 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
             lineItems: loaded.lineItems as any,
             status: loaded.status
           });
+          // Initialize saved hash to the loaded state (clean)
+          savedHashRef.current = computeFormHash({
+            id: loaded.id,
+            orderType: loaded.orderType,
+            projectId: loaded.projectId,
+            orderNumber: loaded.orderNumber,
+            referenceNumber: loaded.referenceNumber || '',
+            recipientAddress: loaded.recipientAddress,
+            billingAddress: loaded.billingAddress,
+            carrierId: loaded.carrierId || '',
+            carrierServiceTypeId: loaded.carrierServiceTypeId || '',
+            estimatedDeliveryDate: loaded.estimatedDeliveryDate || '',
+            lineItems: loaded.lineItems as any,
+            status: loaded.status
+          } as OrderFormData);
         }
       } catch (e) {
         console.error('Failed to load order for edit', e);
@@ -796,14 +835,26 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
       const result = await saveOrder(formData, formData.lineItems, ownerId, status, userName);
       
       if (result.success) {
-        toast({
-          title: "Success",
-          description: `Order ${status === 'draft' ? 'saved as draft' : 'submitted'} successfully! Order ID: ${result.orderId}`,
-        });
+        // Update order id after first save
         
         // Store the order ID for future updates
         if (!formData.id && result.orderId) {
           setFormData(prev => ({ ...prev, id: result.orderId }));
+        }
+        // If backend returned an order number, sync it and highlight once on first assignment
+        let nextForm = formData;
+        if (result.orderNumber && !formData.orderNumber) {
+          nextForm = { ...formData, orderNumber: result.orderNumber! } as OrderFormData;
+          setFormData(nextForm);
+          setHighlightOrderNumber(true);
+          setTimeout(() => setHighlightOrderNumber(false), 1800);
+        }
+        // Draft UX: no toast; show inline helper and disable Save until next edit
+        if (status === 'draft') {
+          setInlineSaveMessage('Draft saved');
+          setTimeout(() => setInlineSaveMessage(null), 2500);
+          // Mark form as clean (use the possibly updated form with order number)
+          savedHashRef.current = computeFormHash(nextForm);
         }
         
         if (status === 'submitted') {
@@ -845,6 +896,20 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
             status: 'draft'
           });
           setCurrentStep(1);
+          savedHashRef.current = computeFormHash({
+            id: undefined,
+            orderType: '',
+            projectId: '',
+            orderNumber: '',
+            referenceNumber: '',
+            recipientAddress: {
+              title: '', firstName: '', lastName: '', companyName: '', line1: '', line2: '', city: '', state: '', zipCode: '', country: 'US'
+            },
+            billingAddress: {
+              title: '', firstName: '', lastName: '', companyName: '', line1: '', line2: '', city: '', state: '', zipCode: '', country: 'US'
+            },
+            carrierId: '', carrierServiceTypeId: '', estimatedDeliveryDate: '', lineItems: [], status: 'draft'
+          } as any);
         }
       } else {
         toast({
@@ -862,6 +927,10 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
       });
     }
   };
+
+  // Determine if there are unsaved changes
+  const currentHash = computeFormHash(formData);
+  const isDirty = currentHash !== savedHashRef.current;
 
   return (
     <div className="space-y-6">
@@ -947,6 +1016,7 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
                     value={formData.orderNumber || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, orderNumber: e.target.value }))}
                     placeholder="Auto-generated if empty"
+                    className={highlightOrderNumber ? 'ring-2 ring-emerald-400 animate-pulse' : ''}
                   />
                 </div>
 
@@ -1664,17 +1734,24 @@ export function CreateOrderForm({ editOrderNumber }: { editOrderNumber?: string 
           <div className="text-sm text-muted-foreground">
             Step {currentStep} of 3
             {currentStep === 2 && ` • ${formData.lineItems.length} materials added`}
+            {formData.orderNumber && ` • Order: ${formData.orderNumber}`}
           </div>
 
           <div className="flex items-center gap-2">
             {currentStep < 3 && (
               <>
-                <Button 
-                  variant="outline"
-                  onClick={() => handleSave('draft')}
-                >
-                  Save as Draft
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline"
+                    onClick={() => handleSave('draft')}
+                    disabled={!isDirty}
+                  >
+                    Save as Draft
+                  </Button>
+                  {inlineSaveMessage && (
+                    <span className="text-xs text-muted-foreground">{inlineSaveMessage}{formData.orderNumber ? ` • ${formData.orderNumber}` : ''}</span>
+                  )}
+                </div>
                 <Button 
                   onClick={handleNext}
                   disabled={currentStep === 2 ? !canGoToStep(3) : false}
