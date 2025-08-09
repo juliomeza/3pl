@@ -1230,6 +1230,16 @@ Global “New Order” button (header right region) performs intelligent reset:
 ### Rationale
 Focused validation, deterministic locking, and explicit reset flow reduce user confusion, protect numbering integrity, and maintain auditability. The mental model is simple: choose type first, save, proceed; use New Order to start over.
 
+### Additional Create Order UX Details (Aug 8 2025 Addendum)
+| Feature | Implementation | Notes |
+| ------- | -------------- | ----- |
+| Multi-Step "Save as Draft" | Draft save button available on Steps 1, 2, 3 | Same server action; persists partial progress with status='draft' |
+| Inline Save Message | `inlineSaveMessage` left-aligned ephemeral text | Avoids toast noise for routine saves; auto-clears via timeout |
+| Order Number Highlight | `highlightOrderNumber` ring + pulse ~1.8s | First assignment emphasis only |
+| Type Change Pre-Lock Hint | Inline message: "Order type changed — number will generate on save" | Only before lock predicate becomes true |
+| Draft Save Enablement | Disabled until meaningful dirty state beyond pristine baseline | Prevents empty placeholder drafts |
+| Dirty Baseline Reset | After successful initial save & on `resetToNewOrder()` | Keeps draft button disabled when appropriate |
+
 ## Dashboard Visual Refresh & Status Chip Harmonization (August 2025)
 
 ### Objectives
@@ -1293,3 +1303,12 @@ All chips include border-* /20 and dark mode variants.
 
 ### Rationale
 Tinted chips reduce visual noise vs solid badges while maintaining status salience; grouping operational statuses improves at-a-glance scanning efficiency.
+
+### Minor UI Enhancements (Aug 8 2025 – Non-Critical)
+| Feature | Description | Notes |
+| ------- | ----------- | ----- |
+| Dialog Backdrop Blur | Order details dialog uses blurred translucent background for depth | backdrop-blur utility applied |
+| AI Assistant 60/40 Layout | Desktop split ~60% chat / 40% visualization panel | Mobile collapses to single column |
+| Dark Mode Card Brightness | Cards slightly lighter for better contrast vs background | Maintain WCAG contrast targets |
+| Shipping/Billing Divider | Subtle horizontal divider improves visual grouping | Muted border color, low opacity |
+| Removed Redundant AI Summary | Suppressed summary when table is only visualization | Reduces scroll noise |

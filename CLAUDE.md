@@ -1126,6 +1126,20 @@ Before merging changes touching create-order-form logic verify:
 ### Rationale Summary
 Focused validation + deterministic locking eliminates confusion, preserves auditability, and keeps the mental model simple: “Choose type first, save once, proceed; use New Order to start over.”
 
+### Additional Create Order UX Details (Aug 8 2025 Addendum)
+Not previously captured but implemented in code during the same work window.
+
+| Feature | Implementation | Notes |
+| ------- | -------------- | ----- |
+| Multi-Step "Save as Draft" | Save button present on Steps 1–3 | Allows persistence before completion of later steps; identical server action, status='draft' |
+| Inline Save Message | `inlineSaveMessage` state renders left-aligned subtle confirmation text | Auto-clears with timeout; reused for order type change hint |
+| Order Number Highlight | `highlightOrderNumber` triggers transient ring + pulse (≈1.8s) on first assignment | Emphasis only on initial generation or first save event |
+| Pre-Lock Type Change Notice | Inline message: "Order type changed — number will generate on save" | Clears automatically after timeout |
+| Draft Save Disable Logic | Disabled until form considered dirty beyond pristine baseline | Prevents creating empty shell drafts |
+| Hash/Dirtiness Handling | Baseline recalculated after reset & successful saves where appropriate | Maintains accurate unsaved change prompts |
+
+Guideline: Avoid stacking toasts for routine draft saves—inline confirmation keeps signal low-noise.
+
 ## Dashboard Visual Refresh & Status Chip Harmonization (August 2025)
 
 Recent UI/UX changes to the shared dashboard not yet previously documented.
@@ -1204,3 +1218,19 @@ Implementation helper: `getStatusColor(status: string)` centralizes class select
 
 ### Rationale
 Tinted chips improve contrast while reducing visual overstimulation. Grouping operational statuses first enhances scannability for time-sensitive monitoring.
+
+### Minor UI Enhancements (Aug 8 2025 – Non‑Critical)
+These refinements are cosmetic/ergonomic and now documented for completeness.
+
+| Feature | Description | Implementation Notes |
+| ------- | ----------- | -------------------- |
+| Dialog Backdrop Blur | Order details (route-driven Dialog) uses semi-transparent blurred backdrop for depth separation | Tailwind + backdrop-blur utility; ensure performance acceptable (small overlay area) |
+| AI Assistant 60/40 Split | Chat layout adjusted to ~60% conversation / 40% visual/content pane for better data viz space | Applied responsive flex-basis; maintain mobile 100% stack |
+| Dark Mode Card Brightness Adjustment | Card backgrounds lightened slightly (from earlier darker shade) to improve contrast against page background | Tailwind custom theme tokens updated; maintain WCAG contrast for text |
+| Divider Enhancements | Subtle divider lines (e.g., between Shipping & Billing in form) add structural clarity | Use muted border color with opacity to avoid visual noise |
+| Removed Redundant Summary Block (AI Table Mode) | Eliminated duplicate “summary” when table is sole visualization | Reduces vertical scroll; logic: skip summary if output already tabular |
+
+Guidelines:
+- Keep blur usage sparing—only for high-focus modals (order details) to avoid cumulative GPU overhead.
+- Preserve 60/40 split only on ≥ lg breakpoints; fall back to single column on small screens.
+- Re-test card contrast if brand palette adjusts; target ≥ 4.5:1 for primary text.
